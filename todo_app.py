@@ -184,8 +184,8 @@ class TodoListItem(QWidget):
         
         # 创建布局
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(5, 2, 5, 2)  # 恢复原来的边距
-        layout.setSpacing(8)  # 恢复原来的间距
+        layout.setContentsMargins(10, 5, 10, 5)  # 增大边距
+        layout.setSpacing(10)  # 增大间距
         
         # 创建完成复选框
         self.checkbox = QCheckBox()
@@ -203,8 +203,9 @@ class TodoListItem(QWidget):
         self.label = QLabel(text)
         font = QFont("Arial", 10)  # 使用系统通用字体
         self.label.setFont(font)
-        self.update_label_style()
         self.label.setAlignment(Qt.AlignVCenter)  # 文本垂直居中
+        self.label.setFixedHeight(44)  # 进一步增加高度以容纳更大的内边距
+        self.label.setStyleSheet("padding: 12px 0px;")  # 增加上下内边距到12像素
         layout.addWidget(self.label, 1)  # 1 表示伸展因子
         
         # 创建截止日期标签
@@ -212,54 +213,51 @@ class TodoListItem(QWidget):
             self.date_label = QLabel(f"截止: {due_date}")
             self.date_label.setStyleSheet("color: gray; font-size: 9pt;")
             layout.addWidget(self.date_label)
-            
-            # 检查是否接近截止日期
-            self.check_due_date()
         
         # 创建按钮容器
         button_container = QWidget()
-        button_container.setFixedHeight(30)  # 增加高度
         button_layout = QHBoxLayout(button_container)
         button_layout.setContentsMargins(0, 0, 0, 0)
-        button_layout.setSpacing(5)  # 增加间距
+        button_layout.setSpacing(10)  # 保持较大的间距
         
-        # 创建编辑按钮 - 使用文本代替图标
-        self.edit_button = QPushButton("编辑")
-        self.edit_button.setFixedSize(40, 26)
-        self.edit_button.setStyleSheet("""
-            QPushButton {
-                border: 1px solid #aaa;
-                border-radius: 3px;
-                padding: 2px;
-                background-color: #f0f0f0;
-            }
-            QPushButton:hover {
-                background-color: #e0e0e0;
-            }
-        """)
-        self.edit_button.clicked.connect(self.on_edit_clicked)
+        # 创建编辑按钮 - 使用图标
+        self.edit_button = QPushButton()
+        self.edit_button.setFixedSize(28, 28)
+        self.edit_button.setIcon(QIcon.fromTheme("document-edit", 
+                                               QApplication.style().standardIcon(QStyle.SP_FileDialogDetailedView)))
+        self.edit_button.setIconSize(QSize(18, 18))
+        self.edit_button.setToolTip("编辑")
         button_layout.addWidget(self.edit_button)
         
-        # 创建删除按钮 - 使用文本代替图标
-        self.delete_button = QPushButton("删除")
-        self.delete_button.setFixedSize(40, 26)
-        self.delete_button.setStyleSheet("""
-            QPushButton {
-                border: 1px solid #aaa;
-                border-radius: 3px;
-                padding: 2px;
-                background-color: #f0f0f0;
-            }
-            QPushButton:hover {
-                background-color: #e0e0e0;
-            }
-        """)
-        self.delete_button.clicked.connect(self.on_delete_clicked)
+        # 创建删除按钮 - 使用图标
+        self.delete_button = QPushButton()
+        self.delete_button.setFixedSize(28, 28)
+        self.delete_button.setIcon(QIcon.fromTheme("edit-delete", 
+                                                 QApplication.style().standardIcon(QStyle.SP_TrashIcon)))
+        self.delete_button.setIconSize(QSize(18, 18))
+        self.delete_button.setToolTip("删除")
         button_layout.addWidget(self.delete_button)
         
-        # 将按钮容器添加到主布局
-        layout.addWidget(button_container)
+        # 将按钮容器添加到主布局，并设置对齐方式使其上移
+        layout.addWidget(button_container, 0, Qt.AlignTop)
         
+        # 设置按钮样式
+        if self.is_dark_mode:
+            self.update_button_dark_mode()
+        else:
+            self.update_button_light_mode()
+            
+        # 连接按钮信号
+        self.edit_button.clicked.connect(self.on_edit_clicked)
+        self.delete_button.clicked.connect(self.on_delete_clicked)
+        
+        # 更新标签样式
+        self.update_label_style()
+        
+        # 检查截止日期
+        if due_date:
+            self.check_due_date()
+            
         self.setLayout(layout)
     
     def update_priority_label(self):
@@ -300,55 +298,49 @@ class TodoListItem(QWidget):
         if self.is_completed:
             if self.is_dark_mode:
                 self.label.setStyleSheet(f"{base_style}color: #888888;")
-                # 更新按钮样式
-                self.update_button_dark_mode()
             else:
                 self.label.setStyleSheet(f"{base_style}color: gray;")
-                # 更新按钮样式
-                self.update_button_light_mode()
         else:
             if self.is_dark_mode:
                 self.label.setStyleSheet(f"{base_style}color: #e0e0e0;")
-                # 更新按钮样式
-                self.update_button_dark_mode()
             else:
                 self.label.setStyleSheet(f"{base_style}color: #333333;")
-                # 更新按钮样式
-                self.update_button_light_mode()
     
     def update_button_dark_mode(self):
         """更新深色模式下的按钮样式"""
-        button_style = """
-            QPushButton {
-                border: 1px solid #555;
-                border-radius: 3px;
-                padding: 2px;
-                background-color: #444;
-                color: #e0e0e0;
-            }
-            QPushButton:hover {
-                background-color: #555;
-            }
-        """
-        self.edit_button.setStyleSheet(button_style)
-        self.delete_button.setStyleSheet(button_style)
+        if hasattr(self, 'edit_button') and hasattr(self, 'delete_button'):
+            button_style = """
+                QPushButton {
+                    border: 1px solid #555;
+                    border-radius: 3px;
+                    padding: 2px;
+                    background-color: #444;
+                    color: #e0e0e0;
+                }
+                QPushButton:hover {
+                    background-color: #555;
+                }
+            """
+            self.edit_button.setStyleSheet(button_style)
+            self.delete_button.setStyleSheet(button_style)
     
     def update_button_light_mode(self):
         """更新浅色模式下的按钮样式"""
-        button_style = """
-            QPushButton {
-                border: 1px solid #aaa;
-                border-radius: 3px;
-                padding: 2px;
-                background-color: #f0f0f0;
-                color: #333;
-            }
-            QPushButton:hover {
-                background-color: #e0e0e0;
-            }
-        """
-        self.edit_button.setStyleSheet(button_style)
-        self.delete_button.setStyleSheet(button_style)
+        if hasattr(self, 'edit_button') and hasattr(self, 'delete_button'):
+            button_style = """
+                QPushButton {
+                    border: 1px solid #aaa;
+                    border-radius: 3px;
+                    padding: 2px;
+                    background-color: #f0f0f0;
+                    color: #333;
+                }
+                QPushButton:hover {
+                    background-color: #e0e0e0;
+                }
+            """
+            self.edit_button.setStyleSheet(button_style)
+            self.delete_button.setStyleSheet(button_style)
     
     def set_dark_mode(self, is_dark):
         self.is_dark_mode = is_dark
@@ -492,18 +484,18 @@ class TodoApp(QMainWindow):
                     background-color: #1e1e1e;
                 }
                 QWidget {
-                    font-family: 'NotoSansSC';
+                    font-family: 'Arial';
                 }
                 QLabel {
                     color: #e0e0e0;
-                    font-family: 'NotoSansSC';
+                    font-family: 'Arial';
                 }
                 QPushButton {
-                    font-family: 'NotoSansSC';
+                    font-family: 'Arial';
                     color: #e0e0e0;
                 }
                 QLineEdit {
-                    font-family: 'NotoSansSC';
+                    font-family: 'Arial';
                     background-color: #2d2d2d;
                     color: #e0e0e0;
                     border: none;
@@ -516,7 +508,7 @@ class TodoApp(QMainWindow):
                 QMenuBar {
                     background-color: #2d2d2d;
                     color: #e0e0e0;
-                    font-family: 'NotoSansSC';
+                    font-family: 'Arial';
                 }
                 QMenuBar::item:selected {
                     background-color: #3d3d3d;
@@ -525,7 +517,7 @@ class TodoApp(QMainWindow):
                     background-color: #2d2d2d;
                     color: #e0e0e0;
                     border: none;
-                    font-family: 'NotoSansSC';
+                    font-family: 'Arial';
                 }
                 QMenu::item:selected {
                     background-color: #3d3d3d;
@@ -533,14 +525,14 @@ class TodoApp(QMainWindow):
                 QStatusBar {
                     background-color: #2d2d2d;
                     color: #e0e0e0;
-                    font-family: 'NotoSansSC';
+                    font-family: 'Arial';
                 }
                 QFrame {
                     background-color: #444444;
                 }
                 QCheckBox {
                     color: #e0e0e0;
-                    font-family: 'NotoSansSC';
+                    font-family: 'Arial';
                 }
             """)
         else:
@@ -549,18 +541,18 @@ class TodoApp(QMainWindow):
                     background-color: #f9f9f9;
                 }
                 QWidget {
-                    font-family: 'NotoSansSC';
+                    font-family: 'Arial';
                 }
                 QLabel {
                     color: #333333;
-                    font-family: 'NotoSansSC';
+                    font-family: 'Arial';
                 }
                 QPushButton {
-                    font-family: 'NotoSansSC';
+                    font-family: 'Arial';
                     color: #333333;
                 }
                 QLineEdit {
-                    font-family: 'NotoSansSC';
+                    font-family: 'Arial';
                     background-color: #f9f9f9;
                     color: #333333;
                     border: none;
@@ -573,20 +565,20 @@ class TodoApp(QMainWindow):
                 QMenuBar {
                     background-color: #f9f9f9;
                     color: #333333;
-                    font-family: 'NotoSansSC';
+                    font-family: 'Arial';
                 }
                 QMenu {
                     background-color: #f9f9f9;
                     color: #333333;
-                    font-family: 'NotoSansSC';
+                    font-family: 'Arial';
                 }
                 QStatusBar {
                     color: #333333;
-                    font-family: 'NotoSansSC';
+                    font-family: 'Arial';
                 }
                 QCheckBox {
                     color: #333333;
-                    font-family: 'NotoSansSC';
+                    font-family: 'Arial';
                 }
             """)
     
@@ -663,7 +655,7 @@ class TodoApp(QMainWindow):
                     padding: 8px;
                     background-color: #2d2d2d;
                     color: #e0e0e0;
-                    font-family: 'NotoSansSC';
+                    font-family: 'Arial';
                 }
                 QLineEdit:focus {
                     border-bottom: 1px solid #2196f3;
@@ -677,7 +669,7 @@ class TodoApp(QMainWindow):
                     padding: 8px;
                     background-color: #f9f9f9;
                     color: #333333;
-                    font-family: 'NotoSansSC';
+                    font-family: 'Arial';
                 }
                 QLineEdit:focus {
                     border-bottom: 1px solid #1976d2;
@@ -692,7 +684,7 @@ class TodoApp(QMainWindow):
                     color: white;
                     border: none;
                     padding: 8px 16px;
-                    font-family: 'NotoSansSC';
+                    font-family: 'Arial';
                 }
                 QPushButton:hover {
                     background-color: #1976d2;
@@ -708,7 +700,7 @@ class TodoApp(QMainWindow):
                     color: white;
                     border: none;
                     padding: 8px 16px;
-                    font-family: 'NotoSansSC';
+                    font-family: 'Arial';
                 }
                 QPushButton:hover {
                     background-color: #1976d2;
@@ -1049,20 +1041,10 @@ class TodoApp(QMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     
-    # 加载字体
-    font_path = source_path("res/NotoSansSC.ttf")
-    if os.path.exists(font_path):
-        # 使用 QFontDatabase 加载字体
-        font_id = QFontDatabase.addApplicationFont(font_path)
-        if font_id != -1:
-            font_families = QFontDatabase.applicationFontFamilies(font_id)
-            if font_families:
-                # 设置应用程序默认字体
-                default_font = QFont(font_families[0], 10)
-                app.setFont(default_font)
-                
-                # 确保所有控件都使用这个字体
-                QApplication.setFont(default_font)
+    # 设置默认字体
+    default_font = QFont("Arial", 10)
+    app.setFont(default_font)
+    QApplication.setFont(default_font)
     
     window = TodoApp()
     window.show()
