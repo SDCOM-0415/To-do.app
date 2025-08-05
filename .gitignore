@@ -82,3 +82,4 @@ poetry.lock
 
 # User data files
 tasks.json
+config.json
