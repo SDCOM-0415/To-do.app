@@ -18,7 +18,7 @@ from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLineEdit, QPushButton, QListWidget, QListWidgetItem, QLabel,
     QMessageBox, QMenu, QCheckBox, QStyle, QSplitter, QFrame,
-    QComboBox, QDateEdit, QDialog, QFormLayout
+    QComboBox, QDateEdit, QDialog, QFormLayout, QSizePolicy
 )
 from PySide6.QtCore import Qt, Signal, Slot, QSize, QTimer, QDate
 from PySide6.QtGui import QIcon, QFont, QColor, QPalette, QAction, QFontDatabase
@@ -184,9 +184,8 @@ class TodoListItem(QWidget):
         
         # 创建布局
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(5, 0, 5, 0)  # 减少上下边距
-        layout.setSpacing(5)  # 调整组件之间的间距
-        layout.setAlignment(Qt.AlignCenter)  # 所有元素居中对齐
+        layout.setContentsMargins(5, 2, 5, 2)  # 恢复原来的边距
+        layout.setSpacing(8)  # 恢复原来的间距
         
         # 创建完成复选框
         self.checkbox = QCheckBox()
@@ -217,35 +216,31 @@ class TodoListItem(QWidget):
             # 检查是否接近截止日期
             self.check_due_date()
         
+        # 创建按钮容器
+        button_container = QWidget()
+        button_container.setFixedHeight(24)  # 与文本高度一致
+        button_layout = QHBoxLayout(button_container)
+        button_layout.setContentsMargins(0, 0, 0, 0)
+        button_layout.setSpacing(2)
+        
         # 创建编辑按钮
         self.edit_button = QPushButton()
         self.edit_button.setIcon(self.style().standardIcon(QStyle.SP_FileDialogDetailedView))
-        self.edit_button.setFixedSize(24, 24)  # 调整按钮大小
-        self.edit_button.setStyleSheet("""
-            QPushButton { 
-                border: none; 
-                padding: 0px; 
-                background-color: transparent;
-                margin-top: 0px;
-            }
-        """)
+        self.edit_button.setFixedSize(24, 24)
+        self.edit_button.setStyleSheet("QPushButton { border: none; }")
         self.edit_button.clicked.connect(self.on_edit_clicked)
-        layout.addWidget(self.edit_button)
+        button_layout.addWidget(self.edit_button)
         
         # 创建删除按钮
         self.delete_button = QPushButton()
         self.delete_button.setIcon(self.style().standardIcon(QStyle.SP_DialogCloseButton))
-        self.delete_button.setFixedSize(24, 24)  # 调整按钮大小
-        self.delete_button.setStyleSheet("""
-            QPushButton { 
-                border: none; 
-                padding: 0px; 
-                background-color: transparent;
-                margin-top: 0px;
-            }
-        """)
+        self.delete_button.setFixedSize(24, 24)
+        self.delete_button.setStyleSheet("QPushButton { border: none; }")
         self.delete_button.clicked.connect(self.on_delete_clicked)
-        layout.addWidget(self.delete_button)
+        button_layout.addWidget(self.delete_button)
+        
+        # 将按钮容器添加到主布局
+        layout.addWidget(button_container)
         
         self.setLayout(layout)
     
