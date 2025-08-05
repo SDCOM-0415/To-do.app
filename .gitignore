@@ -79,3 +79,4 @@ celerybeat.pid
 
 # Poetry
 poetry.lock
+tasks.json

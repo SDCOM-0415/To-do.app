@@ -217,16 +217,16 @@ class TodoListItem(QWidget):
         # 创建编辑按钮
         self.edit_button = QPushButton()
         self.edit_button.setIcon(self.style().standardIcon(QStyle.SP_FileDialogDetailedView))
-        self.edit_button.setFixedSize(24, 24)
-        self.edit_button.setStyleSheet("QPushButton { border: none; }")
+        self.edit_button.setFixedSize(28, 28)  # 增加按钮大小
+        self.edit_button.setStyleSheet("QPushButton { border: none; padding: 2px; }")
         self.edit_button.clicked.connect(self.on_edit_clicked)
         layout.addWidget(self.edit_button)
         
         # 创建删除按钮
         self.delete_button = QPushButton()
         self.delete_button.setIcon(self.style().standardIcon(QStyle.SP_DialogCloseButton))
-        self.delete_button.setFixedSize(24, 24)
-        self.delete_button.setStyleSheet("QPushButton { border: none; }")
+        self.delete_button.setFixedSize(28, 28)  # 增加按钮大小
+        self.delete_button.setStyleSheet("QPushButton { border: none; padding: 2px; }")
         self.delete_button.clicked.connect(self.on_delete_clicked)
         layout.addWidget(self.delete_button)
         
@@ -351,13 +351,13 @@ class TodoApp(QMainWindow):
         self.task_input = QLineEdit()
         self.task_input.setPlaceholderText("输入新任务...")
         self.update_input_style()
-        self.task_input.returnPressed.connect(self.add_task)
+        self.task_input.returnPressed.connect(self.show_quick_add_dialog)
         input_layout.addWidget(self.task_input, 1)  # 1 表示伸展因子
         
         # 创建添加按钮
         self.add_button = QPushButton("添加")
         self.update_button_style()
-        self.add_button.clicked.connect(self.add_task)
+        self.add_button.clicked.connect(self.show_quick_add_dialog)
         input_layout.addWidget(self.add_button)
         
         main_layout.addLayout(input_layout)
@@ -718,19 +718,36 @@ class TodoApp(QMainWindow):
             self.save_tasks()
             self.statusBar().showMessage(f"已添加任务: {task_data['text']}", 3000)
     
-    def add_task(self):
+    def show_quick_add_dialog(self):
         task_text = self.task_input.text().strip()
-        if task_text:
-            # 使用默认值创建任务
+        if not task_text:
+            QMessageBox.warning(self, "提示", "请输入任务内容")
+            return
+            
+        # 创建一个简化版的任务编辑对话框
+        dialog = TaskEditDialog(
+            self,
+            task_text=task_text,
+            priority="中",
+            due_date=QDate.currentDate().addDays(1),
+            is_dark_mode=self.is_dark_mode
+        )
+        
+        if dialog.exec():
+            task_data = dialog.get_task_data()
             self.add_task_to_list(
-                task_text, 
+                task_data["text"], 
                 completed=False,
-                priority="中",
-                due_date=QDate.currentDate().addDays(1).toString("yyyy-MM-dd")
+                priority=task_data["priority"],
+                due_date=task_data["due_date"]
             )
             self.task_input.clear()
             self.save_tasks()
-            self.statusBar().showMessage(f"已添加任务: {task_text}", 3000)
+            self.statusBar().showMessage(f"已添加任务: {task_data['text']}", 3000)
+    
+    def add_task(self):
+        # 保留此方法以兼容可能的快捷键绑定
+        self.show_quick_add_dialog()
     
     def add_task_to_list(self, text, completed=False, priority="中", due_date=None):
         # 创建列表项
