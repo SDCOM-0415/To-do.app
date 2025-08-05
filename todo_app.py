@@ -171,21 +171,21 @@ class TaskEditDialog(QDialog):
 # 自定义待办事项项目组件
 class TodoListItem(QWidget):
     deleted = Signal(QListWidgetItem)
-    task_completed = Signal(QListWidgetItem, bool)  # 重命名信号，避免与属性冲突
+    task_completed = Signal(QListWidgetItem, bool)
     edited = Signal(QListWidgetItem)
     
     def __init__(self, text, parent=None, completed=False, is_dark_mode=False, priority="中", due_date=None):
         super().__init__(parent)
         self.text = text
-        self.is_completed = completed  # 重命名属性，避免与信号冲突
+        self.is_completed = completed
         self.is_dark_mode = is_dark_mode
         self.priority = priority
         self.due_date = due_date if due_date else ""
         
         # 创建布局
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(10, 5, 10, 5)  # 增大边距
-        layout.setSpacing(10)  # 增大间距
+        layout.setContentsMargins(10, 5, 10, 5)
+        layout.setSpacing(10)
         
         # 创建完成复选框
         self.checkbox = QCheckBox()
@@ -201,12 +201,14 @@ class TodoListItem(QWidget):
         
         # 创建任务文本标签
         self.label = QLabel(text)
-        font = QFont("Arial", 10)  # 使用系统通用字体
+        # 使用应用程序的默认字体
+        font = QApplication.font()
+        font.setPointSize(10)
         self.label.setFont(font)
-        self.label.setAlignment(Qt.AlignVCenter)  # 文本垂直居中
-        self.label.setFixedHeight(44)  # 进一步增加高度以容纳更大的内边距
-        self.label.setStyleSheet("padding: 12px 0px;")  # 增加上下内边距到12像素
-        layout.addWidget(self.label, 1)  # 1 表示伸展因子
+        self.label.setAlignment(Qt.AlignVCenter)
+        self.label.setFixedHeight(44)
+        self.label.setStyleSheet("padding: 12px 0px;")
+        layout.addWidget(self.label, 1)
         
         # 创建截止日期标签
         if due_date:
@@ -218,9 +220,9 @@ class TodoListItem(QWidget):
         button_container = QWidget()
         button_layout = QHBoxLayout(button_container)
         button_layout.setContentsMargins(0, 0, 0, 0)
-        button_layout.setSpacing(10)  # 保持较大的间距
+        button_layout.setSpacing(10)
         
-        # 创建编辑按钮 - 使用图标
+        # 创建编辑按钮
         self.edit_button = QPushButton()
         self.edit_button.setFixedSize(28, 28)
         self.edit_button.setIcon(QIcon.fromTheme("document-edit", 
@@ -229,7 +231,7 @@ class TodoListItem(QWidget):
         self.edit_button.setToolTip("编辑")
         button_layout.addWidget(self.edit_button)
         
-        # 创建删除按钮 - 使用图标
+        # 创建删除按钮
         self.delete_button = QPushButton()
         self.delete_button.setFixedSize(28, 28)
         self.delete_button.setIcon(QIcon.fromTheme("edit-delete", 
@@ -238,7 +240,6 @@ class TodoListItem(QWidget):
         self.delete_button.setToolTip("删除")
         button_layout.addWidget(self.delete_button)
         
-        # 将按钮容器添加到主布局，并设置对齐方式使其上移
         layout.addWidget(button_container, 0, Qt.AlignTop)
         
         # 设置按钮样式
@@ -261,7 +262,7 @@ class TodoListItem(QWidget):
         self.setLayout(layout)
     
     def update_priority_label(self):
-        color = PRIORITY_COLORS.get(self.priority, "#ffc107")  # 默认为中优先级
+        color = PRIORITY_COLORS.get(self.priority, "#ffc107")
         self.priority_label.setStyleSheet(f"background-color: {color}; border-radius: 8px;")
         self.priority_label.setToolTip(f"{self.priority}优先级")
     
@@ -274,19 +275,15 @@ class TodoListItem(QWidget):
             days_left = QDate.currentDate().daysTo(due_date)
             
             if days_left < 0:
-                # 已过期
                 self.date_label.setStyleSheet("color: #dc3545; font-size: 9pt; font-weight: bold;")
                 self.date_label.setText(f"已过期: {self.due_date}")
             elif days_left == 0:
-                # 今天到期
                 self.date_label.setStyleSheet("color: #dc3545; font-size: 9pt; font-weight: bold;")
                 self.date_label.setText(f"今天到期")
             elif days_left <= 2:
-                # 即将到期
                 self.date_label.setStyleSheet("color: #ffc107; font-size: 9pt; font-weight: bold;")
                 self.date_label.setText(f"即将到期: {self.due_date}")
             else:
-                # 正常显示
                 self.date_label.setStyleSheet("color: gray; font-size: 9pt;")
                 self.date_label.setText(f"截止: {self.due_date}")
         except Exception:
@@ -307,7 +304,6 @@ class TodoListItem(QWidget):
                 self.label.setStyleSheet(f"{base_style}color: #333333;")
     
     def update_button_dark_mode(self):
-        """更新深色模式下的按钮样式"""
         if hasattr(self, 'edit_button') and hasattr(self, 'delete_button'):
             button_style = """
                 QPushButton {
@@ -325,7 +321,6 @@ class TodoListItem(QWidget):
             self.delete_button.setStyleSheet(button_style)
     
     def update_button_light_mode(self):
-        """更新浅色模式下的按钮样式"""
         if hasattr(self, 'edit_button') and hasattr(self, 'delete_button'):
             button_style = """
                 QPushButton {
@@ -348,7 +343,6 @@ class TodoListItem(QWidget):
         if hasattr(self, 'date_label'):
             self.check_due_date()
         
-        # 根据模式更新按钮样式
         if is_dark:
             self.update_button_dark_mode()
         else:
@@ -361,7 +355,6 @@ class TodoListItem(QWidget):
         self.task_completed.emit(parent_item, self.is_completed)
     
     def on_delete_clicked(self):
-        # 获取父窗口以显示确认对话框
         parent_window = None
         widget = self
         while widget:
@@ -370,7 +363,6 @@ class TodoListItem(QWidget):
                 break
             widget = widget.parent()
         
-        # 显示确认对话框
         reply = QMessageBox.question(
             parent_window or self,
             "确认删除",
@@ -379,7 +371,6 @@ class TodoListItem(QWidget):
             QMessageBox.No
         )
         
-        # 如果用户确认删除，则发出删除信号
         if reply == QMessageBox.Yes:
             parent_item = self.parent_item if hasattr(self, 'parent_item') else None
             self.deleted.emit(parent_item)
@@ -415,7 +406,10 @@ class TodoApp(QMainWindow):
         
         # 创建标题标签
         title_label = QLabel("我的待办事项")
-        title_font = QFont("Arial", 18, QFont.Bold)  # 使用系统通用字体
+        # 使用应用程序的默认字体
+        title_font = QApplication.font()
+        title_font.setPointSize(18)
+        title_font.setBold(True)
         title_label.setFont(title_font)
         title_label.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(title_label)
@@ -428,11 +422,10 @@ class TodoApp(QMainWindow):
         
         # 创建任务列表
         self.todo_list = QListWidget()
-        # 移除方框设计，使用更简洁的样式
         self.update_list_style(remove_borders=True)
         self.todo_list.setContextMenuPolicy(Qt.CustomContextMenu)
         self.todo_list.customContextMenuRequested.connect(self.show_context_menu)
-        main_layout.addWidget(self.todo_list, 1)  # 1 表示伸展因子
+        main_layout.addWidget(self.todo_list, 1)
         
         # 创建输入区域
         input_layout = QHBoxLayout()
@@ -442,7 +435,7 @@ class TodoApp(QMainWindow):
         self.task_input.setPlaceholderText("输入新任务...")
         self.update_input_style()
         self.task_input.returnPressed.connect(self.show_quick_add_dialog)
-        input_layout.addWidget(self.task_input, 1)  # 1 表示伸展因子
+        input_layout.addWidget(self.task_input, 1)
         
         # 创建添加按钮
         self.add_button = QPushButton("添加")
@@ -465,37 +458,28 @@ class TodoApp(QMainWindow):
         # 设置自动保存定时器
         self.auto_save_timer = QTimer(self)
         self.auto_save_timer.timeout.connect(self.save_tasks)
-        self.auto_save_timer.start(30000)  # 每30秒自动保存一次
+        self.auto_save_timer.start(30000)
     
     def detect_dark_mode(self):
-        # 检测系统是否使用深色模式
-        # 这是一个简单的实现，实际上可能需要根据不同平台进行调整
         app = QApplication.instance()
         palette = app.palette()
         bg_color = palette.color(QPalette.Window)
         brightness = (bg_color.red() * 299 + bg_color.green() * 587 + bg_color.blue() * 114) / 1000
-        return brightness < 128  # 如果亮度小于128，认为是深色模式
+        return brightness < 128
     
     def setup_style(self):
-        # 根据深色/浅色模式设置不同的样式
         if self.is_dark_mode:
             self.setStyleSheet("""
                 QMainWindow {
                     background-color: #1e1e1e;
                 }
-                QWidget {
-                    font-family: 'Arial';
-                }
                 QLabel {
                     color: #e0e0e0;
-                    font-family: 'Arial';
                 }
                 QPushButton {
-                    font-family: 'Arial';
                     color: #e0e0e0;
                 }
                 QLineEdit {
-                    font-family: 'Arial';
                     background-color: #2d2d2d;
                     color: #e0e0e0;
                     border: none;
@@ -508,7 +492,6 @@ class TodoApp(QMainWindow):
                 QMenuBar {
                     background-color: #2d2d2d;
                     color: #e0e0e0;
-                    font-family: 'Arial';
                 }
                 QMenuBar::item:selected {
                     background-color: #3d3d3d;
@@ -517,7 +500,6 @@ class TodoApp(QMainWindow):
                     background-color: #2d2d2d;
                     color: #e0e0e0;
                     border: none;
-                    font-family: 'Arial';
                 }
                 QMenu::item:selected {
                     background-color: #3d3d3d;
@@ -525,14 +507,12 @@ class TodoApp(QMainWindow):
                 QStatusBar {
                     background-color: #2d2d2d;
                     color: #e0e0e0;
-                    font-family: 'Arial';
                 }
                 QFrame {
                     background-color: #444444;
                 }
                 QCheckBox {
                     color: #e0e0e0;
-                    font-family: 'Arial';
                 }
             """)
         else:
@@ -540,19 +520,13 @@ class TodoApp(QMainWindow):
                 QMainWindow {
                     background-color: #f9f9f9;
                 }
-                QWidget {
-                    font-family: 'Arial';
-                }
                 QLabel {
                     color: #333333;
-                    font-family: 'Arial';
                 }
                 QPushButton {
-                    font-family: 'Arial';
                     color: #333333;
                 }
                 QLineEdit {
-                    font-family: 'Arial';
                     background-color: #f9f9f9;
                     color: #333333;
                     border: none;
@@ -565,20 +539,16 @@ class TodoApp(QMainWindow):
                 QMenuBar {
                     background-color: #f9f9f9;
                     color: #333333;
-                    font-family: 'Arial';
                 }
                 QMenu {
                     background-color: #f9f9f9;
                     color: #333333;
-                    font-family: 'Arial';
                 }
                 QStatusBar {
                     color: #333333;
-                    font-family: 'Arial';
                 }
                 QCheckBox {
                     color: #333333;
-                    font-family: 'Arial';
                 }
             """)
     
@@ -655,7 +625,6 @@ class TodoApp(QMainWindow):
                     padding: 8px;
                     background-color: #2d2d2d;
                     color: #e0e0e0;
-                    font-family: 'Arial';
                 }
                 QLineEdit:focus {
                     border-bottom: 1px solid #2196f3;
@@ -669,7 +638,6 @@ class TodoApp(QMainWindow):
                     padding: 8px;
                     background-color: #f9f9f9;
                     color: #333333;
-                    font-family: 'Arial';
                 }
                 QLineEdit:focus {
                     border-bottom: 1px solid #1976d2;
@@ -677,66 +645,44 @@ class TodoApp(QMainWindow):
             """)
     
     def update_button_style(self):
-        if self.is_dark_mode:
-            self.add_button.setStyleSheet("""
-                QPushButton {
-                    background-color: #2196f3;
-                    color: white;
-                    border: none;
-                    padding: 8px 16px;
-                    font-family: 'Arial';
-                }
-                QPushButton:hover {
-                    background-color: #1976d2;
-                }
-                QPushButton:pressed {
-                    background-color: #0d47a1;
-                }
-            """)
-        else:
-            self.add_button.setStyleSheet("""
-                QPushButton {
-                    background-color: #2196f3;
-                    color: white;
-                    border: none;
-                    padding: 8px 16px;
-                    font-family: 'Arial';
-                }
-                QPushButton:hover {
-                    background-color: #1976d2;
-                }
-                QPushButton:pressed {
-                    background-color: #0d47a1;
-                }
-            """)
+        button_style = """
+            QPushButton {
+                background-color: #2196f3;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+            }
+            QPushButton:hover {
+                background-color: #1976d2;
+            }
+            QPushButton:pressed {
+                background-color: #0d47a1;
+            }
+        """
+        self.add_button.setStyleSheet(button_style)
     
     def create_menu(self):
-        # 创建菜单栏
         menubar = self.menuBar()
         
         # 文件菜单
         file_menu = menubar.addMenu("文件")
         
-        # 新建任务操作
         new_task_action = QAction("新建任务", self)
         new_task_action.setShortcut("Ctrl+N")
         new_task_action.triggered.connect(self.show_new_task_dialog)
         file_menu.addAction(new_task_action)
         
-        # 保存操作
         save_action = QAction("保存", self)
         save_action.setShortcut("Ctrl+S")
         save_action.triggered.connect(self.save_tasks)
         file_menu.addAction(save_action)
         
-        # 清空操作
         clear_action = QAction("清空所有任务", self)
         clear_action.triggered.connect(self.clear_tasks)
         file_menu.addAction(clear_action)
         
         file_menu.addSeparator()
         
-        # 退出操作
         exit_action = QAction("退出", self)
         exit_action.setShortcut("Ctrl+Q")
         exit_action.triggered.connect(self.close)
@@ -745,26 +691,22 @@ class TodoApp(QMainWindow):
         # 视图菜单
         view_menu = menubar.addMenu("视图")
         
-        # 显示已完成任务
         self.show_completed_action = QAction("显示已完成任务", self)
         self.show_completed_action.setCheckable(True)
         self.show_completed_action.setChecked(True)
         self.show_completed_action.triggered.connect(self.filter_tasks)
         view_menu.addAction(self.show_completed_action)
         
-        # 按优先级排序
         sort_priority_action = QAction("按优先级排序", self)
         sort_priority_action.triggered.connect(lambda: self.sort_tasks("priority"))
         view_menu.addAction(sort_priority_action)
         
-        # 按截止日期排序
         sort_date_action = QAction("按截止日期排序", self)
         sort_date_action.triggered.connect(lambda: self.sort_tasks("due_date"))
         view_menu.addAction(sort_date_action)
         
         view_menu.addSeparator()
         
-        # 切换深色/浅色模式
         self.toggle_theme_action = QAction("切换深色/浅色模式", self)
         self.toggle_theme_action.triggered.connect(self.toggle_theme)
         view_menu.addAction(self.toggle_theme_action)
@@ -772,20 +714,17 @@ class TodoApp(QMainWindow):
         # 帮助菜单
         help_menu = menubar.addMenu("帮助")
         
-        # 关于操作
         about_action = QAction("关于", self)
         about_action.triggered.connect(self.show_about)
         help_menu.addAction(about_action)
     
     def toggle_theme(self):
-        # 切换深色/浅色模式
         self.is_dark_mode = not self.is_dark_mode
         self.setup_style()
         self.update_list_style(remove_borders=True)
         self.update_input_style()
         self.update_button_style()
         
-        # 更新所有任务项的样式
         for i in range(self.todo_list.count()):
             item = self.todo_list.item(i)
             widget = self.todo_list.itemWidget(item)
@@ -814,7 +753,6 @@ class TodoApp(QMainWindow):
             QMessageBox.warning(self, "提示", "请输入任务内容")
             return
             
-        # 创建一个简化版的任务编辑对话框
         dialog = TaskEditDialog(
             self,
             task_text=task_text,
@@ -835,16 +773,10 @@ class TodoApp(QMainWindow):
             self.save_tasks()
             self.statusBar().showMessage(f"已添加任务: {task_data['text']}", 3000)
     
-    def add_task(self):
-        # 保留此方法以兼容可能的快捷键绑定
-        self.show_quick_add_dialog()
-    
     def add_task_to_list(self, text, completed=False, priority="中", due_date=None):
-        # 创建列表项
         item = QListWidgetItem()
         self.todo_list.addItem(item)
         
-        # 创建自定义部件
         widget = TodoListItem(
             text, 
             completed=completed, 
@@ -854,13 +786,10 @@ class TodoApp(QMainWindow):
         )
         widget.parent_item = item
         widget.deleted.connect(self.remove_task)
-        widget.task_completed.connect(self.task_completed)  # 使用重命名后的信号
+        widget.task_completed.connect(self.task_completed)
         widget.edited.connect(self.edit_task)
         
-        # 设置项目大小
         item.setSizeHint(widget.sizeHint())
-        
-        # 设置自定义部件
         self.todo_list.setItemWidget(item, widget)
     
     def remove_task(self, item):
@@ -888,16 +817,13 @@ class TodoApp(QMainWindow):
             if dialog.exec():
                 task_data = dialog.get_task_data()
                 
-                # 更新任务数据
                 widget.text = task_data["text"]
                 widget.priority = task_data["priority"]
                 widget.due_date = task_data["due_date"]
                 
-                # 更新UI
                 widget.label.setText(task_data["text"])
                 widget.update_priority_label()
                 
-                # 更新或添加截止日期标签
                 if hasattr(widget, 'date_label'):
                     widget.date_label.setText(f"截止: {task_data['due_date']}")
                     widget.check_due_date()
@@ -915,17 +841,14 @@ class TodoApp(QMainWindow):
         if item:
             context_menu = QMenu(self)
             
-            # 编辑操作
             edit_action = QAction("编辑", self)
             edit_action.triggered.connect(lambda: self.edit_task(item))
             context_menu.addAction(edit_action)
             
-            # 删除操作
             delete_action = QAction("删除", self)
             delete_action.triggered.connect(lambda: self.remove_task(item))
             context_menu.addAction(delete_action)
             
-            # 显示菜单
             context_menu.exec_(self.todo_list.mapToGlobal(position))
     
     def filter_tasks(self):
@@ -933,7 +856,7 @@ class TodoApp(QMainWindow):
         for i in range(self.todo_list.count()):
             item = self.todo_list.item(i)
             widget = self.todo_list.itemWidget(item)
-            if widget.is_completed:  # 使用重命名后的属性
+            if widget.is_completed:
                 item.setHidden(not show_completed)
     
     def clear_tasks(self):
@@ -964,7 +887,6 @@ class TodoApp(QMainWindow):
                 with open(self.tasks_file, "r", encoding="utf-8") as f:
                     tasks = json.load(f)
                     for task in tasks:
-                        # 获取任务属性，如果不存在则使用默认值
                         text = task.get("text", "")
                         completed = task.get("completed", False)
                         priority = task.get("priority", "中")
@@ -976,7 +898,6 @@ class TodoApp(QMainWindow):
                 QMessageBox.warning(self, "加载错误", f"无法加载任务: {str(e)}")
     
     def sort_tasks(self, sort_by):
-        # 收集所有任务
         tasks = []
         for i in range(self.todo_list.count()):
             item = self.todo_list.item(i)
@@ -990,19 +911,14 @@ class TodoApp(QMainWindow):
                 "due_date": widget.due_date if hasattr(widget, 'due_date') else ""
             })
         
-        # 从列表中移除所有项目
         self.todo_list.clear()
         
-        # 根据指定字段排序
         if sort_by == "priority":
-            # 优先级排序: 高 > 中 > 低
             priority_order = {"高": 0, "中": 1, "低": 2}
             tasks.sort(key=lambda x: (x["completed"], priority_order.get(x["priority"], 1)))
         elif sort_by == "due_date":
-            # 截止日期排序
             tasks.sort(key=lambda x: (x["completed"], x["due_date"] if x["due_date"] else "9999-99-99"))
         
-        # 重新添加排序后的任务
         for task in tasks:
             self.add_task_to_list(
                 task["text"],
@@ -1021,7 +937,7 @@ class TodoApp(QMainWindow):
             widget = self.todo_list.itemWidget(item)
             tasks.append({
                 "text": widget.text,
-                "completed": widget.is_completed,  # 使用重命名后的属性
+                "completed": widget.is_completed,
                 "priority": widget.priority,
                 "due_date": widget.due_date,
                 "created_at": datetime.now().isoformat()
@@ -1041,10 +957,30 @@ class TodoApp(QMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     
-    # 设置默认字体
-    default_font = QFont("Arial", 10)
-    app.setFont(default_font)
-    QApplication.setFont(default_font)
+    # 加载自定义字体
+    font_path = source_path("res/NotoSansSC.ttf")
+    if os.path.exists(font_path):
+        font_id = QFontDatabase.addApplicationFont(font_path)
+        if font_id != -1:
+            font_families = QFontDatabase.applicationFontFamilies(font_id)
+            if font_families:
+                # 使用加载的中文字体
+                default_font = QFont(font_families[0], 10)
+                app.setFont(default_font)
+                QApplication.setFont(default_font)
+                print(f"已加载字体: {font_families[0]}")
+            else:
+                print("字体加载失败，使用默认字体")
+                default_font = QFont("Arial", 10)
+                app.setFont(default_font)
+        else:
+            print("字体文件加载失败，使用默认字体")
+            default_font = QFont("Arial", 10)
+            app.setFont(default_font)
+    else:
+        print(f"字体文件不存在: {font_path}，使用默认字体")
+        default_font = QFont("Arial", 10)
+        app.setFont(default_font)
     
     window = TodoApp()
     window.show()
