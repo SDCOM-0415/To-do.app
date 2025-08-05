@@ -32,7 +32,7 @@ ENV/
 .DS_Store
 *.sublime-workspace
 *.sublime-project
-.codebuddy
+.codebuddy/
 
 # Unit test / coverage reports
 htmlcov/
@@ -79,4 +79,6 @@ celerybeat.pid
 
 # Poetry
 poetry.lock
+
+# User data files
 tasks.json
