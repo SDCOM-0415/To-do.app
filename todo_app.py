@@ -54,11 +54,10 @@ class TodoItem(RecycleDataViewBehavior, Label):
         app = App.get_running_app()
         app.root.todo_list.remove_item(self.text)
 
-# 更新KV语言，移除on_release的直接绑定
+# 更新KV语言，移除on_release的直接绑定，使用系统默认字体
 Builder.load_string("""
 <TodoItem@RecycleDataViewBehavior+Label>:  
     text: root.text  
-    font_name: 'res/PingFang.ttc'  # 指定字体文件名
     size_hint_y: None  
     height: dp(50)  
 
@@ -101,13 +100,13 @@ class TodoApp(App):
         self.todo_list = ToDoList()  # 确保todo_list是App类的一个属性，以便在TodoItem中访问
 
         # 添加输入框
-        self.input_field = TextInput(text='', font_name= 'res/PingFang.ttc', multiline=False)
+        self.input_field = TextInput(text='', multiline=False)
 
         # 添加添加按钮
-        add_button = Button(text='添加', font_name= 'res/PingFang.ttc', on_press=self.add_task)
+        add_button = Button(text='添加', on_press=self.add_task)
         
         # 添加删除按钮
-        remove_button = Button(text='删除', font_name='res/PingFang.ttc', on_press=self.remove_task)
+        remove_button = Button(text='删除', on_press=self.remove_task)
         root.add_widget(remove_button)
 
         # 添加待办事项列表
