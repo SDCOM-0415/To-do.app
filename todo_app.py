@@ -5,6 +5,7 @@
 待办事项应用程序
 使用 PySide6 (Qt for Python) 构建的现代化跨平台待办事项应用
 支持 Windows, macOS 和 Linux
+支持深色/浅色模式自动切换
 """
 
 import os
@@ -19,7 +20,7 @@ from PySide6.QtWidgets import (
     QMessageBox, QMenu, QCheckBox, QStyle, QSplitter, QFrame
 )
 from PySide6.QtCore import Qt, Signal, Slot, QSize, QTimer
-from PySide6.QtGui import QIcon, QFont, QColor, QPalette, QAction
+from PySide6.QtGui import QIcon, QFont, QColor, QPalette, QAction, QFontDatabase
 
 # 资源文件目录访问
 def source_path(relative_path):
@@ -35,10 +36,11 @@ class TodoListItem(QWidget):
     deleted = Signal(QListWidgetItem)
     completed = Signal(QListWidgetItem, bool)
     
-    def __init__(self, text, parent=None, completed=False):
+    def __init__(self, text, parent=None, completed=False, is_dark_mode=False):
         super().__init__(parent)
         self.text = text
         self.completed = completed
+        self.is_dark_mode = is_dark_mode
         
         # 创建布局
         layout = QHBoxLayout(self)
@@ -54,8 +56,7 @@ class TodoListItem(QWidget):
         self.label = QLabel(text)
         font = QFont("NotoSansSC", 10)
         self.label.setFont(font)
-        if completed:
-            self.label.setStyleSheet("text-decoration: line-through; color: gray;")
+        self.update_label_style()
         layout.addWidget(self.label, 1)  # 1 表示伸展因子
         
         # 创建删除按钮
@@ -68,13 +69,26 @@ class TodoListItem(QWidget):
         
         self.setLayout(layout)
     
+    def update_label_style(self):
+        if self.completed:
+            if self.is_dark_mode:
+                self.label.setStyleSheet("text-decoration: line-through; color: #888888;")
+            else:
+                self.label.setStyleSheet("text-decoration: line-through; color: gray;")
+        else:
+            if self.is_dark_mode:
+                self.label.setStyleSheet("color: #e0e0e0;")
+            else:
+                self.label.setStyleSheet("color: #333333;")
+    
+    def set_dark_mode(self, is_dark):
+        self.is_dark_mode = is_dark
+        self.update_label_style()
+    
     def on_state_changed(self, state):
         is_completed = (state == Qt.CheckState.Checked.value)
-        if is_completed:
-            self.label.setStyleSheet("text-decoration: line-through; color: gray;")
-        else:
-            self.label.setStyleSheet("")
         self.completed = is_completed
+        self.update_label_style()
         parent_item = self.parent_item if hasattr(self, 'parent_item') else None
         self.completed.emit(parent_item, is_completed)
     
@@ -91,6 +105,9 @@ class TodoApp(QMainWindow):
         self.setWindowTitle("SDCOM的待办项目")
         self.setWindowIcon(QIcon(source_path("res/icon.jpg")))
         self.setMinimumSize(500, 600)
+        
+        # 检测系统主题
+        self.is_dark_mode = self.detect_dark_mode()
         
         # 设置应用样式
         self.setup_style()
@@ -119,21 +136,7 @@ class TodoApp(QMainWindow):
         
         # 创建任务列表
         self.todo_list = QListWidget()
-        self.todo_list.setStyleSheet("""
-            QListWidget {
-                background-color: #f5f5f5;
-                border-radius: 8px;
-                padding: 5px;
-            }
-            QListWidget::item {
-                border-bottom: 1px solid #e0e0e0;
-                padding: 5px;
-            }
-            QListWidget::item:selected {
-                background-color: #e3f2fd;
-                color: #1976d2;
-            }
-        """)
+        self.update_list_style()
         self.todo_list.setContextMenuPolicy(Qt.CustomContextMenu)
         self.todo_list.customContextMenuRequested.connect(self.show_context_menu)
         main_layout.addWidget(self.todo_list, 1)  # 1 表示伸展因子
@@ -144,39 +147,15 @@ class TodoApp(QMainWindow):
         # 创建任务输入框
         self.task_input = QLineEdit()
         self.task_input.setPlaceholderText("输入新任务...")
-        self.task_input.setStyleSheet("""
-            QLineEdit {
-                border: 1px solid #ccc;
-                border-radius: 4px;
-                padding: 8px;
-                background-color: white;
-            }
-            QLineEdit:focus {
-                border: 1px solid #1976d2;
-            }
-        """)
+        self.update_input_style()
         self.task_input.returnPressed.connect(self.add_task)
         input_layout.addWidget(self.task_input, 1)  # 1 表示伸展因子
         
         # 创建添加按钮
-        add_button = QPushButton("添加")
-        add_button.setStyleSheet("""
-            QPushButton {
-                background-color: #2196f3;
-                color: white;
-                border: none;
-                border-radius: 4px;
-                padding: 8px 16px;
-            }
-            QPushButton:hover {
-                background-color: #1976d2;
-            }
-            QPushButton:pressed {
-                background-color: #0d47a1;
-            }
-        """)
-        add_button.clicked.connect(self.add_task)
-        input_layout.addWidget(add_button)
+        self.add_button = QPushButton("添加")
+        self.update_button_style()
+        self.add_button.clicked.connect(self.add_task)
+        input_layout.addWidget(self.add_button)
         
         main_layout.addLayout(input_layout)
         
@@ -195,20 +174,171 @@ class TodoApp(QMainWindow):
         self.auto_save_timer.timeout.connect(self.save_tasks)
         self.auto_save_timer.start(30000)  # 每30秒自动保存一次
     
+    def detect_dark_mode(self):
+        # 检测系统是否使用深色模式
+        # 这是一个简单的实现，实际上可能需要根据不同平台进行调整
+        app = QApplication.instance()
+        palette = app.palette()
+        bg_color = palette.color(QPalette.Window)
+        brightness = (bg_color.red() * 299 + bg_color.green() * 587 + bg_color.blue() * 114) / 1000
+        return brightness < 128  # 如果亮度小于128，认为是深色模式
+    
     def setup_style(self):
-        # 设置应用程序样式
-        self.setStyleSheet("""
-            QMainWindow {
-                background-color: #f9f9f9;
-            }
-            QLabel {
-                color: #333333;
-            }
+        # 根据深色/浅色模式设置不同的样式
+        if self.is_dark_mode:
+            self.setStyleSheet("""
+                QMainWindow {
+                    background-color: #1e1e1e;
+                }
+                QLabel {
+                    color: #e0e0e0;
+                }
+                QPushButton {
+                    font-family: 'NotoSansSC';
+                }
+                QLineEdit {
+                    font-family: 'NotoSansSC';
+                    background-color: #2d2d2d;
+                    color: #e0e0e0;
+                    border: 1px solid #444444;
+                }
+                QListWidget {
+                    background-color: #2d2d2d;
+                    color: #e0e0e0;
+                    border: 1px solid #444444;
+                }
+                QMenuBar {
+                    background-color: #2d2d2d;
+                    color: #e0e0e0;
+                }
+                QMenuBar::item:selected {
+                    background-color: #3d3d3d;
+                }
+                QMenu {
+                    background-color: #2d2d2d;
+                    color: #e0e0e0;
+                    border: 1px solid #444444;
+                }
+                QMenu::item:selected {
+                    background-color: #3d3d3d;
+                }
+                QStatusBar {
+                    background-color: #2d2d2d;
+                    color: #e0e0e0;
+                }
+                QFrame {
+                    background-color: #444444;
+                }
+                QCheckBox {
+                    color: #e0e0e0;
+                }
+            """)
+        else:
+            self.setStyleSheet("""
+                QMainWindow {
+                    background-color: #f9f9f9;
+                }
+                QLabel {
+                    color: #333333;
+                }
+                QPushButton {
+                    font-family: 'NotoSansSC';
+                }
+                QLineEdit {
+                    font-family: 'NotoSansSC';
+                    background-color: white;
+                    color: #333333;
+                    border: 1px solid #cccccc;
+                }
+                QListWidget {
+                    background-color: white;
+                    color: #333333;
+                    border: 1px solid #cccccc;
+                }
+                QCheckBox {
+                    color: #333333;
+                }
+            """)
+    
+    def update_list_style(self):
+        if self.is_dark_mode:
+            self.todo_list.setStyleSheet("""
+                QListWidget {
+                    background-color: #2d2d2d;
+                    border-radius: 8px;
+                    padding: 5px;
+                }
+                QListWidget::item {
+                    border-bottom: 1px solid #444444;
+                    padding: 5px;
+                }
+                QListWidget::item:selected {
+                    background-color: #3d3d3d;
+                    color: #2196f3;
+                }
+            """)
+        else:
+            self.todo_list.setStyleSheet("""
+                QListWidget {
+                    background-color: #f5f5f5;
+                    border-radius: 8px;
+                    padding: 5px;
+                }
+                QListWidget::item {
+                    border-bottom: 1px solid #e0e0e0;
+                    padding: 5px;
+                }
+                QListWidget::item:selected {
+                    background-color: #e3f2fd;
+                    color: #1976d2;
+                }
+            """)
+    
+    def update_input_style(self):
+        if self.is_dark_mode:
+            self.task_input.setStyleSheet("""
+                QLineEdit {
+                    border: 1px solid #444444;
+                    border-radius: 4px;
+                    padding: 8px;
+                    background-color: #2d2d2d;
+                    color: #e0e0e0;
+                    font-family: 'NotoSansSC';
+                }
+                QLineEdit:focus {
+                    border: 1px solid #2196f3;
+                }
+            """)
+        else:
+            self.task_input.setStyleSheet("""
+                QLineEdit {
+                    border: 1px solid #ccc;
+                    border-radius: 4px;
+                    padding: 8px;
+                    background-color: white;
+                    color: #333333;
+                    font-family: 'NotoSansSC';
+                }
+                QLineEdit:focus {
+                    border: 1px solid #1976d2;
+                }
+            """)
+    
+    def update_button_style(self):
+        self.add_button.setStyleSheet("""
             QPushButton {
+                background-color: #2196f3;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 8px 16px;
                 font-family: 'NotoSansSC';
             }
-            QLineEdit {
-                font-family: 'NotoSansSC';
+            QPushButton:hover {
+                background-color: #1976d2;
+            }
+            QPushButton:pressed {
+                background-color: #0d47a1;
             }
         """)
     
@@ -248,6 +378,11 @@ class TodoApp(QMainWindow):
         self.show_completed_action.triggered.connect(self.filter_tasks)
         view_menu.addAction(self.show_completed_action)
         
+        # 切换深色/浅色模式
+        self.toggle_theme_action = QAction("切换深色/浅色模式", self)
+        self.toggle_theme_action.triggered.connect(self.toggle_theme)
+        view_menu.addAction(self.toggle_theme_action)
+        
         # 帮助菜单
         help_menu = menubar.addMenu("帮助")
         
@@ -255,6 +390,24 @@ class TodoApp(QMainWindow):
         about_action = QAction("关于", self)
         about_action.triggered.connect(self.show_about)
         help_menu.addAction(about_action)
+    
+    def toggle_theme(self):
+        # 切换深色/浅色模式
+        self.is_dark_mode = not self.is_dark_mode
+        self.setup_style()
+        self.update_list_style()
+        self.update_input_style()
+        self.update_button_style()
+        
+        # 更新所有任务项的样式
+        for i in range(self.todo_list.count()):
+            item = self.todo_list.item(i)
+            widget = self.todo_list.itemWidget(item)
+            if hasattr(widget, 'set_dark_mode'):
+                widget.set_dark_mode(self.is_dark_mode)
+        
+        theme_name = "深色" if self.is_dark_mode else "浅色"
+        self.statusBar().showMessage(f"已切换到{theme_name}模式", 3000)
     
     def add_task(self):
         task_text = self.task_input.text().strip()
@@ -270,7 +423,7 @@ class TodoApp(QMainWindow):
         self.todo_list.addItem(item)
         
         # 创建自定义部件
-        widget = TodoListItem(text, completed=completed)
+        widget = TodoListItem(text, completed=completed, is_dark_mode=self.is_dark_mode)
         widget.parent_item = item
         widget.deleted.connect(self.remove_task)
         widget.completed.connect(self.task_completed)
@@ -331,7 +484,8 @@ class TodoApp(QMainWindow):
             "SDCOM的待办项目 v1.0\n\n"
             "一个简单而美观的跨平台待办事项应用\n"
             "使用 PySide6 (Qt for Python) 构建\n\n"
-            "支持 Windows, macOS 和 Linux"
+            "支持 Windows, macOS 和 Linux\n"
+            "支持深色/浅色模式自动切换"
         )
     
     def load_tasks(self):
@@ -370,10 +524,17 @@ class TodoApp(QMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     
-    # 尝试加载字体
+    # 加载字体
     font_path = source_path("res/NotoSansSC.ttf")
     if os.path.exists(font_path):
-        QFont.insertSubstitution("NotoSansSC", font_path)
+        # 使用 QFontDatabase 加载字体
+        font_id = QFontDatabase.addApplicationFont(font_path)
+        if font_id != -1:
+            font_families = QFontDatabase.applicationFontFamilies(font_id)
+            if font_families:
+                # 设置应用程序默认字体
+                default_font = QFont(font_families[0], 10)
+                app.setFont(default_font)
     
     window = TodoApp()
     window.show()
