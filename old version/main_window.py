@@ -74,7 +74,8 @@ class TodoMainWindow(QMainWindow):
         # 任务输入框
         self.task_input = QLineEdit()
         self.task_input.setPlaceholderText(TextConfig.INPUT_PLACEHOLDER)
-        self.task_input.setFixedHeight(ENTRY_HEIGHT)
+        self.task_input.setFixedHeight(ENTRY_HEIGHT + 10)  # 增加高度
+        self.task_input.setMinimumWidth(400)  # 设置最小宽度
         self.task_input.returnPressed.connect(self.show_quick_add_dialog)
         input_layout.addWidget(self.task_input, 1)
         
@@ -127,8 +128,9 @@ class TodoMainWindow(QMainWindow):
                     background-color: #2d2d2d;
                     color: #e0e0e0;
                     border: 1px solid #555555;
-                    padding: 8px;
-                    border-radius: 4px;
+                    padding: 12px 16px;
+                    border-radius: 6px;
+                    font-size: 12px;
                 }
                 QLineEdit:focus {
                     border: 1px solid #2196f3;
@@ -201,8 +203,9 @@ class TodoMainWindow(QMainWindow):
                     background-color: white;
                     color: #333333;
                     border: 1px solid #cccccc;
-                    padding: 8px;
-                    border-radius: 4px;
+                    padding: 12px 16px;
+                    border-radius: 6px;
+                    font-size: 12px;
                 }
                 QLineEdit:focus {
                     border: 1px solid #1976d2;
