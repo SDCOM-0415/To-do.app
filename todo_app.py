@@ -1021,39 +1021,39 @@ class TodoApp(QMainWindow):
         file_menu.addAction(exit_action)
         
         # 视图菜单
-        view_menu = menubar.addMenu("视图")
+        view_menu = menubar.addMenu("👁️ 视图")
         
-        self.show_completed_action = QAction("显示已完成任务", self)
+        self.show_completed_action = QAction("✅ 显示已完成任务", self)
         self.show_completed_action.setCheckable(True)
         self.show_completed_action.setChecked(True)
         self.show_completed_action.triggered.connect(self.filter_tasks)
         view_menu.addAction(self.show_completed_action)
         
-        sort_priority_action = QAction("按优先级排序", self)
+        sort_priority_action = QAction("🔥 按优先级排序", self)
         sort_priority_action.triggered.connect(lambda: self.sort_tasks("priority"))
         view_menu.addAction(sort_priority_action)
         
-        sort_date_action = QAction("按截止日期排序", self)
+        sort_date_action = QAction("📅 按截止日期排序", self)
         sort_date_action.triggered.connect(lambda: self.sort_tasks("due_date"))
         view_menu.addAction(sort_date_action)
         
         view_menu.addSeparator()
         
-        self.toggle_theme_action = QAction("切换深色/浅色模式", self)
+        self.toggle_theme_action = QAction("🌙 切换深色/浅色模式", self)
         self.toggle_theme_action.triggered.connect(self.toggle_theme)
         view_menu.addAction(self.toggle_theme_action)
         
         # 调试菜单
-        debug_menu = menubar.addMenu("调试")
+        debug_menu = menubar.addMenu("🔧 调试")
         
-        debug_borders_action = QAction("检测边框状态", self)
+        debug_borders_action = QAction("🔍 检测界面边框状态", self)
         debug_borders_action.triggered.connect(self.debug_listwidget_borders)
         debug_menu.addAction(debug_borders_action)
         
         # 帮助菜单
-        help_menu = menubar.addMenu("帮助")
+        help_menu = menubar.addMenu("❓ 帮助")
         
-        about_action = QAction("关于", self)
+        about_action = QAction("ℹ️ 关于本程序", self)
         about_action.triggered.connect(self.show_about)
         help_menu.addAction(about_action)
     
@@ -1071,8 +1071,8 @@ class TodoApp(QMainWindow):
             if hasattr(widget, 'set_dark_mode'):
                 widget.set_dark_mode(self.is_dark_mode)
         
-        theme_name = "深色" if self.is_dark_mode else "浅色"
-        self.statusBar().showMessage(f"已切换到{theme_name}模式", 3000)
+        theme_name = "🌙 深色" if self.is_dark_mode else "☀️ 浅色"
+        self.statusBar().showMessage(f"✨ 已切换到{theme_name}模式", 3000)
     
     def show_new_task_dialog(self):
         dialog = TaskEditDialog(self, is_dark_mode=self.is_dark_mode)
@@ -1085,7 +1085,7 @@ class TodoApp(QMainWindow):
                 due_date=task_data["due_date"]
             )
             self.save_tasks()
-            self.statusBar().showMessage(f"已添加任务: {task_data['text']}", 3000)
+            self.statusBar().showMessage(f"✅ 任务添加成功: {task_data['text']}", 3000)
     
     def show_quick_add_dialog(self):
         task_text = self.task_input.text().strip()
@@ -1111,7 +1111,7 @@ class TodoApp(QMainWindow):
             )
             self.task_input.clear()
             self.save_tasks()
-            self.statusBar().showMessage(f"已添加任务: {task_data['text']}", 3000)
+            self.statusBar().showMessage(f"✅ 快速添加成功: {task_data['text']}", 3000)
     
     def add_task_to_list(self, text, completed=False, priority="中", due_date=None):
         item = QListWidgetItem()
