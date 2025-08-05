@@ -6,6 +6,7 @@
 使用 PySide6 (Qt for Python) 构建的现代化跨平台待办事项应用
 支持 Windows, macOS 和 Linux
 支持深色/浅色模式自动切换
+彻底去除所有界面元素边框
 """
 
 import os
@@ -21,7 +22,7 @@ from PySide6.QtWidgets import (
     QComboBox, QDateEdit, QDialog, QFormLayout, QSizePolicy
 )
 from PySide6.QtCore import Qt, Signal, Slot, QSize, QTimer, QDate
-from PySide6.QtGui import QIcon, QFont, QColor, QPalette, QAction, QFontDatabase
+from PySide6.QtGui import QIcon, QFont, QColor, QPalette, QAction, QFontDatabase, QPainter
 
 # 资源文件目录访问
 def source_path(relative_path):
@@ -55,6 +56,8 @@ class TaskEditDialog(QDialog):
                 }
                 QLabel {
                     color: #e0e0e0;
+                    border: none;
+                    background: transparent;
                 }
                 QLineEdit {
                     background-color: #3d3d3d;
@@ -207,13 +210,28 @@ class TodoListItem(QWidget):
         self.label.setFont(font)
         self.label.setAlignment(Qt.AlignVCenter)
         self.label.setFixedHeight(44)
-        self.label.setStyleSheet("padding: 12px 0px;")
+        
+        # 强制设置QFrame属性，彻底去除边框
+        self.label.setFrameShape(QLabel.NoFrame)
+        self.label.setFrameShadow(QLabel.Plain)
+        self.label.setLineWidth(0)
+        self.label.setMidLineWidth(0)
+        
+        # 阻断父样式继承和系统样式
+        self.label.setAttribute(Qt.WA_StyledBackground, False)
+        self.label.setAttribute(Qt.WA_NoSystemBackground, True)
+        
+        # 设置布局边距为0，防止被误认为边框
+        self.label.setContentsMargins(0, 0, 0, 0)
+        
+        # 简化的无边框样式 - 避免过度复杂化，去除文字阴影
+        self.label.setStyleSheet("border: none; background: transparent; padding: 12px 0px; text-shadow: none;")
         layout.addWidget(self.label, 1)
         
         # 创建截止日期标签
         if due_date:
             self.date_label = QLabel(f"截止: {due_date}")
-            self.date_label.setStyleSheet("color: gray; font-size: 9pt;")
+            self.date_label.setStyleSheet("color: gray; font-size: 9pt; border: none; background: transparent;")
             layout.addWidget(self.date_label)
         
         # 创建按钮容器
@@ -289,19 +307,46 @@ class TodoListItem(QWidget):
         except Exception:
             pass
     
+
     def update_label_style(self):
+        """简化的标签样式更新 - 专注于核心功能"""
+        
+        # 基础样式：删除线和颜色
         base_style = "text-decoration: line-through; " if self.is_completed else ""
         
+        # 简洁的无边框样式
         if self.is_completed:
             if self.is_dark_mode:
-                self.label.setStyleSheet(f"{base_style}color: #888888;")
+                self.label.setStyleSheet(f"border: none; background: transparent; padding: 12px 0px; {base_style}color: #888888;")
             else:
-                self.label.setStyleSheet(f"{base_style}color: gray;")
+                self.label.setStyleSheet(f"border: none; background: transparent; padding: 12px 0px; {base_style}color: gray;")
         else:
             if self.is_dark_mode:
-                self.label.setStyleSheet(f"{base_style}color: #e0e0e0;")
+                self.label.setStyleSheet(f"border: none; background: transparent; padding: 12px 0px; {base_style}color: #e0e0e0;")
             else:
-                self.label.setStyleSheet(f"{base_style}color: #333333;")
+                self.label.setStyleSheet(f"border: none; background: transparent; padding: 12px 0px; {base_style}color: #333333;")
+    
+    def debug_border_detection(self):
+        """调试方法：临时设置背景色来检测边框是否存在"""
+        print("=== 边框调试信息 ===")
+        print(f"Frame Shape: {self.label.frameShape()}")
+        print(f"Frame Shadow: {self.label.frameShadow()}")
+        print(f"Line Width: {self.label.lineWidth()}")
+        print(f"Mid Line Width: {self.label.midLineWidth()}")
+        print(f"Contents Margins: {self.label.contentsMargins()}")
+        print(f"WA_StyledBackground: {self.label.testAttribute(Qt.WA_StyledBackground)}")
+        print(f"WA_NoSystemBackground: {self.label.testAttribute(Qt.WA_NoSystemBackground)}")
+        
+        # 临时设置红色背景来可视化边框
+        self.label.setStyleSheet("""
+            QLabel {
+                background-color: rgba(255, 0, 0, 0.3) !important;
+                border: 2px solid blue !important;
+                margin: 0px;
+                padding: 12px 0px;
+            }
+        """)
+        print("已设置调试样式，请检查界面中的红色背景和蓝色边框")
     
     def update_button_dark_mode(self):
         if hasattr(self, 'edit_button') and hasattr(self, 'delete_button'):
@@ -385,7 +430,7 @@ class TodoApp(QMainWindow):
         super().__init__()
         
         # 设置窗口属性
-        self.setWindowTitle("SDCOM的待办项目")
+        self.setWindowTitle("SDCOM 待办事项管理器")
         self.setWindowIcon(QIcon(source_path("res/icon.jpg")))
         self.setMinimumSize(500, 600)
         
@@ -422,6 +467,10 @@ class TodoApp(QMainWindow):
         
         # 创建任务列表
         self.todo_list = QListWidget()
+        
+        # 彻底去除QListWidget的所有边框、焦点框和装饰性元素
+        self.setup_borderless_listwidget()
+        
         self.update_list_style(remove_borders=True)
         self.todo_list.setContextMenuPolicy(Qt.CustomContextMenu)
         self.todo_list.customContextMenuRequested.connect(self.show_context_menu)
@@ -446,7 +495,7 @@ class TodoApp(QMainWindow):
         main_layout.addLayout(input_layout)
         
         # 创建状态栏
-        self.statusBar().showMessage("准备就绪")
+        self.statusBar().showMessage("🚀 系统已就绪，开始管理您的待办事项")
         
         # 创建菜单栏
         self.create_menu()
@@ -460,6 +509,107 @@ class TodoApp(QMainWindow):
         self.auto_save_timer.timeout.connect(self.save_tasks)
         self.auto_save_timer.start(30000)
     
+    def setup_borderless_listwidget(self):
+        """彻底去除QListWidget的所有边框、焦点框和装饰性元素"""
+        
+        # 1. 设置QFrame属性，去除控件边框
+        self.todo_list.setFrameShape(QListWidget.NoFrame)
+        self.todo_list.setFrameShadow(QListWidget.Plain)
+        self.todo_list.setLineWidth(0)
+        self.todo_list.setMidLineWidth(0)
+        
+        # 2. 焦点策略调整 - 保留键盘导航但去除焦点框
+        self.todo_list.setFocusPolicy(Qt.StrongFocus)
+        
+        # 3. 阻断系统样式继承
+        self.todo_list.setAttribute(Qt.WA_StyledBackground, False)
+        self.todo_list.setAttribute(Qt.WA_NoSystemBackground, True)
+        
+        # 4. 设置选择行为，保持功能性
+        self.todo_list.setSelectionBehavior(QListWidget.SelectRows)
+        self.todo_list.setSelectionMode(QListWidget.SingleSelection)
+        
+        # 5. 终极样式表 - 彻底去除所有边框和焦点框
+        borderless_style = """
+            QListWidget {
+                border: none !important;
+                border-top: none !important;
+                border-bottom: none !important;
+                border-left: none !important;
+                border-right: none !important;
+                outline: none !important;
+                outline-width: 0px !important;
+                outline-style: none !important;
+                selection-background-color: transparent;
+                show-decoration-selected: 0;
+                alternate-background-color: transparent;
+            }
+            QListWidget::item {
+                border: none !important;
+                border-top: none !important;
+                border-bottom: none !important;
+                border-left: none !important;
+                border-right: none !important;
+                outline: none !important;
+                outline-width: 0px !important;
+                outline-style: none !important;
+                padding: 0px;
+                margin: 0px;
+            }
+            QListWidget::item:selected {
+                border: none !important;
+                outline: none !important;
+                background: rgba(33, 150, 243, 0.2) !important;
+            }
+            QListWidget::item:hover {
+                border: none !important;
+                outline: none !important;
+            }
+            QListWidget::item:focus {
+                border: none !important;
+                outline: none !important;
+            }
+            QScrollBar:vertical {
+                border: none !important;
+                background: transparent;
+                width: 12px;
+            }
+            QScrollBar::handle:vertical {
+                background: rgba(128, 128, 128, 0.3);
+                border-radius: 6px;
+                border: none !important;
+            }
+        """
+        
+        self.todo_list.setStyleSheet(borderless_style)
+        
+        # 6. 调试信息输出
+        print(f"当前样式引擎: {QApplication.style().objectName()}")
+        print("QListWidget无边框设置完成")
+    
+    def debug_listwidget_borders(self):
+        """调试方法：检测QListWidget边框状态"""
+        print("=== QListWidget边框调试信息 ===")
+        print(f"Frame Shape: {self.todo_list.frameShape()}")
+        print(f"Frame Shadow: {self.todo_list.frameShadow()}")
+        print(f"Line Width: {self.todo_list.lineWidth()}")
+        print(f"Focus Policy: {self.todo_list.focusPolicy()}")
+        print(f"Selection Behavior: {self.todo_list.selectionBehavior()}")
+        
+        # 临时设置红色边框进行可视化调试
+        debug_style = """
+            QListWidget {
+                border: 2px solid red !important;
+                background-color: rgba(255, 255, 0, 0.1) !important;
+            }
+            QListWidget::item {
+                border: 1px solid blue !important;
+                background-color: rgba(0, 255, 0, 0.1) !important;
+            }
+        """
+        self.todo_list.setStyleSheet(debug_style)
+        print("已设置调试样式，请检查界面中的红色和蓝色边框")
+
     def detect_dark_mode(self):
         app = QApplication.instance()
         palette = app.palette()
@@ -468,180 +618,362 @@ class TodoApp(QMainWindow):
         return brightness < 128
     
     def setup_style(self):
+        # 全局边框重置 - 彻底去除所有边框
+        global_border_reset = """
+            * {
+                border: none !important;
+                border-top: none !important;
+                border-bottom: none !important;
+                border-left: none !important;
+                border-right: none !important;
+                outline: none !important;
+            }
+        """
+        
         if self.is_dark_mode:
-            self.setStyleSheet("""
+            self.setStyleSheet(global_border_reset + """
                 QMainWindow {
                     background-color: #1e1e1e;
+                    border: none !important;
                 }
                 QLabel {
                     color: #e0e0e0;
+                    border: none !important;
+                    background: transparent;
+                }
+                QLabel:hover {
+                    border: none !important;
                 }
                 QPushButton {
                     color: #e0e0e0;
+                    border: none !important;
                 }
                 QLineEdit {
                     background-color: #2d2d2d;
                     color: #e0e0e0;
-                    border: none;
+                    border: none !important;
+                }
+                QLineEdit:focus {
+                    border: 1px solid #2196f3 !important;
                 }
                 QListWidget {
                     background-color: #2d2d2d;
                     color: #e0e0e0;
-                    border: none;
+                    border: none !important;
+                    outline: none !important;
+                }
+                QListWidget::item {
+                    border: none !important;
+                    border-top: none !important;
+                    border-bottom: none !important;
+                    outline: none !important;
+                }
+                QListWidget::item:selected {
+                    border: none !important;
+                    outline: none !important;
+                }
+                QListWidget::item:hover {
+                    border: none !important;
+                    outline: none !important;
                 }
                 QMenuBar {
                     background-color: #2d2d2d;
                     color: #e0e0e0;
+                    border: none !important;
+                }
+                QMenuBar::item {
+                    background: transparent;
+                    border: none !important;
+                    padding: 4px 8px;
                 }
                 QMenuBar::item:selected {
                     background-color: #3d3d3d;
+                    border: none !important;
                 }
                 QMenu {
                     background-color: #2d2d2d;
                     color: #e0e0e0;
-                    border: none;
+                    border: none !important;
+                }
+                QMenu::item {
+                    background: transparent;
+                    border: none !important;
+                    padding: 4px 16px;
                 }
                 QMenu::item:selected {
                     background-color: #3d3d3d;
+                    border: none !important;
                 }
                 QStatusBar {
                     background-color: #2d2d2d;
                     color: #e0e0e0;
+                    border: none !important;
                 }
                 QFrame {
                     background-color: #444444;
+                    border: none !important;
                 }
                 QCheckBox {
                     color: #e0e0e0;
+                    border: none !important;
+                }
+                QWidget {
+                    border: none !important;
                 }
             """)
         else:
-            self.setStyleSheet("""
+            self.setStyleSheet(global_border_reset + """
                 QMainWindow {
                     background-color: #f9f9f9;
+                    border: none !important;
                 }
                 QLabel {
                     color: #333333;
+                    border: none !important;
+                    background: transparent;
+                }
+                QLabel:hover {
+                    border: none !important;
                 }
                 QPushButton {
                     color: #333333;
+                    border: none !important;
                 }
                 QLineEdit {
                     background-color: #f9f9f9;
                     color: #333333;
-                    border: none;
+                    border: none !important;
+                }
+                QLineEdit:focus {
+                    border: 1px solid #1976d2 !important;
                 }
                 QListWidget {
                     background-color: #f9f9f9;
                     color: #333333;
-                    border: none;
+                    border: none !important;
+                    outline: none !important;
+                }
+                QListWidget::item {
+                    border: none !important;
+                    border-top: none !important;
+                    border-bottom: none !important;
+                    outline: none !important;
+                }
+                QListWidget::item:selected {
+                    border: none !important;
+                    outline: none !important;
+                }
+                QListWidget::item:hover {
+                    border: none !important;
+                    outline: none !important;
                 }
                 QMenuBar {
                     background-color: #f9f9f9;
                     color: #333333;
+                    border: none !important;
+                }
+                QMenuBar::item {
+                    background: transparent;
+                    border: none !important;
+                    padding: 4px 8px;
+                }
+                QMenuBar::item:selected {
+                    background-color: #e0e0e0;
+                    border: none !important;
                 }
                 QMenu {
                     background-color: #f9f9f9;
                     color: #333333;
+                    border: none !important;
+                }
+                QMenu::item {
+                    background: transparent;
+                    border: none !important;
+                    padding: 4px 16px;
+                }
+                QMenu::item:selected {
+                    background-color: #e0e0e0;
+                    border: none !important;
                 }
                 QStatusBar {
                     color: #333333;
+                    border: none !important;
+                    background: transparent;
                 }
                 QCheckBox {
                     color: #333333;
+                    border: none !important;
+                    background: transparent;
+                }
+                QWidget {
+                    border: none !important;
                 }
             """)
     
     def update_list_style(self, remove_borders=False):
+        # 彻底的边框重置样式
+        border_reset = """
+            border: none !important;
+            border-top: none !important;
+            border-bottom: none !important;
+            border-left: none !important;
+            border-right: none !important;
+            outline: none !important;
+        """
+        
         if self.is_dark_mode:
             if remove_borders:
-                self.todo_list.setStyleSheet("""
-                    QListWidget {
+                self.todo_list.setStyleSheet(f"""
+                    QListWidget {{
                         background-color: #2d2d2d;
                         padding: 5px;
-                        border: none;
-                    }
-                    QListWidget::item {
+                        {border_reset}
+                    }}
+                    QListWidget::item {{
                         padding: 5px;
-                    }
-                    QListWidget::item:selected {
+                        {border_reset}
+                    }}
+                    QListWidget::item:selected {{
                         background-color: #3d3d3d;
                         color: #2196f3;
-                    }
+                        {border_reset}
+                    }}
+                    QListWidget::item:hover {{
+                        {border_reset}
+                    }}
+                    QListWidget::item:focus {{
+                        {border_reset}
+                    }}
                 """)
             else:
-                self.todo_list.setStyleSheet("""
-                    QListWidget {
+                self.todo_list.setStyleSheet(f"""
+                    QListWidget {{
                         background-color: #2d2d2d;
                         padding: 5px;
-                    }
-                    QListWidget::item {
+                        {border_reset}
+                    }}
+                    QListWidget::item {{
                         border-bottom: 1px solid #444444;
                         padding: 5px;
-                    }
-                    QListWidget::item:selected {
+                        border-top: none !important;
+                        border-left: none !important;
+                        border-right: none !important;
+                        outline: none !important;
+                    }}
+                    QListWidget::item:selected {{
                         background-color: #3d3d3d;
                         color: #2196f3;
-                    }
+                        border-top: none !important;
+                        border-left: none !important;
+                        border-right: none !important;
+                        outline: none !important;
+                    }}
+                    QListWidget::item:hover {{
+                        border-top: none !important;
+                        border-left: none !important;
+                        border-right: none !important;
+                        outline: none !important;
+                    }}
                 """)
         else:
             if remove_borders:
-                self.todo_list.setStyleSheet("""
-                    QListWidget {
+                self.todo_list.setStyleSheet(f"""
+                    QListWidget {{
                         background-color: #f9f9f9;
                         padding: 5px;
-                        border: none;
-                    }
-                    QListWidget::item {
+                        {border_reset}
+                    }}
+                    QListWidget::item {{
                         padding: 5px;
-                    }
-                    QListWidget::item:selected {
+                        {border_reset}
+                    }}
+                    QListWidget::item:selected {{
                         background-color: #e3f2fd;
                         color: #1976d2;
-                    }
+                        {border_reset}
+                    }}
+                    QListWidget::item:hover {{
+                        {border_reset}
+                    }}
+                    QListWidget::item:focus {{
+                        {border_reset}
+                    }}
                 """)
             else:
-                self.todo_list.setStyleSheet("""
-                    QListWidget {
+                self.todo_list.setStyleSheet(f"""
+                    QListWidget {{
                         background-color: #f5f5f5;
                         padding: 5px;
-                    }
-                    QListWidget::item {
+                        {border_reset}
+                    }}
+                    QListWidget::item {{
                         border-bottom: 1px solid #e0e0e0;
                         padding: 5px;
-                    }
-                    QListWidget::item:selected {
+                        border-top: none !important;
+                        border-left: none !important;
+                        border-right: none !important;
+                        outline: none !important;
+                    }}
+                    QListWidget::item:selected {{
                         background-color: #e3f2fd;
                         color: #1976d2;
-                    }
+                        border-top: none !important;
+                        border-left: none !important;
+                        border-right: none !important;
+                        outline: none !important;
+                    }}
+                    QListWidget::item:hover {{
+                        border-top: none !important;
+                        border-left: none !important;
+                        border-right: none !important;
+                        outline: none !important;
+                    }}
                 """)
     
     def update_input_style(self):
+        # 彻底的边框重置，包括所有状态
+        border_reset = """
+            border: none !important;
+            border-top: none !important;
+            border-bottom: none !important;
+            border-left: none !important;
+            border-right: none !important;
+            outline: none !important;
+        """
+        
         if self.is_dark_mode:
-            self.task_input.setStyleSheet("""
-                QLineEdit {
-                    border: none;
-                    border-bottom: 1px solid #444444;
+            self.task_input.setStyleSheet(f"""
+                QLineEdit {{
+                    {border_reset}
+                    border-radius: 4px;
                     padding: 8px;
                     background-color: #2d2d2d;
                     color: #e0e0e0;
-                }
-                QLineEdit:focus {
-                    border-bottom: 1px solid #2196f3;
-                }
+                }}
+                QLineEdit:focus {{
+                    border: 1px solid #2196f3 !important;
+                    border-radius: 4px;
+                }}
+                QLineEdit:hover {{
+                    {border_reset}
+                }}
             """)
         else:
-            self.task_input.setStyleSheet("""
-                QLineEdit {
-                    border: none;
-                    border-bottom: 1px solid #ccc;
+            self.task_input.setStyleSheet(f"""
+                QLineEdit {{
+                    {border_reset}
+                    border-radius: 4px;
                     padding: 8px;
-                    background-color: #f9f9f9;
+                    background-color: white;
                     color: #333333;
-                }
-                QLineEdit:focus {
-                    border-bottom: 1px solid #1976d2;
-                }
+                }}
+                QLineEdit:focus {{
+                    border: 1px solid #1976d2 !important;
+                    border-radius: 4px;
+                }}
+                QLineEdit:hover {{
+                    {border_reset}
+                }}
             """)
     
     def update_button_style(self):
@@ -665,25 +997,25 @@ class TodoApp(QMainWindow):
         menubar = self.menuBar()
         
         # 文件菜单
-        file_menu = menubar.addMenu("文件")
+        file_menu = menubar.addMenu("📁 文件")
         
-        new_task_action = QAction("新建任务", self)
+        new_task_action = QAction("📝 新建任务", self)
         new_task_action.setShortcut("Ctrl+N")
         new_task_action.triggered.connect(self.show_new_task_dialog)
         file_menu.addAction(new_task_action)
         
-        save_action = QAction("保存", self)
+        save_action = QAction("💾 保存任务", self)
         save_action.setShortcut("Ctrl+S")
         save_action.triggered.connect(self.save_tasks)
         file_menu.addAction(save_action)
         
-        clear_action = QAction("清空所有任务", self)
+        clear_action = QAction("🗑️ 清空所有任务", self)
         clear_action.triggered.connect(self.clear_tasks)
         file_menu.addAction(clear_action)
         
         file_menu.addSeparator()
         
-        exit_action = QAction("退出", self)
+        exit_action = QAction("🚪 退出程序", self)
         exit_action.setShortcut("Ctrl+Q")
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
@@ -711,6 +1043,13 @@ class TodoApp(QMainWindow):
         self.toggle_theme_action.triggered.connect(self.toggle_theme)
         view_menu.addAction(self.toggle_theme_action)
         
+        # 调试菜单
+        debug_menu = menubar.addMenu("调试")
+        
+        debug_borders_action = QAction("检测边框状态", self)
+        debug_borders_action.triggered.connect(self.debug_listwidget_borders)
+        debug_menu.addAction(debug_borders_action)
+        
         # 帮助菜单
         help_menu = menubar.addMenu("帮助")
         
@@ -721,6 +1060,7 @@ class TodoApp(QMainWindow):
     def toggle_theme(self):
         self.is_dark_mode = not self.is_dark_mode
         self.setup_style()
+        self.setup_borderless_listwidget()  # 重新设置无边框样式
         self.update_list_style(remove_borders=True)
         self.update_input_style()
         self.update_button_style()
@@ -829,7 +1169,7 @@ class TodoApp(QMainWindow):
                     widget.check_due_date()
                 else:
                     widget.date_label = QLabel(f"截止: {task_data['due_date']}")
-                    widget.date_label.setStyleSheet("color: gray; font-size: 9pt;")
+                    widget.date_label.setStyleSheet("color: gray; font-size: 9pt; border: none; background: transparent;")
                     widget.layout().insertWidget(widget.layout().count() - 2, widget.date_label)
                     widget.check_due_date()
                 
@@ -874,11 +1214,12 @@ class TodoApp(QMainWindow):
         QMessageBox.about(
             self,
             "关于待办事项应用",
-            "SDCOM的待办项目 v1.0\n\n"
+            "SDCOM的待办项目 v2.0\n\n"
             "一个简单而美观的跨平台待办事项应用\n"
             "使用 PySide6 (Qt for Python) 构建\n\n"
             "支持 Windows, macOS 和 Linux\n"
-            "支持深色/浅色模式自动切换"
+            "支持深色/浅色模式自动切换\n"
+            "彻底去除所有界面元素边框"
         )
     
     def load_tasks(self):
@@ -956,6 +1297,47 @@ class TodoApp(QMainWindow):
 # 运行应用程序
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    
+    # 强制设置样式引擎，确保跨平台一致性
+    app.setStyle("Fusion")
+    
+    # 全局边框重置 - 彻底去除系统默认边框
+    app.setStyleSheet("""
+        * {
+            border: none !important;
+            border-top: none !important;
+            border-bottom: none !important;
+            border-left: none !important;
+            border-right: none !important;
+            outline: none !important;
+        }
+        QWidget {
+            border: none !important;
+        }
+        QLabel {
+            border: none !important;
+            background: transparent;
+        }
+        QListWidget {
+            border: none !important;
+            outline: none !important;
+        }
+        QListWidget::item {
+            border: none !important;
+            outline: none !important;
+        }
+        QListWidget::item:selected {
+            border: none !important;
+            outline: none !important;
+        }
+        QListWidget::item:focus {
+            border: none !important;
+            outline: none !important;
+        }
+        QLineEdit {
+            border: none !important;
+        }
+    """)
     
     # 加载自定义字体
     font_path = source_path("res/NotoSansSC.ttf")
