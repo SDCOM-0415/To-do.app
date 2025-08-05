@@ -12,6 +12,7 @@ from models import Task
 from database import task_db
 from config import app_config
 from ui_components import TaskEditDialog, TaskItem, StatisticsFrame
+from settings_dialog import SettingsDialog
 
 class TodoApp(ctk.CTk):
     """主应用程序类"""
@@ -375,8 +376,41 @@ class TodoApp(ctk.CTk):
     
     def show_settings(self):
         """显示设置对话框"""
-        # 这里可以实现设置对话框
-        messagebox.showinfo("设置", "设置功能开发中...")
+        dialog = SettingsDialog(self, callback=self.on_settings_changed)
+    
+    def on_settings_changed(self):
+        """设置更改后的回调"""
+        try:
+            # 重新应用主题
+            self.setup_theme()
+            
+            # 刷新任务列表以应用新的颜色设置
+            self.refresh_tasks()
+            
+            # 更新窗口大小（如果需要）
+            window_size = app_config.get("window_size", "900x700")
+            current_geometry = self.geometry()
+            current_size = current_geometry.split('+')[0]  # 获取当前窗口大小部分
+            if current_size != window_size:
+                self.geometry(window_size)
+            
+            # 更新显示选项
+            show_completed = app_config.get("show_completed", True)
+            self.show_completed_var.set(show_completed)
+            
+            # 更新统计面板显示状态
+            show_statistics = app_config.get("show_statistics", True)
+            if hasattr(self, 'stats_frame'):
+                if show_statistics:
+                    self.stats_frame.pack(fill="x", padx=10, pady=10)
+                else:
+                    self.stats_frame.pack_forget()
+            
+            self.show_status_message("设置已应用")
+            
+        except Exception as e:
+            print(f"应用设置时发生错误: {e}")
+            self.show_status_message("设置应用时发生错误")
     
     def clear_completed_tasks(self):
         """清除已完成的任务"""
