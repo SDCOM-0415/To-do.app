@@ -201,7 +201,7 @@ class TodoListItem(QWidget):
         
         # 创建任务文本标签
         self.label = QLabel(text)
-        font = QFont("NotoSansSC", 10)
+        font = QFont("Arial", 10)  # 使用系统通用字体
         self.label.setFont(font)
         self.update_label_style()
         self.label.setAlignment(Qt.AlignVCenter)  # 文本垂直居中
@@ -218,24 +218,42 @@ class TodoListItem(QWidget):
         
         # 创建按钮容器
         button_container = QWidget()
-        button_container.setFixedHeight(24)  # 与文本高度一致
+        button_container.setFixedHeight(30)  # 增加高度
         button_layout = QHBoxLayout(button_container)
         button_layout.setContentsMargins(0, 0, 0, 0)
-        button_layout.setSpacing(2)
+        button_layout.setSpacing(5)  # 增加间距
         
-        # 创建编辑按钮
-        self.edit_button = QPushButton()
-        self.edit_button.setIcon(self.style().standardIcon(QStyle.SP_FileDialogDetailedView))
-        self.edit_button.setFixedSize(24, 24)
-        self.edit_button.setStyleSheet("QPushButton { border: none; }")
+        # 创建编辑按钮 - 使用文本代替图标
+        self.edit_button = QPushButton("编辑")
+        self.edit_button.setFixedSize(40, 26)
+        self.edit_button.setStyleSheet("""
+            QPushButton {
+                border: 1px solid #aaa;
+                border-radius: 3px;
+                padding: 2px;
+                background-color: #f0f0f0;
+            }
+            QPushButton:hover {
+                background-color: #e0e0e0;
+            }
+        """)
         self.edit_button.clicked.connect(self.on_edit_clicked)
         button_layout.addWidget(self.edit_button)
         
-        # 创建删除按钮
-        self.delete_button = QPushButton()
-        self.delete_button.setIcon(self.style().standardIcon(QStyle.SP_DialogCloseButton))
-        self.delete_button.setFixedSize(24, 24)
-        self.delete_button.setStyleSheet("QPushButton { border: none; }")
+        # 创建删除按钮 - 使用文本代替图标
+        self.delete_button = QPushButton("删除")
+        self.delete_button.setFixedSize(40, 26)
+        self.delete_button.setStyleSheet("""
+            QPushButton {
+                border: 1px solid #aaa;
+                border-radius: 3px;
+                padding: 2px;
+                background-color: #f0f0f0;
+            }
+            QPushButton:hover {
+                background-color: #e0e0e0;
+            }
+        """)
         self.delete_button.clicked.connect(self.on_delete_clicked)
         button_layout.addWidget(self.delete_button)
         
@@ -282,19 +300,67 @@ class TodoListItem(QWidget):
         if self.is_completed:
             if self.is_dark_mode:
                 self.label.setStyleSheet(f"{base_style}color: #888888;")
+                # 更新按钮样式
+                self.update_button_dark_mode()
             else:
                 self.label.setStyleSheet(f"{base_style}color: gray;")
+                # 更新按钮样式
+                self.update_button_light_mode()
         else:
             if self.is_dark_mode:
                 self.label.setStyleSheet(f"{base_style}color: #e0e0e0;")
+                # 更新按钮样式
+                self.update_button_dark_mode()
             else:
                 self.label.setStyleSheet(f"{base_style}color: #333333;")
+                # 更新按钮样式
+                self.update_button_light_mode()
+    
+    def update_button_dark_mode(self):
+        """更新深色模式下的按钮样式"""
+        button_style = """
+            QPushButton {
+                border: 1px solid #555;
+                border-radius: 3px;
+                padding: 2px;
+                background-color: #444;
+                color: #e0e0e0;
+            }
+            QPushButton:hover {
+                background-color: #555;
+            }
+        """
+        self.edit_button.setStyleSheet(button_style)
+        self.delete_button.setStyleSheet(button_style)
+    
+    def update_button_light_mode(self):
+        """更新浅色模式下的按钮样式"""
+        button_style = """
+            QPushButton {
+                border: 1px solid #aaa;
+                border-radius: 3px;
+                padding: 2px;
+                background-color: #f0f0f0;
+                color: #333;
+            }
+            QPushButton:hover {
+                background-color: #e0e0e0;
+            }
+        """
+        self.edit_button.setStyleSheet(button_style)
+        self.delete_button.setStyleSheet(button_style)
     
     def set_dark_mode(self, is_dark):
         self.is_dark_mode = is_dark
         self.update_label_style()
         if hasattr(self, 'date_label'):
             self.check_due_date()
+        
+        # 根据模式更新按钮样式
+        if is_dark:
+            self.update_button_dark_mode()
+        else:
+            self.update_button_light_mode()
     
     def on_state_changed(self, state):
         self.is_completed = (state == Qt.CheckState.Checked.value)
@@ -303,8 +369,28 @@ class TodoListItem(QWidget):
         self.task_completed.emit(parent_item, self.is_completed)
     
     def on_delete_clicked(self):
-        parent_item = self.parent_item if hasattr(self, 'parent_item') else None
-        self.deleted.emit(parent_item)
+        # 获取父窗口以显示确认对话框
+        parent_window = None
+        widget = self
+        while widget:
+            if isinstance(widget, QMainWindow):
+                parent_window = widget
+                break
+            widget = widget.parent()
+        
+        # 显示确认对话框
+        reply = QMessageBox.question(
+            parent_window or self,
+            "确认删除",
+            f"确定要删除任务 '{self.text}' 吗？",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+        )
+        
+        # 如果用户确认删除，则发出删除信号
+        if reply == QMessageBox.Yes:
+            parent_item = self.parent_item if hasattr(self, 'parent_item') else None
+            self.deleted.emit(parent_item)
         
     def on_edit_clicked(self):
         parent_item = self.parent_item if hasattr(self, 'parent_item') else None
@@ -337,7 +423,7 @@ class TodoApp(QMainWindow):
         
         # 创建标题标签
         title_label = QLabel("我的待办事项")
-        title_font = QFont("NotoSansSC", 18, QFont.Bold)
+        title_font = QFont("Arial", 18, QFont.Bold)  # 使用系统通用字体
         title_label.setFont(title_font)
         title_label.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(title_label)
