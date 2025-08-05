@@ -184,7 +184,9 @@ class TodoListItem(QWidget):
         
         # 创建布局
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(5, 2, 5, 2)
+        layout.setContentsMargins(5, 0, 5, 0)  # 减少上下边距
+        layout.setSpacing(5)  # 调整组件之间的间距
+        layout.setAlignment(Qt.AlignCenter)  # 所有元素居中对齐
         
         # 创建完成复选框
         self.checkbox = QCheckBox()
@@ -203,6 +205,7 @@ class TodoListItem(QWidget):
         font = QFont("NotoSansSC", 10)
         self.label.setFont(font)
         self.update_label_style()
+        self.label.setAlignment(Qt.AlignVCenter)  # 文本垂直居中
         layout.addWidget(self.label, 1)  # 1 表示伸展因子
         
         # 创建截止日期标签
@@ -217,16 +220,30 @@ class TodoListItem(QWidget):
         # 创建编辑按钮
         self.edit_button = QPushButton()
         self.edit_button.setIcon(self.style().standardIcon(QStyle.SP_FileDialogDetailedView))
-        self.edit_button.setFixedSize(28, 28)  # 增加按钮大小
-        self.edit_button.setStyleSheet("QPushButton { border: none; padding: 2px; }")
+        self.edit_button.setFixedSize(24, 24)  # 调整按钮大小
+        self.edit_button.setStyleSheet("""
+            QPushButton { 
+                border: none; 
+                padding: 0px; 
+                background-color: transparent;
+                margin-top: 0px;
+            }
+        """)
         self.edit_button.clicked.connect(self.on_edit_clicked)
         layout.addWidget(self.edit_button)
         
         # 创建删除按钮
         self.delete_button = QPushButton()
         self.delete_button.setIcon(self.style().standardIcon(QStyle.SP_DialogCloseButton))
-        self.delete_button.setFixedSize(28, 28)  # 增加按钮大小
-        self.delete_button.setStyleSheet("QPushButton { border: none; padding: 2px; }")
+        self.delete_button.setFixedSize(24, 24)  # 调整按钮大小
+        self.delete_button.setStyleSheet("""
+            QPushButton { 
+                border: none; 
+                padding: 0px; 
+                background-color: transparent;
+                margin-top: 0px;
+            }
+        """)
         self.delete_button.clicked.connect(self.on_delete_clicked)
         layout.addWidget(self.delete_button)
         
