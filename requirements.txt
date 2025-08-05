@@ -1,3 +1,12 @@
 # 待办事项应用程序依赖
-PySide6>=6.4.0  # Qt for Python
+PySide6>=6.4.0  # Qt for Python - 主要GUI框架
 pyinstaller>=5.6.2  # 用于打包应用程序
+
+# 注意：以下模块为Python内置模块，无需单独安装
+# uuid - UUID生成
+# json - JSON数据处理
+# datetime - 日期时间处理
+# os - 操作系统接口
+# sys - 系统相关参数和函数
+# dataclasses - 数据类支持（Python 3.7+）
+# typing - 类型提示支持
