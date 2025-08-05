@@ -78,11 +78,24 @@ class Task:
         if 'text' in data and 'title' not in data:
             data['title'] = data.pop('text')
         
+        # 移除不支持的字段
+        unsupported_fields = ['status']
+        for field in unsupported_fields:
+            if field in data:
+                data.pop(field)
+        
         # 确保必需字段存在
         if 'id' not in data:
             data['id'] = str(uuid.uuid4())
         
-        return cls(**data)
+        # 只保留Task类支持的字段
+        valid_fields = {
+            'id', 'title', 'description', 'priority', 'completed', 
+            'created_at', 'updated_at', 'due_date', 'tags'
+        }
+        filtered_data = {k: v for k, v in data.items() if k in valid_fields}
+        
+        return cls(**filtered_data)
     
     def get_priority_weight(self) -> int:
         """获取优先级权重（用于排序）"""
