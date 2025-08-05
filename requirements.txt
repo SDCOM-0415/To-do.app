@@ -1,0 +1,9 @@
+# 待办事项应用程序依赖
+kivy>=2.1.0
+# 如果在 macOS 上运行，可能需要以下依赖
+# kivy[base,media,tuio]==2.1.0
+# 如果在 Windows 上运行，可能需要以下依赖
+# kivy_deps.sdl2
+# kivy_deps.glew
+# 如果需要打包应用程序
+pyinstaller>=5.6.2
