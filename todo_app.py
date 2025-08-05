@@ -136,7 +136,8 @@ class TodoApp(QMainWindow):
         
         # 创建任务列表
         self.todo_list = QListWidget()
-        self.update_list_style()
+        # 移除方框设计，使用更简洁的样式
+        self.update_list_style(remove_borders=True)
         self.todo_list.setContextMenuPolicy(Qt.CustomContextMenu)
         self.todo_list.customContextMenuRequested.connect(self.show_context_menu)
         main_layout.addWidget(self.todo_list, 1)  # 1 表示伸展因子
@@ -190,26 +191,32 @@ class TodoApp(QMainWindow):
                 QMainWindow {
                     background-color: #1e1e1e;
                 }
+                QWidget {
+                    font-family: 'NotoSansSC';
+                }
                 QLabel {
                     color: #e0e0e0;
+                    font-family: 'NotoSansSC';
                 }
                 QPushButton {
                     font-family: 'NotoSansSC';
+                    color: #e0e0e0;
                 }
                 QLineEdit {
                     font-family: 'NotoSansSC';
                     background-color: #2d2d2d;
                     color: #e0e0e0;
-                    border: 1px solid #444444;
+                    border: none;
                 }
                 QListWidget {
                     background-color: #2d2d2d;
                     color: #e0e0e0;
-                    border: 1px solid #444444;
+                    border: none;
                 }
                 QMenuBar {
                     background-color: #2d2d2d;
                     color: #e0e0e0;
+                    font-family: 'NotoSansSC';
                 }
                 QMenuBar::item:selected {
                     background-color: #3d3d3d;
@@ -217,7 +224,8 @@ class TodoApp(QMainWindow):
                 QMenu {
                     background-color: #2d2d2d;
                     color: #e0e0e0;
-                    border: 1px solid #444444;
+                    border: none;
+                    font-family: 'NotoSansSC';
                 }
                 QMenu::item:selected {
                     background-color: #3d3d3d;
@@ -225,12 +233,14 @@ class TodoApp(QMainWindow):
                 QStatusBar {
                     background-color: #2d2d2d;
                     color: #e0e0e0;
+                    font-family: 'NotoSansSC';
                 }
                 QFrame {
                     background-color: #444444;
                 }
                 QCheckBox {
                     color: #e0e0e0;
+                    font-family: 'NotoSansSC';
                 }
             """)
         else:
@@ -238,109 +248,175 @@ class TodoApp(QMainWindow):
                 QMainWindow {
                     background-color: #f9f9f9;
                 }
+                QWidget {
+                    font-family: 'NotoSansSC';
+                }
                 QLabel {
                     color: #333333;
+                    font-family: 'NotoSansSC';
                 }
                 QPushButton {
                     font-family: 'NotoSansSC';
+                    color: #333333;
                 }
                 QLineEdit {
                     font-family: 'NotoSansSC';
-                    background-color: white;
+                    background-color: #f9f9f9;
                     color: #333333;
-                    border: 1px solid #cccccc;
+                    border: none;
                 }
                 QListWidget {
-                    background-color: white;
+                    background-color: #f9f9f9;
                     color: #333333;
-                    border: 1px solid #cccccc;
+                    border: none;
+                }
+                QMenuBar {
+                    background-color: #f9f9f9;
+                    color: #333333;
+                    font-family: 'NotoSansSC';
+                }
+                QMenu {
+                    background-color: #f9f9f9;
+                    color: #333333;
+                    font-family: 'NotoSansSC';
+                }
+                QStatusBar {
+                    color: #333333;
+                    font-family: 'NotoSansSC';
                 }
                 QCheckBox {
                     color: #333333;
+                    font-family: 'NotoSansSC';
                 }
             """)
     
-    def update_list_style(self):
+    def update_list_style(self, remove_borders=False):
         if self.is_dark_mode:
-            self.todo_list.setStyleSheet("""
-                QListWidget {
-                    background-color: #2d2d2d;
-                    border-radius: 8px;
-                    padding: 5px;
-                }
-                QListWidget::item {
-                    border-bottom: 1px solid #444444;
-                    padding: 5px;
-                }
-                QListWidget::item:selected {
-                    background-color: #3d3d3d;
-                    color: #2196f3;
-                }
-            """)
+            if remove_borders:
+                self.todo_list.setStyleSheet("""
+                    QListWidget {
+                        background-color: #2d2d2d;
+                        padding: 5px;
+                        border: none;
+                    }
+                    QListWidget::item {
+                        padding: 5px;
+                    }
+                    QListWidget::item:selected {
+                        background-color: #3d3d3d;
+                        color: #2196f3;
+                    }
+                """)
+            else:
+                self.todo_list.setStyleSheet("""
+                    QListWidget {
+                        background-color: #2d2d2d;
+                        padding: 5px;
+                    }
+                    QListWidget::item {
+                        border-bottom: 1px solid #444444;
+                        padding: 5px;
+                    }
+                    QListWidget::item:selected {
+                        background-color: #3d3d3d;
+                        color: #2196f3;
+                    }
+                """)
         else:
-            self.todo_list.setStyleSheet("""
-                QListWidget {
-                    background-color: #f5f5f5;
-                    border-radius: 8px;
-                    padding: 5px;
-                }
-                QListWidget::item {
-                    border-bottom: 1px solid #e0e0e0;
-                    padding: 5px;
-                }
-                QListWidget::item:selected {
-                    background-color: #e3f2fd;
-                    color: #1976d2;
-                }
-            """)
+            if remove_borders:
+                self.todo_list.setStyleSheet("""
+                    QListWidget {
+                        background-color: #f9f9f9;
+                        padding: 5px;
+                        border: none;
+                    }
+                    QListWidget::item {
+                        padding: 5px;
+                    }
+                    QListWidget::item:selected {
+                        background-color: #e3f2fd;
+                        color: #1976d2;
+                    }
+                """)
+            else:
+                self.todo_list.setStyleSheet("""
+                    QListWidget {
+                        background-color: #f5f5f5;
+                        padding: 5px;
+                    }
+                    QListWidget::item {
+                        border-bottom: 1px solid #e0e0e0;
+                        padding: 5px;
+                    }
+                    QListWidget::item:selected {
+                        background-color: #e3f2fd;
+                        color: #1976d2;
+                    }
+                """)
     
     def update_input_style(self):
         if self.is_dark_mode:
             self.task_input.setStyleSheet("""
                 QLineEdit {
-                    border: 1px solid #444444;
-                    border-radius: 4px;
+                    border: none;
+                    border-bottom: 1px solid #444444;
                     padding: 8px;
                     background-color: #2d2d2d;
                     color: #e0e0e0;
                     font-family: 'NotoSansSC';
                 }
                 QLineEdit:focus {
-                    border: 1px solid #2196f3;
+                    border-bottom: 1px solid #2196f3;
                 }
             """)
         else:
             self.task_input.setStyleSheet("""
                 QLineEdit {
-                    border: 1px solid #ccc;
-                    border-radius: 4px;
+                    border: none;
+                    border-bottom: 1px solid #ccc;
                     padding: 8px;
-                    background-color: white;
+                    background-color: #f9f9f9;
                     color: #333333;
                     font-family: 'NotoSansSC';
                 }
                 QLineEdit:focus {
-                    border: 1px solid #1976d2;
+                    border-bottom: 1px solid #1976d2;
                 }
             """)
     
     def update_button_style(self):
-        self.add_button.setStyleSheet("""
-            QPushButton {
-                background-color: #2196f3;
-                color: white;
-                border: none;
-                border-radius: 4px;
-                padding: 8px 16px;
-                font-family: 'NotoSansSC';
-            }
-            QPushButton:hover {
-                background-color: #1976d2;
-            }
-            QPushButton:pressed {
-                background-color: #0d47a1;
-            }
-        """)
+        if self.is_dark_mode:
+            self.add_button.setStyleSheet("""
+                QPushButton {
+                    background-color: #2196f3;
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    font-family: 'NotoSansSC';
+                }
+                QPushButton:hover {
+                    background-color: #1976d2;
+                }
+                QPushButton:pressed {
+                    background-color: #0d47a1;
+                }
+            """)
+        else:
+            self.add_button.setStyleSheet("""
+                QPushButton {
+                    background-color: #2196f3;
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    font-family: 'NotoSansSC';
+                }
+                QPushButton:hover {
+                    background-color: #1976d2;
+                }
+                QPushButton:pressed {
+                    background-color: #0d47a1;
+                }
+            """)
     
     def create_menu(self):
         # 创建菜单栏
@@ -395,7 +471,7 @@ class TodoApp(QMainWindow):
         # 切换深色/浅色模式
         self.is_dark_mode = not self.is_dark_mode
         self.setup_style()
-        self.update_list_style()
+        self.update_list_style(remove_borders=True)
         self.update_input_style()
         self.update_button_style()
         
@@ -535,6 +611,9 @@ if __name__ == "__main__":
                 # 设置应用程序默认字体
                 default_font = QFont(font_families[0], 10)
                 app.setFont(default_font)
+                
+                # 确保所有控件都使用这个字体
+                QApplication.setFont(default_font)
     
     window = TodoApp()
     window.show()
