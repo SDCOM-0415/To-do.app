@@ -1,7 +1,25 @@
-# 引入多文件打包模块
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+待办事项应用程序
+使用 PySide6 (Qt for Python) 构建的现代化跨平台待办事项应用
+支持 Windows, macOS 和 Linux
+"""
+
 import os
 import sys
+import json
+from datetime import datetime
 
+# 导入 PySide6 模块
+from PySide6.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
+    QLineEdit, QPushButton, QListWidget, QListWidgetItem, QLabel,
+    QMessageBox, QMenu, QCheckBox, QStyle, QSplitter, QFrame
+)
+from PySide6.QtCore import Qt, Signal, Slot, QSize, QTimer
+from PySide6.QtGui import QIcon, QFont, QColor, QPalette, QAction
 
 # 资源文件目录访问
 def source_path(relative_path):
@@ -12,143 +30,351 @@ def source_path(relative_path):
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
-
-# 修改当前工作目录，使得资源文件可以被正确访问
-cd = source_path('')
-os.chdir(cd)
-
-# 导入所需库以创建Kivy应用程序
-from kivy.app import App
-from kivy import Config
-Config.set('graphics', 'minimumengl', '110') # 降低OpenGL版本
-Config.set('graphics', 'multisamples', '0')  # 关闭抗锯齿以减少图形需求
-from kivy.graphics import Color, Rectangle
-from kivy.uix.boxlayout import BoxLayout  # 用于创建布局的类
-from kivy.uix.textinput import TextInput  # 用于输入文本
-from kivy.uix.button import Button  # 创建按钮
-from kivy.uix.recycleview import RecycleView  # 用于显示可回收视图的数据
-from kivy.uix.recycleview.views import RecycleDataViewBehavior  # 为数据视图行为提供基础
-from kivy.uix.label import Label  # 显示文本
-from kivy.properties import StringProperty  # 用于定义对象属性
-from kivy.uix.recycleboxlayout import RecycleBoxLayout  # 用于在RecycleView中创建布局
-from kivy.uix.behaviors import FocusBehavior  # 添加焦点行为
-from kivy.uix.recyclegridlayout import RecycleGridLayout  # 用于RecycleView的网格布局
-from kivy.lang import Builder  # 用于加载kv语言文件
-
-# 在TodoItem类中添加对on_release事件的绑定
-class TodoItem(RecycleDataViewBehavior, Label):
-    text = StringProperty()
-
-    def __init__(self, **kwargs):
-        super(TodoItem, self).__init__(**kwargs)
-        self.bind(on_release=self.on_release)
-
-    def on_touch_down(self, touch):
-        if self.collide_point(*touch.pos):
-            return super(TodoItem, self).on_touch_down(touch)
-
-    def on_release(self, instance):
-        self.remove_self()
-
-    def remove_self(self):
-        app = App.get_running_app()
-        app.root.todo_list.remove_item(self.text)
-
-# 更新KV语言，移除on_release的直接绑定，使用NotoSansSC字体
-Builder.load_string("""
-<TodoItem@RecycleDataViewBehavior+Label>:  
-    text: root.text  
-    font_name: 'res/NotoSansSC.ttf'  # 使用更小的NotoSansSC字体
-    size_hint_y: None  
-    height: dp(50)  
-
-<ToDoList>:  
-    viewclass: 'TodoItem'  
-    RecycleBoxLayout:  
-        default_size: None, dp(50)  
-        default_size_hint: 1, None  
-        size_hint_y: None  
-        height: self.minimum_height  
-        orientation: 'vertical'  
-""")
-
-# 定义ToDoList类，继承自RecycleView
-class ToDoList(RecycleView):
-    def __init__(self, **kwargs):
-        super(ToDoList, self).__init__(**kwargs)
-        self.data = [{'text': str(x)} for x in []]  # 初始化数据列表为空
-
-    # 添加任务到列表
-    def add_item(self, task):
-        self.data.append({'text': task})  # 添加新任务
-        self.refresh_from_data()  # 刷新视图
-
-    # 删除任务
-    def remove_item(self, task):
-        self.data = [d for d in self.data if d['text'] != task]  # 移除指定任务
-        self.refresh_from_data()  # 刷新视图
-
-# 定义主应用程序类
-class TodoApp(App):
-    def build(self):
-        # 创建主布局
-        root = BoxLayout(orientation='vertical')
-
-        with root.canvas.before:
-            Color(0.2, 0.2, 0.2, 1)  # 设置背景颜色为深灰色
-            self.rect = Rectangle(size=root.size, pos=root.pos)  # 创建一个覆盖整个布局的矩形
-
-        self.todo_list = ToDoList()  # 确保todo_list是App类的一个属性，以便在TodoItem中访问
-
-        # 添加输入框
-        self.input_field = TextInput(text='', font_name='res/NotoSansSC.ttf', multiline=False)
-
-        # 添加添加按钮
-        add_button = Button(text='添加', font_name='res/NotoSansSC.ttf', on_press=self.add_task)
+# 自定义待办事项项目组件
+class TodoListItem(QWidget):
+    deleted = Signal(QListWidgetItem)
+    completed = Signal(QListWidgetItem, bool)
+    
+    def __init__(self, text, parent=None, completed=False):
+        super().__init__(parent)
+        self.text = text
+        self.completed = completed
         
-        # 添加删除按钮
-        remove_button = Button(text='删除', font_name='res/NotoSansSC.ttf', on_press=self.remove_task)
-        root.add_widget(remove_button)
+        # 创建布局
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(5, 2, 5, 2)
+        
+        # 创建完成复选框
+        self.checkbox = QCheckBox()
+        self.checkbox.setChecked(completed)
+        self.checkbox.stateChanged.connect(self.on_state_changed)
+        layout.addWidget(self.checkbox)
+        
+        # 创建任务文本标签
+        self.label = QLabel(text)
+        font = QFont("NotoSansSC", 10)
+        self.label.setFont(font)
+        if completed:
+            self.label.setStyleSheet("text-decoration: line-through; color: gray;")
+        layout.addWidget(self.label, 1)  # 1 表示伸展因子
+        
+        # 创建删除按钮
+        self.delete_button = QPushButton()
+        self.delete_button.setIcon(self.style().standardIcon(QStyle.SP_DialogCloseButton))
+        self.delete_button.setFixedSize(24, 24)
+        self.delete_button.setStyleSheet("QPushButton { border: none; }")
+        self.delete_button.clicked.connect(self.on_delete_clicked)
+        layout.addWidget(self.delete_button)
+        
+        self.setLayout(layout)
+    
+    def on_state_changed(self, state):
+        is_completed = (state == Qt.CheckState.Checked.value)
+        if is_completed:
+            self.label.setStyleSheet("text-decoration: line-through; color: gray;")
+        else:
+            self.label.setStyleSheet("")
+        self.completed = is_completed
+        parent_item = self.parent_item if hasattr(self, 'parent_item') else None
+        self.completed.emit(parent_item, is_completed)
+    
+    def on_delete_clicked(self):
+        parent_item = self.parent_item if hasattr(self, 'parent_item') else None
+        self.deleted.emit(parent_item)
 
-        # 添加待办事项列表
-        root.add_widget(self.todo_list)
-
-        # 添加输入框和按钮到布局
-        root.add_widget(self.input_field)
-        root.add_widget(add_button)
-
-        # 设置窗口标题
-        self.title = "SDCOM的待办项目小程序" 
-
-        # 软件图标
-        self.icon = "res/icon.jpg" 
-
-        # 返回根布局
-        return root
-
-    def on_size(self, *args):
-        # 更新背景矩形的尺寸以匹配根布局
-        self.rect.size = self.root.size
-
-    # 添加任务按钮的回调函数
-    def add_task(self, instance):
-        task = self.input_field.text  # 获取输入的任务
-        if task:  # 如果有任务
-            self.todo_list.add_item(task)  # 添加到列表
-            self.input_field.text = ''  # 清空输入框
-
-    # 删除任务按钮的回调函数
-    def remove_task(self, instance):
-        task = self.input_field.text  # 获取输入的任务
-        if task and task in [d['text'] for d in self.todo_list.data]:  # 如果有任务且任务存在于列表中
-            self.todo_list.remove_item(task)  # 从列表中删除任务
-            self.input_field.text = ''  # 清空输入框
-
-
+# 主窗口类
+class TodoApp(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        
+        # 设置窗口属性
+        self.setWindowTitle("SDCOM的待办项目")
+        self.setWindowIcon(QIcon(source_path("res/icon.jpg")))
+        self.setMinimumSize(500, 600)
+        
+        # 设置应用样式
+        self.setup_style()
+        
+        # 创建中央部件
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        
+        # 创建主布局
+        main_layout = QVBoxLayout(central_widget)
+        main_layout.setContentsMargins(20, 20, 20, 20)
+        main_layout.setSpacing(15)
+        
+        # 创建标题标签
+        title_label = QLabel("我的待办事项")
+        title_font = QFont("NotoSansSC", 18, QFont.Bold)
+        title_label.setFont(title_font)
+        title_label.setAlignment(Qt.AlignCenter)
+        main_layout.addWidget(title_label)
+        
+        # 创建分隔线
+        separator = QFrame()
+        separator.setFrameShape(QFrame.HLine)
+        separator.setFrameShadow(QFrame.Sunken)
+        main_layout.addWidget(separator)
+        
+        # 创建任务列表
+        self.todo_list = QListWidget()
+        self.todo_list.setStyleSheet("""
+            QListWidget {
+                background-color: #f5f5f5;
+                border-radius: 8px;
+                padding: 5px;
+            }
+            QListWidget::item {
+                border-bottom: 1px solid #e0e0e0;
+                padding: 5px;
+            }
+            QListWidget::item:selected {
+                background-color: #e3f2fd;
+                color: #1976d2;
+            }
+        """)
+        self.todo_list.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.todo_list.customContextMenuRequested.connect(self.show_context_menu)
+        main_layout.addWidget(self.todo_list, 1)  # 1 表示伸展因子
+        
+        # 创建输入区域
+        input_layout = QHBoxLayout()
+        
+        # 创建任务输入框
+        self.task_input = QLineEdit()
+        self.task_input.setPlaceholderText("输入新任务...")
+        self.task_input.setStyleSheet("""
+            QLineEdit {
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                padding: 8px;
+                background-color: white;
+            }
+            QLineEdit:focus {
+                border: 1px solid #1976d2;
+            }
+        """)
+        self.task_input.returnPressed.connect(self.add_task)
+        input_layout.addWidget(self.task_input, 1)  # 1 表示伸展因子
+        
+        # 创建添加按钮
+        add_button = QPushButton("添加")
+        add_button.setStyleSheet("""
+            QPushButton {
+                background-color: #2196f3;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 8px 16px;
+            }
+            QPushButton:hover {
+                background-color: #1976d2;
+            }
+            QPushButton:pressed {
+                background-color: #0d47a1;
+            }
+        """)
+        add_button.clicked.connect(self.add_task)
+        input_layout.addWidget(add_button)
+        
+        main_layout.addLayout(input_layout)
+        
+        # 创建状态栏
+        self.statusBar().showMessage("准备就绪")
+        
+        # 创建菜单栏
+        self.create_menu()
+        
+        # 加载任务数据
+        self.tasks_file = "tasks.json"
+        self.load_tasks()
+        
+        # 设置自动保存定时器
+        self.auto_save_timer = QTimer(self)
+        self.auto_save_timer.timeout.connect(self.save_tasks)
+        self.auto_save_timer.start(30000)  # 每30秒自动保存一次
+    
+    def setup_style(self):
+        # 设置应用程序样式
+        self.setStyleSheet("""
+            QMainWindow {
+                background-color: #f9f9f9;
+            }
+            QLabel {
+                color: #333333;
+            }
+            QPushButton {
+                font-family: 'NotoSansSC';
+            }
+            QLineEdit {
+                font-family: 'NotoSansSC';
+            }
+        """)
+    
+    def create_menu(self):
+        # 创建菜单栏
+        menubar = self.menuBar()
+        
+        # 文件菜单
+        file_menu = menubar.addMenu("文件")
+        
+        # 保存操作
+        save_action = QAction("保存", self)
+        save_action.setShortcut("Ctrl+S")
+        save_action.triggered.connect(self.save_tasks)
+        file_menu.addAction(save_action)
+        
+        # 清空操作
+        clear_action = QAction("清空所有任务", self)
+        clear_action.triggered.connect(self.clear_tasks)
+        file_menu.addAction(clear_action)
+        
+        file_menu.addSeparator()
+        
+        # 退出操作
+        exit_action = QAction("退出", self)
+        exit_action.setShortcut("Ctrl+Q")
+        exit_action.triggered.connect(self.close)
+        file_menu.addAction(exit_action)
+        
+        # 视图菜单
+        view_menu = menubar.addMenu("视图")
+        
+        # 显示已完成任务
+        self.show_completed_action = QAction("显示已完成任务", self)
+        self.show_completed_action.setCheckable(True)
+        self.show_completed_action.setChecked(True)
+        self.show_completed_action.triggered.connect(self.filter_tasks)
+        view_menu.addAction(self.show_completed_action)
+        
+        # 帮助菜单
+        help_menu = menubar.addMenu("帮助")
+        
+        # 关于操作
+        about_action = QAction("关于", self)
+        about_action.triggered.connect(self.show_about)
+        help_menu.addAction(about_action)
+    
+    def add_task(self):
+        task_text = self.task_input.text().strip()
+        if task_text:
+            self.add_task_to_list(task_text)
+            self.task_input.clear()
+            self.save_tasks()
+            self.statusBar().showMessage(f"已添加任务: {task_text}", 3000)
+    
+    def add_task_to_list(self, text, completed=False):
+        # 创建列表项
+        item = QListWidgetItem()
+        self.todo_list.addItem(item)
+        
+        # 创建自定义部件
+        widget = TodoListItem(text, completed=completed)
+        widget.parent_item = item
+        widget.deleted.connect(self.remove_task)
+        widget.completed.connect(self.task_completed)
+        
+        # 设置项目大小
+        item.setSizeHint(widget.sizeHint())
+        
+        # 设置自定义部件
+        self.todo_list.setItemWidget(item, widget)
+    
+    def remove_task(self, item):
+        row = self.todo_list.row(item)
+        self.todo_list.takeItem(row)
+        self.save_tasks()
+        self.statusBar().showMessage("任务已删除", 3000)
+    
+    def task_completed(self, item, is_completed):
+        self.save_tasks()
+        status = "已完成" if is_completed else "未完成"
+        self.statusBar().showMessage(f"任务标记为{status}", 3000)
+    
+    def show_context_menu(self, position):
+        item = self.todo_list.itemAt(position)
+        if item:
+            context_menu = QMenu(self)
+            
+            # 删除操作
+            delete_action = QAction("删除", self)
+            delete_action.triggered.connect(lambda: self.remove_task(item))
+            context_menu.addAction(delete_action)
+            
+            # 显示菜单
+            context_menu.exec_(self.todo_list.mapToGlobal(position))
+    
+    def filter_tasks(self):
+        show_completed = self.show_completed_action.isChecked()
+        for i in range(self.todo_list.count()):
+            item = self.todo_list.item(i)
+            widget = self.todo_list.itemWidget(item)
+            if widget.completed:
+                item.setHidden(not show_completed)
+    
+    def clear_tasks(self):
+        reply = QMessageBox.question(
+            self, "确认清空", "确定要清空所有任务吗？",
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+        )
+        
+        if reply == QMessageBox.Yes:
+            self.todo_list.clear()
+            self.save_tasks()
+            self.statusBar().showMessage("所有任务已清空", 3000)
+    
+    def show_about(self):
+        QMessageBox.about(
+            self,
+            "关于待办事项应用",
+            "SDCOM的待办项目 v1.0\n\n"
+            "一个简单而美观的跨平台待办事项应用\n"
+            "使用 PySide6 (Qt for Python) 构建\n\n"
+            "支持 Windows, macOS 和 Linux"
+        )
+    
+    def load_tasks(self):
+        if os.path.exists(self.tasks_file):
+            try:
+                with open(self.tasks_file, "r", encoding="utf-8") as f:
+                    tasks = json.load(f)
+                    for task in tasks:
+                        self.add_task_to_list(task["text"], task["completed"])
+                self.statusBar().showMessage("任务已加载", 3000)
+            except Exception as e:
+                QMessageBox.warning(self, "加载错误", f"无法加载任务: {str(e)}")
+    
+    def save_tasks(self):
+        tasks = []
+        for i in range(self.todo_list.count()):
+            item = self.todo_list.item(i)
+            widget = self.todo_list.itemWidget(item)
+            tasks.append({
+                "text": widget.text,
+                "completed": widget.completed,
+                "created_at": datetime.now().isoformat()
+            })
+        
+        try:
+            with open(self.tasks_file, "w", encoding="utf-8") as f:
+                json.dump(tasks, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            QMessageBox.warning(self, "保存错误", f"无法保存任务: {str(e)}")
+    
+    def closeEvent(self, event):
+        self.save_tasks()
+        event.accept()
 
 # 运行应用程序
-if __name__ == '__main__':
-    TodoApp().run()
-
-
-
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    
+    # 尝试加载字体
+    font_path = source_path("res/NotoSansSC.ttf")
+    if os.path.exists(font_path):
+        QFont.insertSubstitution("NotoSansSC", font_path)
+    
+    window = TodoApp()
+    window.show()
+    sys.exit(app.exec())
