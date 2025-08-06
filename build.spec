@@ -5,7 +5,13 @@ import sys
 from pathlib import Path
 
 # 获取项目根目录
-project_root = Path(__file__).parent
+try:
+    # 尝试使用 __file__ 变量
+    project_root = Path(__file__).parent
+except NameError:
+    # 在 GitHub Actions 环境中，使用当前工作目录
+    import os
+    project_root = Path(os.getcwd())
 
 block_cipher = None
 
