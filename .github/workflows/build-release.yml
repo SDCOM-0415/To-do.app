@@ -13,21 +13,28 @@ jobs:
             platform: windows
             arch: x64
             executable_ext: .exe
-            artifact_name: Todo-App-v0.3.1-Windows-x64
           # - os: macos-13-large
           #   platform: macos
           #   arch: x64
           #   executable_ext: ""
-          #   artifact_name: Todo-App-v0.3.1-macOS-x64
           - os: ubuntu-latest
             platform: linux
             arch: x64
             executable_ext: ""
-            artifact_name: Todo-App-v0.3.1-Linux-x64
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
+    - name: Read version
+      id: version
+      run: |
+        VERSION=$(cat version)
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "artifact_name_windows=Todo-App-$VERSION-preview-Windows-x64" >> $GITHUB_OUTPUT
+        echo "artifact_name_macos=Todo-App-$VERSION-preview-macOS-x64" >> $GITHUB_OUTPUT
+        echo "artifact_name_linux=Todo-App-$VERSION-preview-Linux-x64" >> $GITHUB_OUTPUT
+      shell: bash
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -54,25 +61,25 @@ jobs:
     - name: Build executable (Windows)
       if: matrix.platform == 'windows'
       run: |
-        pyinstaller --onefile --windowed --name "TodoApp" --icon=res/icon.ico app.py
+        pyinstaller --onefile --windowed --name "TodoApp" --icon=res/icon.ico --collect-all tkinter --collect-all customtkinter --hidden-import=tkinter --hidden-import=tkinter.ttk --hidden-import=tkinter.messagebox --hidden-import=tkinter.filedialog --add-data "$(python -c "import tkinter; print(tkinter.__path__[0])")/*;tkinter/" app.py
       shell: bash
 
     - name: Build executable (macOS/Linux)
       if: matrix.platform != 'windows'
       run: |
-        pyinstaller --onefile --windowed --name "TodoApp" app.py
+        pyinstaller --onefile --windowed --name "TodoApp" --collect-all tkinter --collect-all customtkinter --hidden-import=tkinter --hidden-import=tkinter.ttk --hidden-import=tkinter.messagebox --hidden-import=tkinter.filedialog app.py
       shell: bash
 
     - name: Rename executable (Windows)
       if: matrix.platform == 'windows'
       run: |
-        mv dist/TodoApp.exe "dist/${{ matrix.artifact_name }}.exe"
+        mv dist/TodoApp.exe "dist/${{ steps.version.outputs.artifact_name_windows }}.exe"
       shell: bash
 
     - name: Rename executable (Linux)
       if: matrix.platform == 'linux'
       run: |
-        mv dist/TodoApp "dist/${{ matrix.artifact_name }}"
+        mv dist/TodoApp "dist/${{ steps.version.outputs.artifact_name_linux }}"
 
     # - name: Create macOS App Bundle and DMG
     #   if: matrix.platform == 'macos'
@@ -129,35 +136,35 @@ jobs:
       if: matrix.platform == 'windows'
       run: |
         cd dist
-        7z a "${{ matrix.artifact_name }}.zip" "${{ matrix.artifact_name }}.exe"
+        7z a "${{ steps.version.outputs.artifact_name_windows }}.zip" "${{ steps.version.outputs.artifact_name_windows }}.exe"
       shell: bash
 
     - name: Create archive (Linux)
       if: matrix.platform == 'linux'
       run: |
         cd dist
-        tar -czf "${{ matrix.artifact_name }}.tar.gz" "${{ matrix.artifact_name }}"
+        tar -czf "${{ steps.version.outputs.artifact_name_linux }}.tar.gz" "${{ steps.version.outputs.artifact_name_linux }}"
 
     - name: Upload artifact (Windows)
       if: matrix.platform == 'windows'
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.artifact_name }}
-        path: dist/${{ matrix.artifact_name }}.zip
+        name: ${{ steps.version.outputs.artifact_name_windows }}
+        path: dist/${{ steps.version.outputs.artifact_name_windows }}.zip
 
     # - name: Upload artifact (macOS)
     #   if: matrix.platform == 'macos'
     #   uses: actions/upload-artifact@v4
     #   with:
-    #     name: ${{ matrix.artifact_name }}
-    #     path: dist/${{ matrix.artifact_name }}.dmg
+    #     name: ${{ steps.version.outputs.artifact_name_macos }}
+    #     path: dist/${{ steps.version.outputs.artifact_name_macos }}.dmg
 
     - name: Upload artifact (Linux)
       if: matrix.platform == 'linux'
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.artifact_name }}
-        path: dist/${{ matrix.artifact_name }}.tar.gz
+        name: ${{ steps.version.outputs.artifact_name_linux }}
+        path: dist/${{ steps.version.outputs.artifact_name_linux }}.tar.gz
 
   release:
     needs: build
@@ -166,6 +173,16 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
+    - name: Read version
+      id: version
+      run: |
+        VERSION=$(cat version)
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "tag_name=$VERSION-preview" >> $GITHUB_OUTPUT
+        echo "artifact_name_windows=Todo-App-$VERSION-preview-Windows-x64" >> $GITHUB_OUTPUT
+        echo "artifact_name_linux=Todo-App-$VERSION-preview-Linux-x64" >> $GITHUB_OUTPUT
+      shell: bash
 
     - name: Download all artifacts
       uses: actions/download-artifact@v4
@@ -176,10 +193,10 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref_name }}
-        release_name: Todo App ${{ github.ref_name }}
+        tag_name: ${{ steps.version.outputs.tag_name }}
+        release_name: Todo App ${{ steps.version.outputs.tag_name }}
         body: |
-          ## Todo App v0.3.1 - 现代化跨平台待办事项管理器
+          ## Todo App ${{ steps.version.outputs.version }} - 预览版
 
           ### 🎉 新功能
           - 🔧 优化系统检测显示，macOS 显示真实版本号
@@ -187,8 +204,8 @@ jobs:
           - 🆕 完全重构，使用 customtkinter 框架
 
           ### 📦 下载说明
-          - **Windows 用户**: 下载 `Todo-App-v0.3.1-Windows-x64.zip`
-          - **Linux 用户**: 下载 `Todo-App-v0.3.1-Linux-x64.tar.gz`
+          - **Windows 用户**: 下载 `${{ steps.version.outputs.artifact_name_windows }}.zip`
+          - **Linux 用户**: 下载 `${{ steps.version.outputs.artifact_name_linux }}.tar.gz`
 
           ### 🚀 使用方法
           - **Windows**: 解压 ZIP 文件，双击运行 .exe 文件
@@ -205,7 +222,7 @@ jobs:
           ---
           **完整源代码**: [GitHub Repository](https://github.com/SDCOM-0415/To-do.app)
         draft: false
-        prerelease: false
+        prerelease: true
 
     - name: Upload Windows Release Asset
       uses: actions/upload-release-asset@v1
@@ -213,8 +230,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./Todo-App-v0.3.1-Windows-x64/Todo-App-v0.3.1-Windows-x64.zip
-        asset_name: Todo-App-v0.3.1-Windows-x64.zip
+        asset_path: ./${{ steps.version.outputs.artifact_name_windows }}/${{ steps.version.outputs.artifact_name_windows }}.zip
+        asset_name: ${{ steps.version.outputs.artifact_name_windows }}.zip
         asset_content_type: application/zip
 
     # - name: Upload macOS Release Asset
@@ -223,8 +240,8 @@ jobs:
     #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     #   with:
     #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-    #     asset_path: ./Todo-App-v0.3.1-macOS-x64/Todo-App-v0.3.1-macOS-x64.dmg
-    #     asset_name: Todo-App-v0.3.1-macOS-x64.dmg
+    #     asset_path: ./${{ steps.version.outputs.artifact_name_macos }}/${{ steps.version.outputs.artifact_name_macos }}.dmg
+    #     asset_name: ${{ steps.version.outputs.artifact_name_macos }}.dmg
     #     asset_content_type: application/x-apple-diskimage
 
     - name: Upload Linux Release Asset
@@ -233,6 +250,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./Todo-App-v0.3.1-Linux-x64/Todo-App-v0.3.1-Linux-x64.tar.gz
-        asset_name: Todo-App-v0.3.1-Linux-x64.tar.gz
+        asset_path: ./${{ steps.version.outputs.artifact_name_linux }}/${{ steps.version.outputs.artifact_name_linux }}.tar.gz
+        asset_name: ${{ steps.version.outputs.artifact_name_linux }}.tar.gz
         asset_content_type: application/gzip
