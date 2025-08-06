@@ -68,14 +68,15 @@ from pathlib import Path
 tcl_dir = os.path.join(os.path.dirname(os.path.dirname(tkinter.__file__)), 'tcl')
 tk_dir = os.path.join(os.path.dirname(os.path.dirname(tkinter.__file__)), 'tk')
 
-print(f"Tcl目录: {tcl_dir}")
-print(f"Tk目录: {tk_dir}")
+print(f"TCL_LIBRARY: {tcl_dir}")
+print(f"TK_LIBRARY: {tk_dir}")
+# 使用英文输出，避免编码问题
 
 # 递归收集所有Tcl/Tk文件
 def collect_all_files(src_dir, target_prefix):
     collected_data = []
     if not os.path.exists(src_dir):
-        print(f"警告: 目录不存在 {src_dir}")
+        print(f"WARNING: Directory does not exist {src_dir}")
         return collected_data
         
     for root, dirs, files in os.walk(src_dir):
@@ -88,41 +89,41 @@ def collect_all_files(src_dir, target_prefix):
             # 使用PyInstaller期望的格式: (source_path, target_path)
             # 注意：不要使用os.path.dirname，保留完整的目标路径
             collected_data.append((source_path, target_path))
-            print(f"添加文件: {source_path} -> {target_path}")
+            print(f"Adding file: {source_path} -> {target_path}")
     return collected_data
 
 # 收集Tcl文件
 tcl_lib = os.path.join(tcl_dir, 'tcl8.6')
 if os.path.exists(tcl_lib):
-    print(f"收集Tcl文件从: {tcl_lib}")
+    print(f"Collecting Tcl files from: {tcl_lib}")
     # 确保目标路径使用正确的格式
     a.datas += collect_all_files(tcl_lib, '_tcl_data/tcl8.6')
     
     # 添加init.tcl文件（这是tkinter初始化所必需的）
     init_tcl = os.path.join(tcl_lib, 'init.tcl')
     if os.path.exists(init_tcl):
-        print(f"添加关键文件: {init_tcl}")
+        print(f"Adding key file: {init_tcl}")
         a.datas.append((init_tcl, '_tcl_data/tcl8.6/init.tcl'))
 else:
-    print(f"警告: Tcl库目录不存在: {tcl_lib}")
+    print(f"WARNING: Tcl library directory does not exist: {tcl_lib}")
 
 # 收集Tk文件
 tk_lib = os.path.join(tk_dir, 'tk8.6')
 if os.path.exists(tk_lib):
-    print(f"收集Tk文件从: {tk_lib}")
+    print(f"Collecting Tk files from: {tk_lib}")
     # 确保目标路径使用正确的格式
     a.datas += collect_all_files(tk_lib, '_tcl_data/tk8.6')
     
     # 添加tk.tcl文件（这是tkinter初始化所必需的）
     tk_tcl = os.path.join(tk_lib, 'tk.tcl')
     if os.path.exists(tk_tcl):
-        print(f"添加关键文件: {tk_tcl}")
+        print(f"Adding key file: {tk_tcl}")
         a.datas.append((tk_tcl, '_tcl_data/tk8.6/tk.tcl'))
 else:
-    print(f"警告: Tk库目录不存在: {tk_lib}")
+    print(f"WARNING: Tk library directory does not exist: {tk_lib}")
 
 # 添加环境变量设置
-print("添加环境变量设置到运行时钩子")
+print("Adding environment variable settings to runtime hooks")
 
 # 过滤掉 None 值
 a.datas = [item for item in a.datas if item is not None]
