@@ -1,4 +1,4 @@
-# Todo App v0.3 - 现代化跨平台待办事项管理器
+# Todo App v0.3.1 - 现代化跨平台待办事项管理器
 
 一个使用 **customtkinter** 构建的现代化跨平台待办事项应用程序，支持深色/浅色模式切换，完美兼容 Windows、Linux、macOS 系统。
 
@@ -17,7 +17,7 @@
 ## 📁 项目结构
 
 ```
-Todo App v0.3/
+Todo App v0.3.1/
 ├── app.py              # 🚀 程序入口文件
 ├── main_app.py         # 🏠 主应用程序
 ├── ui_components.py    # 🎨 UI组件模块
@@ -81,7 +81,7 @@ Todo App v0.3/
 1. **克隆项目**
 ```bash
 git clone <repository-url>
-cd Todo-App-v0.3
+cd Todo-App-v0.3.1
 ```
 
 2. **安装依赖**
@@ -154,7 +154,9 @@ python app.py
 
 ## 🔄 版本历史
 
-### v0.3 (当前版本)
+### v0.3.1 (当前版本)
+- 🔧 优化系统检测显示，macOS 显示真实版本号
+- 🔧 添加 Linux 发行版本显示支持
 - 🆕 完全重构，使用 customtkinter 框架
 - 🆕 现代化界面设计
 - 🆕 改进的跨平台支持
@@ -208,4 +210,4 @@ python app.py
 
 ---
 
-**Todo App v0.3** - 让任务管理变得简单而美观 ✨
+**Todo App v0.3.1** - 让任务管理变得简单而美观 ✨

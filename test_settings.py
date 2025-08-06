@@ -1,5 +1,5 @@
 """
-设置模块测试 - Todo App v0.3
+设置模块测试 - Todo App v0.3.1
 测试设置功能的完整性和正确性
 """
 import unittest
@@ -169,7 +169,7 @@ class TestSettingsModule(unittest.TestCase):
 def run_settings_tests():
     """运行设置模块测试"""
     print("=" * 50)
-    print("Todo App v0.3 - 设置模块测试")
+    print("Todo App v0.3.1 - 设置模块测试")
     print("=" * 50)
     
     # 创建测试套件

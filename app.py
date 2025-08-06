@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Todo App v0.3 - 程序入口
+Todo App v0.3.1 - 程序入口
 现代化跨平台待办事项管理器
 支持 Windows、Linux、macOS 和深色模式
 """
@@ -87,7 +87,7 @@ def print_system_info():
         os_display = platform_name
     
     print("=" * 50)
-    print("Todo App v0.3 - 系统信息")
+    print("Todo App v0.3.1 - 系统信息")
     print("=" * 50)
     print(f"Python 版本: {sys.version}")
     print(f"操作系统: {os_display}")
@@ -116,7 +116,7 @@ def main():
         
         # 导入并启动主应用
         from main_app import main as run_app
-        print("🚀 启动 Todo App v0.3...")
+        print("🚀 启动 Todo App v0.3.1...")
         run_app()
     except KeyboardInterrupt:
         print("\n👋 程序被用户中断")

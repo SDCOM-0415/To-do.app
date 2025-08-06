@@ -9,8 +9,8 @@ from typing import Dict, Any
 
 class Config:
     def __init__(self):
-        self.app_name = "Todo App v0.3"
-        self.version = "0.3.0"
+        self.app_name = "Todo App v0.3.1"
+        self.version = "0.3.1"
         
         # 配置文件路径 - 存放在软件根目录
         self.config_dir = Path(__file__).parent

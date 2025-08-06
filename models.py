@@ -1,5 +1,5 @@
 """
-数据模型 - Todo App v0.3
+数据模型 - Todo App v0.3.1
 定义任务数据结构
 """
 from dataclasses import dataclass, asdict

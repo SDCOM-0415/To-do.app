@@ -1,5 +1,5 @@
 #!/bin/bash
-# Linux 系统 Tkinter 安装脚本 - Todo App v0.3
+# Linux 系统 Tkinter 安装脚本 - Todo App v0.3.1
 
 echo "🐧 Linux 系统 Tkinter 安装脚本"
 echo "=================================================="
@@ -86,7 +86,7 @@ except Exception as e:
 
 if [ $? -eq 0 ]; then
     echo ""
-    echo "🎉 安装完成！现在可以运行 Todo App v0.3 了"
+    echo "🎉 安装完成！现在可以运行 Todo App v0.3.1 了"
     echo ""
 else
     echo ""
