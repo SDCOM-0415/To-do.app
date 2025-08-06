@@ -97,19 +97,9 @@ class TodoApp(ctk.CTk):
         title_label.pack(side="left", padx=20, pady=15)
         
         # 右侧：主题切换和设置按钮
+        # 右侧：设置按钮
         right_frame = ctk.CTkFrame(toolbar, fg_color="transparent")
         right_frame.pack(side="right", padx=20, pady=10)
-        
-        # 主题切换按钮
-        theme_btn = ctk.CTkButton(
-            right_frame,
-            text="🌙",
-            width=40,
-            height=40,
-            command=self.toggle_theme,
-            font=("", 16)
-        )
-        theme_btn.pack(side="right", padx=(10, 0))
         
         # 设置按钮
         settings_btn = ctk.CTkButton(
@@ -365,14 +355,6 @@ class TodoApp(ctk.CTk):
         """更新统计信息"""
         stats = task_db.get_statistics()
         self.stats_frame.update_statistics(stats)
-    
-    def toggle_theme(self):
-        """切换主题"""
-        current_mode = ctk.get_appearance_mode()
-        new_mode = "light" if current_mode == "Dark" else "dark"
-        ctk.set_appearance_mode(new_mode)
-        app_config.set("theme", new_mode)
-        self.show_status_message(f"已切换到{'浅色' if new_mode == 'light' else '深色'}模式")
     
     def show_settings(self):
         """显示设置对话框"""

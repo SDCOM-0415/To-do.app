@@ -22,7 +22,7 @@ class Config:
         
         # 默认配置
         self.default_config = {
-            "theme": "dark",  # dark, light, system
+            "theme": "system",  # dark, light, system
             "window_size": "900x700",
             "window_position": "center",
             "auto_save": True,

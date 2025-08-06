@@ -6,6 +6,9 @@ import customtkinter as ctk
 from tkinter import messagebox, colorchooser, filedialog
 from typing import Dict, Any
 import json
+import platform
+import sys
+import time
 from config import app_config
 from settings_manager import settings_manager
 
@@ -21,7 +24,7 @@ class SettingsDialog(ctk.CTkToplevel):
         
         # 设置窗口属性
         self.title("应用设置")
-        self.geometry("600x500")
+        self.geometry("600x600")
         self.resizable(False, False)
         
         # 设置为模态窗口
@@ -43,8 +46,8 @@ class SettingsDialog(ctk.CTkToplevel):
         """窗口居中显示"""
         self.update_idletasks()
         x = (self.winfo_screenwidth() // 2) - (600 // 2)
-        y = (self.winfo_screenheight() // 2) - (500 // 2)
-        self.geometry(f"600x500+{x}+{y}")
+        y = (self.winfo_screenheight() // 2) - (600 // 2)
+        self.geometry(f"600x600+{x}+{y}")
     
     def setup_modal(self):
         """设置模态窗口（延迟执行以确保窗口可见）"""
@@ -96,19 +99,26 @@ class SettingsDialog(ctk.CTkToplevel):
         
         # 高级设置选项卡
         self.create_advanced_tab()
+        
+        # 关于选项卡
+        self.create_about_tab()
     
     def create_appearance_tab(self):
         """创建外观设置选项卡"""
         tab = self.tabview.add("外观")
         
+        # 创建滚动框架
+        scroll_frame = ctk.CTkScrollableFrame(tab)
+        scroll_frame.pack(fill="both", expand=True, padx=5, pady=5)
+        
         # 主题设置
-        theme_frame = ctk.CTkFrame(tab)
+        theme_frame = ctk.CTkFrame(scroll_frame)
         theme_frame.pack(fill="x", padx=10, pady=10)
         
         ctk.CTkLabel(theme_frame, text="主题模式", font=("", 14, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
         
-        self.theme_var = ctk.StringVar(value=app_config.get("theme", "dark"))
-        theme_options = [("深色模式", "dark"), ("浅色模式", "light"), ("跟随系统", "system")]
+        self.theme_var = ctk.StringVar(value=app_config.get("theme", "system"))
+        theme_options = [("跟随系统", "system"), ("深色模式", "dark"), ("浅色模式", "light")]
         
         for text, value in theme_options:
             radio = ctk.CTkRadioButton(
@@ -172,8 +182,12 @@ class SettingsDialog(ctk.CTkToplevel):
         """创建行为设置选项卡"""
         tab = self.tabview.add("行为")
         
+        # 创建滚动框架
+        scroll_frame = ctk.CTkScrollableFrame(tab)
+        scroll_frame.pack(fill="both", expand=True, padx=5, pady=5)
+        
         # 自动保存设置
-        auto_save_frame = ctk.CTkFrame(tab)
+        auto_save_frame = ctk.CTkFrame(scroll_frame)
         auto_save_frame.pack(fill="x", padx=10, pady=10)
         
         ctk.CTkLabel(auto_save_frame, text="自动保存", font=("", 14, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
@@ -239,8 +253,12 @@ class SettingsDialog(ctk.CTkToplevel):
         """创建颜色设置选项卡"""
         tab = self.tabview.add("颜色")
         
+        # 创建滚动框架
+        scroll_frame = ctk.CTkScrollableFrame(tab)
+        scroll_frame.pack(fill="both", expand=True, padx=5, pady=5)
+        
         # 优先级颜色设置
-        priority_frame = ctk.CTkFrame(tab)
+        priority_frame = ctk.CTkFrame(scroll_frame)
         priority_frame.pack(fill="x", padx=10, pady=10)
         
         ctk.CTkLabel(priority_frame, text="优先级颜色", font=("", 14, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
@@ -286,8 +304,12 @@ class SettingsDialog(ctk.CTkToplevel):
         """创建高级设置选项卡"""
         tab = self.tabview.add("高级")
         
+        # 创建滚动框架
+        scroll_frame = ctk.CTkScrollableFrame(tab)
+        scroll_frame.pack(fill="both", expand=True, padx=5, pady=5)
+        
         # 数据管理
-        data_frame = ctk.CTkFrame(tab)
+        data_frame = ctk.CTkFrame(scroll_frame)
         data_frame.pack(fill="x", padx=10, pady=10)
         
         ctk.CTkLabel(data_frame, text="数据管理", font=("", 14, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
@@ -344,6 +366,182 @@ class SettingsDialog(ctk.CTkToplevel):
             text_color="gray"
         )
         tasks_path_label.pack(anchor="w", padx=20, pady=(2, 15))
+    
+    def create_about_tab(self):
+        """创建关于选项卡"""
+        tab = self.tabview.add("关于")
+        
+        # 创建滚动框架
+        scroll_frame = ctk.CTkScrollableFrame(tab)
+        scroll_frame.pack(fill="both", expand=True, padx=5, pady=5)
+        
+        # 应用信息
+        app_info_frame = ctk.CTkFrame(scroll_frame)
+        app_info_frame.pack(fill="x", padx=10, pady=10)
+        
+        # 应用图标和名称
+        title_frame = ctk.CTkFrame(app_info_frame, fg_color="transparent")
+        title_frame.pack(fill="x", padx=10, pady=(15, 10))
+        
+        # 应用图标
+        icon_label = ctk.CTkLabel(
+            title_frame,
+            text="📝",
+            font=("", 48)
+        )
+        icon_label.pack(pady=(0, 10))
+        
+        # 应用名称
+        app_name_label = ctk.CTkLabel(
+            title_frame,
+            text=f"{app_config.app_name}",
+            font=("", 24, "bold")
+        )
+        app_name_label.pack()
+        
+        # 版本信息
+        version_label = ctk.CTkLabel(
+            title_frame,
+            text=f"版本 {app_config.version}",
+            font=("", 16),
+            text_color="gray"
+        )
+        version_label.pack(pady=(5, 0))
+        
+        # 应用描述
+        description_label = ctk.CTkLabel(
+            title_frame,
+            text="现代化跨平台待办事项管理器\n支持 Windows、Linux、macOS 和深色模式",
+            font=("", 14),
+            text_color="gray",
+            justify="center"
+        )
+        description_label.pack(pady=(10, 15))
+        
+        # 开发信息
+        dev_info_frame = ctk.CTkFrame(scroll_frame)
+        dev_info_frame.pack(fill="x", padx=10, pady=10)
+        
+        ctk.CTkLabel(dev_info_frame, text="开发信息", font=("", 16, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
+        
+        # 开发者
+        dev_label = ctk.CTkLabel(
+            dev_info_frame,
+            text="开发者: SDCOM",
+            font=("", 12)
+        )
+        dev_label.pack(anchor="w", padx=20, pady=2)
+        
+        # 开发时间
+        current_year = time.strftime("%Y")
+        copyright_label = ctk.CTkLabel(
+            dev_info_frame,
+            text=f"版权所有 © {current_year} SDCOM",
+            font=("", 12)
+        )
+        copyright_label.pack(anchor="w", padx=20, pady=2)
+        
+        # 技术栈
+        tech_label = ctk.CTkLabel(
+            dev_info_frame,
+            text="技术栈: Python 3.12 + CustomTkinter",
+            font=("", 12)
+        )
+        tech_label.pack(anchor="w", padx=20, pady=(2, 15))
+        
+        # 功能特性
+        features_frame = ctk.CTkFrame(scroll_frame)
+        features_frame.pack(fill="x", padx=10, pady=10)
+        
+        ctk.CTkLabel(features_frame, text="主要功能", font=("", 16, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
+        
+        features = [
+            "✅ 任务创建、编辑和删除",
+            "✅ 优先级设置（高、中、低）",
+            "✅ 截止日期管理",
+            "✅ 任务分类和标签",
+            "✅ 搜索和过滤功能",
+            "✅ 统计信息面板",
+            "✅ 深色/浅色主题切换",
+            "✅ 自动保存功能",
+            "✅ 数据导入导出",
+            "✅ 跨平台支持"
+        ]
+        
+        for feature in features:
+            feature_label = ctk.CTkLabel(
+                features_frame,
+                text=feature,
+                font=("", 11),
+                anchor="w"
+            )
+            feature_label.pack(anchor="w", padx=20, pady=1)
+        
+        # 添加底部间距
+        ctk.CTkLabel(features_frame, text="", height=10).pack(pady=(5, 15))
+        
+        # 系统信息
+        system_info_frame = ctk.CTkFrame(scroll_frame)
+        system_info_frame.pack(fill="x", padx=10, pady=10)
+        
+        ctk.CTkLabel(system_info_frame, text="系统信息", font=("", 16, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
+        
+        # Python版本
+        python_version_label = ctk.CTkLabel(
+            system_info_frame,
+            text=f"Python 版本: {sys.version.split()[0]}",
+            font=("", 11),
+            text_color="gray"
+        )
+        python_version_label.pack(anchor="w", padx=20, pady=1)
+        
+        # 操作系统
+        os_info_label = ctk.CTkLabel(
+            system_info_frame,
+            text=f"操作系统: {platform.system()} {platform.release()}",
+            font=("", 11),
+            text_color="gray"
+        )
+        os_info_label.pack(anchor="w", padx=20, pady=1)
+        
+        # 架构
+        arch_label = ctk.CTkLabel(
+            system_info_frame,
+            text=f"系统架构: {platform.machine()}",
+            font=("", 11),
+            text_color="gray"
+        )
+        arch_label.pack(anchor="w", padx=20, pady=(1, 15))
+        
+        # 联系信息
+        contact_frame = ctk.CTkFrame(scroll_frame)
+        contact_frame.pack(fill="x", padx=10, pady=10)
+        
+        ctk.CTkLabel(contact_frame, text="联系方式", font=("", 16, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
+        
+        # 邮箱
+        email_label = ctk.CTkLabel(
+            contact_frame,
+            text="📧 邮箱: sdcom@sdcom.asia",
+            font=("", 12)
+        )
+        email_label.pack(anchor="w", padx=20, pady=2)
+        
+        # GitHub
+        github_label = ctk.CTkLabel(
+            contact_frame,
+            text="🐙 GitHub: https://github.com/SDCOM-0415/To-do.app",
+            font=("", 12)
+        )
+        github_label.pack(anchor="w", padx=20, pady=2)
+        
+        # 个人网站
+        website_label = ctk.CTkLabel(
+            contact_frame,
+            text="🌐 个人网站: www.sdcom.top",
+            font=("", 12)
+        )
+        website_label.pack(anchor="w", padx=20, pady=(2, 15))
     
     def create_buttons(self, parent):
         """创建底部按钮"""
@@ -492,6 +690,7 @@ class SettingsDialog(ctk.CTkToplevel):
             if width.isdigit() and height.isdigit():
                 app_config.set("window_size", f"{width}x{height}")
             
+            # 保存行为设置
             # 保存行为设置
             app_config.set("auto_save", self.auto_save_var.get())
             app_config.set("show_completed", self.show_completed_var.get())
