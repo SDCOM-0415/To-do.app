@@ -116,55 +116,7 @@ jobs:
         python -c "import tkinter; print(f'Tkinter版本: {tkinter.TkVersion}')"
         python -c "import PIL; print(f'PIL版本: {PIL.__version__}')"
         
-        # 直接修改build.spec文件，添加运行时钩子代码
-        $specContent = Get-Content build.spec
-        $hookCode = @'
-# 添加运行时钩子代码
-import os
-import sys
-
-def get_hook_code():
-    return """
-import os
-import sys
-
-# 如果是打包环境，设置正确的TCL/TK路径
-if getattr(sys, 'frozen', False):
-    base_dir = sys._MEIPASS
-    # 尝试多种可能的路径
-    possible_tcl_paths = [
-        os.path.join(base_dir, '_tcl_data', 'tcl8.6'),
-        os.path.join(base_dir, 'tcl', 'tcl8.6'),
-        os.path.join(base_dir, 'tcl')
-    ]
-    possible_tk_paths = [
-        os.path.join(base_dir, '_tcl_data', 'tk8.6'),
-        os.path.join(base_dir, 'tk', 'tk8.6'),
-        os.path.join(base_dir, 'tk')
-    ]
-    # 查找有效的路径
-    for tcl_path in possible_tcl_paths:
-        if os.path.exists(tcl_path):
-            os.environ['TCL_LIBRARY'] = tcl_path
-            break
-    for tk_path in possible_tk_paths:
-        if os.path.exists(tk_path):
-            os.environ['TK_LIBRARY'] = tk_path
-            break
-"""
-
-# 直接将钩子代码添加到runtime_hooks
-with open(os.path.join(SPECPATH, "tkinter_hook.py"), "w") as f:
-    f.write(get_hook_code())
-
-a.runtime_hooks.append(os.path.join(SPECPATH, "tkinter_hook.py"))
-'@
-        
-        # 在build.spec中添加钩子代码
-        $newSpecContent = $specContent -replace "# 过滤掉 None 值", $hookCode + "`n# 过滤掉 None 值"
-        Set-Content -Path build.spec -Value $newSpecContent
-        
-        # 直接使用修改后的build.spec文件构建
+        # 直接使用本地的build.spec文件构建，添加额外的收集选项
         pyinstaller build.spec --log-level DEBUG --collect-all tkinter --collect-all customtkinter
         
         # 确保包含所有必要的tkinter文件

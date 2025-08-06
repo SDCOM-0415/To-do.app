@@ -1,4 +1,10 @@
-# hook-runtime.py - 运行时钩子，确保tkinter正确加载
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Todo App v0.3.1 - PyInstaller运行时钩子
+确保tkinter在打包环境中正确加载
+"""
+
 import os
 import sys
 

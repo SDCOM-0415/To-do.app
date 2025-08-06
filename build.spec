@@ -125,46 +125,14 @@ else:
 # 添加环境变量设置
 print("Adding environment variable settings to runtime hooks")
 
-# 内联定义运行时钩子代码
-runtime_hook_code = """
-import os
-import sys
+# 添加运行时钩子
+a.runtime_hooks.append('hook-runtime.py')
 
-# 如果是打包环境，设置正确的TCL/TK路径
-if getattr(sys, 'frozen', False):
-    base_dir = sys._MEIPASS
-    
-    # 尝试多种可能的路径
-    possible_tcl_paths = [
-        os.path.join(base_dir, '_tcl_data', 'tcl8.6'),
-        os.path.join(base_dir, 'tcl', 'tcl8.6'),
-        os.path.join(base_dir, 'tcl')
-    ]
-    
-    possible_tk_paths = [
-        os.path.join(base_dir, '_tcl_data', 'tk8.6'),
-        os.path.join(base_dir, 'tk', 'tk8.6'),
-        os.path.join(base_dir, 'tk')
-    ]
-    
-    # 查找有效的TCL路径
-    for tcl_path in possible_tcl_paths:
-        if os.path.exists(tcl_path):
-            os.environ['TCL_LIBRARY'] = tcl_path
-            print(f'已设置TCL_LIBRARY={tcl_path}')
-            break
-    
-    # 查找有效的TK路径
-    for tk_path in possible_tk_paths:
-        if os.path.exists(tk_path):
-            os.environ['TK_LIBRARY'] = tk_path
-            print(f'已设置TK_LIBRARY={tk_path}')
-            break
-"""
-
-# 将运行时钩子代码直接添加到Analysis对象
-a.runtime_hooks.append('__tkinter_hook__')
-a.scripts.append(('__tkinter_hook__', runtime_hook_code, 'PYSOURCE'))
+# 确保收集所有tkinter相关文件
+a.binaries = a.binaries + [
+    ('tcl86t.dll', os.path.join(tcl_dir, 'bin', 'tcl86t.dll'), 'BINARY'),
+    ('tk86t.dll', os.path.join(tk_dir, 'bin', 'tk86t.dll'), 'BINARY')
+] if sys.platform == 'win32' and os.path.exists(os.path.join(tcl_dir, 'bin', 'tcl86t.dll')) else a.binaries
 
 # 过滤掉 None 值
 a.datas = [item for item in a.datas if item is not None]
