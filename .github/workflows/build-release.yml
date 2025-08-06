@@ -139,21 +139,21 @@ jobs:
 
     - name: Upload artifact (Windows)
       if: matrix.platform == 'windows'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.artifact_name }}
         path: dist/${{ matrix.artifact_name }}.zip
 
     # - name: Upload artifact (macOS)
     #   if: matrix.platform == 'macos'
-    #   uses: actions/upload-artifact@v3
+    #   uses: actions/upload-artifact@v4
     #   with:
     #     name: ${{ matrix.artifact_name }}
     #     path: dist/${{ matrix.artifact_name }}.dmg
 
     - name: Upload artifact (Linux)
       if: matrix.platform == 'linux'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.artifact_name }}
         path: dist/${{ matrix.artifact_name }}.tar.gz
@@ -168,7 +168,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Download all artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
 
     - name: Create Release
       id: create_release
