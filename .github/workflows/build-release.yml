@@ -114,8 +114,8 @@ jobs:
         python -c "import PIL; print(f'PIL版本: {PIL.__version__}')"
         
         # 直接使用本地的build.spec文件构建
-        # 添加更多的隐藏导入和数据文件收集选项
-        pyinstaller build.spec --log-level DEBUG --hidden-import tkinter --hidden-import tkinter.ttk --hidden-import tkinter.messagebox --hidden-import tkinter.filedialog --hidden-import tkinter.colorchooser --hidden-import PIL --hidden-import PIL._tkinter_finder --collect-all tkinter --collect-all customtkinter
+        # 注意：使用.spec文件时不能添加--hidden-import和--collect-all参数
+        pyinstaller build.spec --log-level DEBUG
       shell: pwsh
 
     - name: Build executable (macOS/Linux)

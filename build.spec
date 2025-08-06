@@ -22,7 +22,7 @@ a = Analysis(
     # 初始化数据列表
     datas=[],
     
-    # 添加Tcl/Tk库文件
+    # 添加Tcl/Tk库文件和所有必要的依赖
     hiddenimports=[
         'customtkinter',
         'tkinter',
@@ -32,6 +32,14 @@ a = Analysis(
         'tkinter.colorchooser',
         'PIL',
         'PIL._tkinter_finder',
+        '_tkinter',
+        'tkinter.constants',
+        'tkinter.commondialog',
+        'tkinter.dialog',
+        'tkinter.dnd',
+        'tkinter.font',
+        'tkinter.simpledialog',
+        'tkinter.tix',
     ],
     hookspath=[],
     hooksconfig={},
