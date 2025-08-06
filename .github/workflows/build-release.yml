@@ -36,10 +36,22 @@ jobs:
         
         # 根据标签类型设置tag_name
         if [ "$TAG_TYPE" == "Pre-release" ]; then
-          # 获取当前日期和构建次数
+          # 获取当前日期
           DATE=$(date +%Y%m%d)
-          # 检查是否已经有今天的构建
+          
+          # 检查是否已经有今天的构建，并获取最新的构建次数
           BUILD_COUNT=1
+          # 获取所有以当前版本和日期开头的标签
+          EXISTING_TAGS=$(git ls-remote --tags origin | grep "${VERSION}-${DATE}-" | sed -E "s/.*${VERSION}-${DATE}-([0-9]+).*/\1/" | sort -n)
+          
+          # 如果存在标签，获取最大值并加1
+          if [ ! -z "$EXISTING_TAGS" ]; then
+            LATEST_COUNT=$(echo "$EXISTING_TAGS" | tail -n 1)
+            if [ ! -z "$LATEST_COUNT" ]; then
+              BUILD_COUNT=$((LATEST_COUNT + 1))
+            fi
+          fi
+          
           # 设置预览版标签
           TAG_NAME="${VERSION}-${DATE}-${BUILD_COUNT}"
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
@@ -218,9 +230,22 @@ jobs:
         
         # 根据标签类型设置tag_name
         if [ "$TAG_TYPE" == "Pre-release" ]; then
-          # 获取当前日期和构建次数
+          # 获取当前日期
           DATE=$(date +%Y%m%d)
+          
+          # 检查是否已经有今天的构建，并获取最新的构建次数
           BUILD_COUNT=1
+          # 获取所有以当前版本和日期开头的标签
+          EXISTING_TAGS=$(git ls-remote --tags origin | grep "${VERSION}-${DATE}-" | sed -E "s/.*${VERSION}-${DATE}-([0-9]+).*/\1/" | sort -n)
+          
+          # 如果存在标签，获取最大值并加1
+          if [ ! -z "$EXISTING_TAGS" ]; then
+            LATEST_COUNT=$(echo "$EXISTING_TAGS" | tail -n 1)
+            if [ ! -z "$LATEST_COUNT" ]; then
+              BUILD_COUNT=$((LATEST_COUNT + 1))
+            fi
+          fi
+          
           # 设置预览版标签
           TAG_NAME="${VERSION}-${DATE}-${BUILD_COUNT}"
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
