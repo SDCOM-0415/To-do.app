@@ -14,11 +14,11 @@ jobs:
             arch: x64
             executable_ext: .exe
             artifact_name: Todo-App-v0.3.1-Windows-x64
-          - os: macos-latest-large
-            platform: macos
-            arch: x64
-            executable_ext: ""
-            artifact_name: Todo-App-v0.3.1-macOS-x64
+          # - os: macos-latest-large
+          #   platform: macos
+          #   arch: x64
+          #   executable_ext: ""
+          #   artifact_name: Todo-App-v0.3.1-macOS-x64
           - os: ubuntu-latest
             platform: linux
             arch: x64
@@ -46,10 +46,10 @@ jobs:
         pip install -r requirements.txt
         pip install pyinstaller
 
-    - name: Install DMG creation tools (macOS)
-      if: matrix.platform == 'macos'
-      run: |
-        brew install create-dmg
+    # - name: Install DMG creation tools (macOS)
+    #   if: matrix.platform == 'macos'
+    #   run: |
+    #     brew install create-dmg
 
     - name: Build executable
       run: |
@@ -67,62 +67,62 @@ jobs:
       run: |
         mv dist/TodoApp "dist/${{ matrix.artifact_name }}"
 
-    - name: Create macOS App Bundle and DMG
-      if: matrix.platform == 'macos'
-      run: |
-        # 创建应用程序包结构
-        mkdir -p "dist/Todo App.app/Contents/MacOS"
-        mkdir -p "dist/Todo App.app/Contents/Resources"
-        
-        # 移动可执行文件
-        mv dist/TodoApp "dist/Todo App.app/Contents/MacOS/TodoApp"
-        chmod +x "dist/Todo App.app/Contents/MacOS/TodoApp"
-        
-        # 创建 Info.plist
-        cat > "dist/Todo App.app/Contents/Info.plist" << EOF
-        <?xml version="1.0" encoding="UTF-8"?>
-        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-        <plist version="1.0">
-        <dict>
-            <key>CFBundleExecutable</key>
-            <string>TodoApp</string>
-            <key>CFBundleIdentifier</key>
-            <string>com.sdcom.todoapp</string>
-            <key>CFBundleName</key>
-            <string>Todo App</string>
-            <key>CFBundleDisplayName</key>
-            <string>Todo App v0.3.1</string>
-            <key>CFBundleVersion</key>
-            <string>0.3.1</string>
-            <key>CFBundleShortVersionString</key>
-            <string>0.3.1</string>
-            <key>CFBundlePackageType</key>
-            <string>APPL</string>
-            <key>NSHighResolutionCapable</key>
-            <true/>
-            <key>LSMinimumSystemVersion</key>
-            <string>10.14.0</string>
-        </dict>
-        </plist>
-        EOF
-        
-        # 创建 DMG 文件
-        create-dmg \
-          --volname "Todo App v0.3.1" \
-          --volicon "icon.ico" \
-          --window-pos 200 120 \
-          --window-size 600 300 \
-          --icon-size 100 \
-          --icon "Todo App.app" 175 120 \
-          --hide-extension "Todo App.app" \
-          --app-drop-link 425 120 \
-          "dist/${{ matrix.artifact_name }}.dmg" \
-          "dist/Todo App.app" || true
-        
-        # 如果 create-dmg 失败，使用 hdiutil 创建简单的 DMG
-        if [ ! -f "dist/${{ matrix.artifact_name }}.dmg" ]; then
-          hdiutil create -volname "Todo App v0.3.1" -srcfolder "dist/Todo App.app" -ov -format UDZO "dist/${{ matrix.artifact_name }}.dmg"
-        fi
+    # - name: Create macOS App Bundle and DMG
+    #   if: matrix.platform == 'macos'
+    #   run: |
+    #     # 创建应用程序包结构
+    #     mkdir -p "dist/Todo App.app/Contents/MacOS"
+    #     mkdir -p "dist/Todo App.app/Contents/Resources"
+    #     
+    #     # 移动可执行文件
+    #     mv dist/TodoApp "dist/Todo App.app/Contents/MacOS/TodoApp"
+    #     chmod +x "dist/Todo App.app/Contents/MacOS/TodoApp"
+    #     
+    #     # 创建 Info.plist
+    #     cat > "dist/Todo App.app/Contents/Info.plist" << EOF
+    #     <?xml version="1.0" encoding="UTF-8"?>
+    #     <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+    #     <plist version="1.0">
+    #     <dict>
+    #         <key>CFBundleExecutable</key>
+    #         <string>TodoApp</string>
+    #         <key>CFBundleIdentifier</key>
+    #         <string>com.sdcom.todoapp</string>
+    #         <key>CFBundleName</key>
+    #         <string>Todo App</string>
+    #         <key>CFBundleDisplayName</key>
+    #         <string>Todo App v0.3.1</string>
+    #         <key>CFBundleVersion</key>
+    #         <string>0.3.1</string>
+    #         <key>CFBundleShortVersionString</key>
+    #         <string>0.3.1</string>
+    #         <key>CFBundlePackageType</key>
+    #         <string>APPL</string>
+    #         <key>NSHighResolutionCapable</key>
+    #         <true/>
+    #         <key>LSMinimumSystemVersion</key>
+    #         <string>10.14.0</string>
+    #     </dict>
+    #     </plist>
+    #     EOF
+    #     
+    #     # 创建 DMG 文件
+    #     create-dmg \
+    #       --volname "Todo App v0.3.1" \
+    #       --volicon "icon.ico" \
+    #       --window-pos 200 120 \
+    #       --window-size 600 300 \
+    #       --icon-size 100 \
+    #       --icon "Todo App.app" 175 120 \
+    #       --hide-extension "Todo App.app" \
+    #       --app-drop-link 425 120 \
+    #       "dist/${{ matrix.artifact_name }}.dmg" \
+    #       "dist/Todo App.app" || true
+    #     
+    #     # 如果 create-dmg 失败，使用 hdiutil 创建简单的 DMG
+    #     if [ ! -f "dist/${{ matrix.artifact_name }}.dmg" ]; then
+    #       hdiutil create -volname "Todo App v0.3.1" -srcfolder "dist/Todo App.app" -ov -format UDZO "dist/${{ matrix.artifact_name }}.dmg"
+    #     fi
 
     - name: Create archive (Windows)
       if: matrix.platform == 'windows'
@@ -144,12 +144,12 @@ jobs:
         name: ${{ matrix.artifact_name }}
         path: dist/${{ matrix.artifact_name }}.zip
 
-    - name: Upload artifact (macOS)
-      if: matrix.platform == 'macos'
-      uses: actions/upload-artifact@v3
-      with:
-        name: ${{ matrix.artifact_name }}
-        path: dist/${{ matrix.artifact_name }}.dmg
+    # - name: Upload artifact (macOS)
+    #   if: matrix.platform == 'macos'
+    #   uses: actions/upload-artifact@v3
+    #   with:
+    #     name: ${{ matrix.artifact_name }}
+    #     path: dist/${{ matrix.artifact_name }}.dmg
 
     - name: Upload artifact (Linux)
       if: matrix.platform == 'linux'
@@ -188,12 +188,10 @@ jobs:
 
           ### 📦 下载说明
           - **Windows 用户**: 下载 `Todo-App-v0.3.1-Windows-x64.zip`
-          - **macOS 用户**: 下载 `Todo-App-v0.3.1-macOS-x64.dmg`
           - **Linux 用户**: 下载 `Todo-App-v0.3.1-Linux-x64.tar.gz`
 
           ### 🚀 使用方法
           - **Windows**: 解压 ZIP 文件，双击运行 .exe 文件
-          - **macOS**: 双击 DMG 文件，将应用拖拽到应用程序文件夹
           - **Linux**: 解压 tar.gz 文件，运行可执行文件
 
           ### 📋 系统要求
@@ -219,15 +217,15 @@ jobs:
         asset_name: Todo-App-v0.3.1-Windows-x64.zip
         asset_content_type: application/zip
 
-    - name: Upload macOS Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./Todo-App-v0.3.1-macOS-x64/Todo-App-v0.3.1-macOS-x64.dmg
-        asset_name: Todo-App-v0.3.1-macOS-x64.dmg
-        asset_content_type: application/x-apple-diskimage
+    # - name: Upload macOS Release Asset
+    #   uses: actions/upload-release-asset@v1
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #   with:
+    #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+    #     asset_path: ./Todo-App-v0.3.1-macOS-x64/Todo-App-v0.3.1-macOS-x64.dmg
+    #     asset_name: Todo-App-v0.3.1-macOS-x64.dmg
+    #     asset_content_type: application/x-apple-diskimage
 
     - name: Upload Linux Release Asset
       uses: actions/upload-release-asset@v1
