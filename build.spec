@@ -125,6 +125,28 @@ else:
 # 添加环境变量设置
 print("Adding environment variable settings to runtime hooks")
 
+# 创建运行时钩子文件
+with open('runtime-hook.py', 'w') as f:
+    f.write('''
+import os
+import sys
+
+# 如果是打包环境，设置正确的TCL/TK路径
+if getattr(sys, 'frozen', False):
+    base_dir = sys._MEIPASS
+    tcl_dir = os.path.join(base_dir, '_tcl_data', 'tcl8.6')
+    tk_dir = os.path.join(base_dir, '_tcl_data', 'tk8.6')
+    
+    if os.path.exists(tcl_dir) and os.path.exists(tk_dir):
+        os.environ['TCL_LIBRARY'] = tcl_dir
+        os.environ['TK_LIBRARY'] = tk_dir
+        print(f"已设置TCL_LIBRARY={tcl_dir}")
+        print(f"已设置TK_LIBRARY={tk_dir}")
+''')
+
+# 添加运行时钩子
+a.runtime_hooks.append('runtime-hook.py')
+
 # 过滤掉 None 值
 a.datas = [item for item in a.datas if item is not None]
 

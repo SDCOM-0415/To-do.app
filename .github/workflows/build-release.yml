@@ -95,6 +95,9 @@ jobs:
     - name: Build executable (Windows)
       if: matrix.platform == 'windows'
       run: |
+        # 确保tkinter已正确安装
+        python -c "import tkinter; print(f'Tkinter已安装，版本: {tkinter.TkVersion}')"
+        
         # 获取Tcl/Tk路径并添加到环境变量
         $tclPath = python -c "import tkinter, os; print(os.path.join(os.path.dirname(os.path.dirname(tkinter.__file__)), 'tcl'))"
         $tkPath = python -c "import tkinter, os; print(os.path.join(os.path.dirname(os.path.dirname(tkinter.__file__)), 'tk'))"
@@ -113,8 +116,57 @@ jobs:
         python -c "import tkinter; print(f'Tkinter版本: {tkinter.TkVersion}')"
         python -c "import PIL; print(f'PIL版本: {PIL.__version__}')"
         
+        # 创建一个运行时钩子文件，确保tkinter能正确加载
+        @"
+# hook-runtime.py
+import os
+import sys
+
+# 如果是打包环境，设置正确的TCL/TK路径
+if getattr(sys, 'frozen', False):
+    base_dir = sys._MEIPASS
+    tcl_dir = os.path.join(base_dir, '_tcl_data', 'tcl8.6')
+    tk_dir = os.path.join(base_dir, '_tcl_data', 'tk8.6')
+    
+    if os.path.exists(tcl_dir) and os.path.exists(tk_dir):
+        os.environ['TCL_LIBRARY'] = tcl_dir
+        os.environ['TK_LIBRARY'] = tk_dir
+        print(f"已设置TCL_LIBRARY={tcl_dir}")
+        print(f"已设置TK_LIBRARY={tk_dir}")
+"@ | Out-File -FilePath "hook-runtime.py" -Encoding utf8
+        
+        # 修改build.spec文件，添加运行时钩子
+        (Get-Content build.spec) -replace "runtime_hooks=\[\]", "runtime_hooks=['hook-runtime.py']" | Set-Content build.spec
+        
         # 直接使用本地的build.spec文件构建
         pyinstaller build.spec --log-level DEBUG
+        
+        # 验证生成的可执行文件是否包含tkinter
+        if (Test-Path "dist/TodoApp.exe") {
+            Write-Host "✅ 构建成功，验证可执行文件..."
+            # 创建一个简单的测试脚本
+            @"
+import sys
+print("正在测试打包的可执行文件...")
+try:
+    import tkinter
+    print(f"✓ tkinter已成功导入，版本: {tkinter.TkVersion}")
+except ImportError as e:
+    print(f"❌ 导入tkinter失败: {e}")
+    sys.exit(1)
+"@ | Out-File -FilePath "test_tkinter.py" -Encoding utf8
+            
+            # 使用PyInstaller的--add-data选项确保包含所有必要的tkinter文件
+            pyinstaller --onefile --windowed --name "TodoApp_test" --add-data "$tclPath\tcl8.6;tcl\tcl8.6" --add-data "$tkPath\tk8.6;tk\tk8.6" test_tkinter.py
+            
+            if (Test-Path "dist/TodoApp_test.exe") {
+                Write-Host "✅ 测试构建成功"
+            } else {
+                Write-Host "❌ 测试构建失败"
+            }
+        } else {
+            Write-Host "❌ 构建失败，未找到可执行文件"
+        }
       shell: pwsh
 
     # - name: Build executable (macOS)

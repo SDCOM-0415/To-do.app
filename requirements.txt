@@ -1,10 +1,7 @@
-# Todo App v0.3.1 - Python 3.13 依赖包
-# 适用于 Python 3.13.5+
+# Todo App v0.3.1 - Python 依赖包
+# 适用于 Python 3.12+ 和 Python 3.13+
 
-# 注意：Python 3.13 需要额外安装 python-tk
-# 安装命令：brew install python-tk@3.13
-
-# 可选的现代化 UI 框架（如果系统支持）
+# UI 框架
 customtkinter>=5.2.2
 
 # 图像处理（用于图标等）
@@ -12,5 +9,6 @@ Pillow>=10.0.0
 
 # 注意事项：
 # 1. tkinter 是 Python 标准库的一部分，但在某些系统上需要单独安装
-# 2. 如果 customtkinter 不兼容，程序会自动回退到标准 tkinter
-# 3. Python 3.13 在 macOS 上需要通过 Homebrew 安装 python-tk 包
+# 2. Windows: 安装Python时请确保勾选"tcl/tk and IDLE"选项
+# 3. macOS: 可能需要额外安装 python-tk，命令: brew install python-tk@3.12
+# 4. Linux: 需要安装 python3-tk，命令: sudo apt-get install python3-tk
