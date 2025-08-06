@@ -113,22 +113,9 @@ jobs:
         python -c "import tkinter; print(f'Tkinter版本: {tkinter.TkVersion}')"
         python -c "import PIL; print(f'PIL版本: {PIL.__version__}')"
         
-        # 确保 tkinter 被正确打包
-        # 创建一个临时的 hook 文件来强制包含 tkinter
-        $hookContent = @"
-from PyInstaller.utils.hooks import collect_all
-
-# 强制包含 tkinter 和相关模块
-datas, binaries, hiddenimports = collect_all('tkinter')
-datas2, binaries2, hiddenimports2 = collect_all('customtkinter')
-datas += datas2
-binaries += binaries2
-hiddenimports += hiddenimports2
-"@
-        Set-Content -Path "hook-tkinter.py" -Value $hookContent
-        
-        # 直接使用本地的build.spec文件构建，添加额外的钩子路径
-        pyinstaller build.spec --log-level DEBUG --additional-hooks-dir=.
+        # 直接使用本地的build.spec文件构建
+        # 添加更多的隐藏导入和数据文件收集选项
+        pyinstaller build.spec --log-level DEBUG --hidden-import tkinter --hidden-import tkinter.ttk --hidden-import tkinter.messagebox --hidden-import tkinter.filedialog --hidden-import tkinter.colorchooser --hidden-import PIL --hidden-import PIL._tkinter_finder --collect-all tkinter --collect-all customtkinter
       shell: pwsh
 
     - name: Build executable (macOS/Linux)
