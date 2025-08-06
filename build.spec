@@ -19,6 +19,50 @@ a = Analysis(
     ['app.py'],
     pathex=[str(project_root)],
     binaries=[],
+    # 初始化空的数据列表
+    datas=[],
+# -*- mode: python ; coding: utf-8 -*-
+# Todo App v0.3.1 - PyInstaller 构建配置
+
+import sys
+from pathlib import Path
+
+# 获取项目根目录
+try:
+    # 尝试使用 __file__ 变量
+    project_root = Path(__file__).parent
+except NameError:
+    # 在 GitHub Actions 环境中，使用当前工作目录
+    import os
+    project_root = Path(os.getcwd())
+
+block_cipher = None
+
+a = Analysis(
+    ['app.py'],
+    pathex=[str(project_root)],
+    binaries=[],
+# -*- mode: python ; coding: utf-8 -*-
+# Todo App v0.3.1 - PyInstaller 构建配置
+
+import sys
+from pathlib import Path
+
+# 获取项目根目录
+try:
+    # 尝试使用 __file__ 变量
+    project_root = Path(__file__).parent
+except NameError:
+    # 在 GitHub Actions 环境中，使用当前工作目录
+    import os
+    project_root = Path(os.getcwd())
+
+block_cipher = None
+
+a = Analysis(
+    ['app.py'],
+    pathex=[str(project_root)],
+    binaries=[],
     datas=[
         # 包含图标文件（如果存在）
         ('icon.ico', '.') if (project_root / 'icon.ico').exists() else None,
