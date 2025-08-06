@@ -37,9 +37,17 @@ def setup_environment():
     except:
         pass
     
-    # 设置环境变量
-    os.environ['TCL_LIBRARY'] = ''
-    os.environ['TK_LIBRARY'] = ''
+    # 不要清空TCL/TK环境变量，让PyInstaller正确处理这些依赖
+    # 如果是打包环境，尝试设置正确的TCL/TK路径
+    if getattr(sys, 'frozen', False):
+        # 运行在PyInstaller环境中
+        base_dir = sys._MEIPASS
+        tcl_dir = os.path.join(base_dir, 'tcl')
+        tk_dir = os.path.join(base_dir, 'tk')
+        
+        if os.path.exists(tcl_dir) and os.path.exists(tk_dir):
+            os.environ['TCL_LIBRARY'] = tcl_dir
+            os.environ['TK_LIBRARY'] = tk_dir
 
 def print_system_info():
     """打印系统信息"""

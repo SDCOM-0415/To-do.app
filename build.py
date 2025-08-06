@@ -60,13 +60,9 @@ def main():
     # 构建命令
     build_cmd = [
         "pyinstaller",
-        "--onefile",
-        "--windowed",
-        "--name", "TodoApp",
+        "TodoApp.spec",
         "--distpath", "dist",
-        "--workpath", "build",
-        "--specpath", ".",
-        "app.py"
+        "--workpath", "build"
     ]
     
     # 添加图标（如果存在）
@@ -112,19 +108,8 @@ def main():
                 file_size = new_path.stat().st_size / (1024 * 1024)
                 print(f"✓ 文件大小: {file_size:.1f} MB")
                 
-                # 创建压缩包
-                if system == "Windows":
-                    archive_name = f"{output_name}.zip"
-                    import zipfile
-                    with zipfile.ZipFile(f"dist/{archive_name}", 'w', zipfile.ZIP_DEFLATED) as zf:
-                        zf.write(new_path, new_path.name)
-                    print(f"✓ 压缩包: dist/{archive_name}")
-                else:
-                    archive_name = f"{output_name}.tar.gz"
-                    import tarfile
-                    with tarfile.open(f"dist/{archive_name}", 'w:gz') as tf:
-                        tf.add(new_path, new_path.name)
-                    print(f"✓ 压缩包: dist/{archive_name}")
+                # 不再创建压缩包，直接使用单个exe文件
+                print(f"✓ 单个可执行文件已准备就绪")
                 
                 print("\n🎉 构建完成！")
                 print(f"可执行文件位于: {new_path}")
