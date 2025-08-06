@@ -37,7 +37,6 @@ def setup_environment():
     except:
         pass
     
-    # 不要清空TCL/TK环境变量，让PyInstaller正确处理这些依赖
     # 如果是打包环境，尝试设置正确的TCL/TK路径
     if getattr(sys, 'frozen', False):
         # 运行在PyInstaller环境中
@@ -69,11 +68,6 @@ def setup_environment():
                 os.environ['TK_LIBRARY'] = tk_path
                 print(f"已设置TK_LIBRARY={tk_path}")
                 break
-        
-        # 打印调试信息
-        print(f"MEIPASS路径: {base_dir}")
-        print(f"当前TCL_LIBRARY: {os.environ.get('TCL_LIBRARY', '未设置')}")
-        print(f"当前TK_LIBRARY: {os.environ.get('TK_LIBRARY', '未设置')}")
 
 def print_system_info():
     """打印系统信息"""
