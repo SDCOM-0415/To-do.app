@@ -26,7 +26,6 @@ class SettingsDialog(ctk.CTkToplevel):
         
         # 设置为模态窗口
         self.transient(parent)
-        self.grab_set()
         
         # 居中显示
         self.center_window()
@@ -36,6 +35,9 @@ class SettingsDialog(ctk.CTkToplevel):
         
         # 加载当前设置
         self.load_current_settings()
+        
+        # 确保窗口完全显示后再设置模态
+        self.after(100, self.setup_modal)
     
     def center_window(self):
         """窗口居中显示"""
@@ -43,6 +45,19 @@ class SettingsDialog(ctk.CTkToplevel):
         x = (self.winfo_screenwidth() // 2) - (600 // 2)
         y = (self.winfo_screenheight() // 2) - (500 // 2)
         self.geometry(f"600x500+{x}+{y}")
+    
+    def setup_modal(self):
+        """设置模态窗口（延迟执行以确保窗口可见）"""
+        try:
+            self.grab_set()
+            self.focus_set()
+        except Exception as e:
+            print(f"设置模态窗口时发生错误: {e}")
+            # 如果grab_set失败，至少确保窗口获得焦点
+            try:
+                self.focus_set()
+            except:
+                pass
     
     def create_widgets(self):
         """创建界面组件"""
@@ -106,7 +121,7 @@ class SettingsDialog(ctk.CTkToplevel):
             radio.pack(anchor="w", padx=20, pady=2)
         
         # 字体大小设置
-        font_frame = ctk.CTkFrame(tab)
+        font_frame = ctk.CTkFrame(scroll_frame)
         font_frame.pack(fill="x", padx=10, pady=10)
         
         ctk.CTkLabel(font_frame, text="字体大小", font=("", 14, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
@@ -129,7 +144,7 @@ class SettingsDialog(ctk.CTkToplevel):
         self.font_size_label.pack(side="right")
         
         # 窗口设置
-        window_frame = ctk.CTkFrame(tab)
+        window_frame = ctk.CTkFrame(scroll_frame)
         window_frame.pack(fill="x", padx=10, pady=10)
         
         ctk.CTkLabel(window_frame, text="窗口设置", font=("", 14, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
@@ -172,7 +187,7 @@ class SettingsDialog(ctk.CTkToplevel):
         auto_save_cb.pack(anchor="w", padx=20, pady=(0, 10))
         
         # 显示设置
-        display_frame = ctk.CTkFrame(tab)
+        display_frame = ctk.CTkFrame(scroll_frame)
         display_frame.pack(fill="x", padx=10, pady=10)
         
         ctk.CTkLabel(display_frame, text="显示选项", font=("", 14, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
@@ -202,7 +217,7 @@ class SettingsDialog(ctk.CTkToplevel):
         confirm_delete_cb.pack(anchor="w", padx=20, pady=(2, 10))
         
         # 语言设置
-        language_frame = ctk.CTkFrame(tab)
+        language_frame = ctk.CTkFrame(scroll_frame)
         language_frame.pack(fill="x", padx=10, pady=10)
         
         ctk.CTkLabel(language_frame, text="语言设置", font=("", 14, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
@@ -307,7 +322,7 @@ class SettingsDialog(ctk.CTkToplevel):
         reset_btn.pack(anchor="w", padx=20, pady=(5, 15))
         
         # 调试信息
-        debug_frame = ctk.CTkFrame(tab)
+        debug_frame = ctk.CTkFrame(scroll_frame)
         debug_frame.pack(fill="x", padx=10, pady=10)
         
         ctk.CTkLabel(debug_frame, text="调试信息", font=("", 14, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
