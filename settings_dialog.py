@@ -9,6 +9,8 @@ import json
 import platform
 import sys
 import time
+import webbrowser
+import subprocess
 from config import app_config
 from settings_manager import settings_manager
 
@@ -520,28 +522,58 @@ class SettingsDialog(ctk.CTkToplevel):
         ctk.CTkLabel(contact_frame, text="联系方式", font=("", 16, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
         
         # 邮箱
-        email_label = ctk.CTkLabel(
-            contact_frame,
-            text="📧 邮箱: sdcom@sdcom.asia",
-            font=("", 12)
+        email_frame = ctk.CTkFrame(contact_frame, fg_color="transparent")
+        email_frame.pack(fill="x", padx=20, pady=2)
+        
+        ctk.CTkLabel(email_frame, text="📧 邮箱: ", font=("", 12)).pack(side="left")
+        email_link = ctk.CTkButton(
+            email_frame,
+            text="sdcom@sdcom.asia",
+            font=("", 12),
+            fg_color="transparent",
+            text_color=("blue", "lightblue"),
+            hover_color=("lightgray", "darkgray"),
+            command=lambda: self.open_email("sdcom@sdcom.asia"),
+            width=150,
+            height=20
         )
-        email_label.pack(anchor="w", padx=20, pady=2)
+        email_link.pack(side="left")
         
         # GitHub
-        github_label = ctk.CTkLabel(
-            contact_frame,
-            text="🐙 GitHub: https://github.com/SDCOM-0415/To-do.app",
-            font=("", 12)
+        github_frame = ctk.CTkFrame(contact_frame, fg_color="transparent")
+        github_frame.pack(fill="x", padx=20, pady=2)
+        
+        ctk.CTkLabel(github_frame, text="🐙 GitHub: ", font=("", 12)).pack(side="left")
+        github_link = ctk.CTkButton(
+            github_frame,
+            text="https://github.com/SDCOM-0415/To-do.app",
+            font=("", 12),
+            fg_color="transparent",
+            text_color=("blue", "lightblue"),
+            hover_color=("lightgray", "darkgray"),
+            command=lambda: self.open_url("https://github.com/SDCOM-0415/To-do.app"),
+            width=150,
+            height=20
         )
-        github_label.pack(anchor="w", padx=20, pady=2)
+        github_link.pack(side="left")
         
         # 个人网站
-        website_label = ctk.CTkLabel(
-            contact_frame,
-            text="🌐 个人网站: www.sdcom.top",
-            font=("", 12)
+        website_frame = ctk.CTkFrame(contact_frame, fg_color="transparent")
+        website_frame.pack(fill="x", padx=20, pady=(2, 15))
+        
+        ctk.CTkLabel(website_frame, text="🌐 个人网站: ", font=("", 12)).pack(side="left")
+        website_link = ctk.CTkButton(
+            website_frame,
+            text="www.sdcom.top",
+            font=("", 12),
+            fg_color="transparent",
+            text_color=("blue", "lightblue"),
+            hover_color=("lightgray", "darkgray"),
+            command=lambda: self.open_url("https://www.sdcom.top"),
+            width=150,
+            height=20
         )
-        website_label.pack(anchor="w", padx=20, pady=(2, 15))
+        website_link.pack(side="left")
     
     def create_buttons(self, parent):
         """创建底部按钮"""
@@ -730,3 +762,34 @@ class SettingsDialog(ctk.CTkToplevel):
         original_theme = self.original_config.get("theme", "dark")
         ctk.set_appearance_mode(original_theme)
         self.destroy()
+    
+    def open_url(self, url):
+        """打开网页链接"""
+        try:
+            webbrowser.open(url)
+        except Exception as e:
+            messagebox.showerror("打开链接失败", f"无法打开链接: {url}\n错误: {str(e)}")
+    
+    def open_email(self, email):
+        """打开邮箱客户端"""
+        try:
+            # 尝试使用默认邮箱客户端
+            if platform.system() == "Windows":
+                subprocess.run(["start", f"mailto:{email}"], shell=True, check=True)
+            elif platform.system() == "Darwin":  # macOS
+                subprocess.run(["open", f"mailto:{email}"], check=True)
+            else:  # Linux
+                subprocess.run(["xdg-open", f"mailto:{email}"], check=True)
+        except Exception:
+            # 如果无法打开邮箱客户端，则复制邮箱地址到剪贴板
+            try:
+                import tkinter as tk
+                root = tk.Tk()
+                root.withdraw()  # 隐藏窗口
+                root.clipboard_clear()
+                root.clipboard_append(email)
+                root.update()  # 确保剪贴板更新
+                root.destroy()
+                messagebox.showinfo("邮箱地址已复制", f"邮箱地址 {email} 已复制到剪贴板")
+            except Exception as e:
+                messagebox.showerror("操作失败", f"无法打开邮箱客户端或复制地址\n错误: {str(e)}")
