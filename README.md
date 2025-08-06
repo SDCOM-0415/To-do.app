@@ -72,11 +72,25 @@ Todo App v0.3.1/
 
 ## 🚀 快速开始
 
-### 环境要求
+### 方式一：下载二进制文件（推荐）
+
+1. 访问 [Releases 页面](https://github.com/SDCOM-0415/To-do.app/releases)
+2. 下载适合你系统的版本：
+   - **Windows**: `Todo-App-v0.3.1-Windows-x64.zip`
+   - **macOS**: `Todo-App-v0.3.1-macOS-x64.dmg`
+   - **Linux**: `Todo-App-v0.3.1-Linux-x64.tar.gz`
+3. 安装并运行：
+   - **Windows**: 解压 ZIP 文件，双击运行 .exe 文件
+   - **macOS**: 双击 DMG 文件，将应用拖拽到应用程序文件夹
+   - **Linux**: 解压 tar.gz 文件，运行可执行文件
+
+### 方式二：从源码运行
+
+#### 环境要求
 - Python 3.7+
 - 支持的操作系统: Windows 10+, macOS 10.14+, Ubuntu 18.04+
 
-### 安装步骤
+#### 安装步骤
 
 1. **克隆项目**
 ```bash
@@ -89,7 +103,12 @@ cd Todo-App-v0.3.1
 pip install -r requirements.txt
 ```
 
-3. **运行程序**
+3. **Linux 用户额外步骤**（如果遇到 tkinter 问题）
+```bash
+bash install_linux_tkinter.sh
+```
+
+4. **运行程序**
 ```bash
 python app.py
 ```
@@ -175,8 +194,6 @@ python app.py
 - 基础的任务管理功能
 - 简单的界面设计
 
-## 🤝 贡献指南
-
 欢迎提交 Issue 和 Pull Request！
 
 ### 开发环境设置
@@ -191,6 +208,12 @@ python app.py
 - 遵循 PEP 8 代码风格
 - 保持模块单一职责
 - 添加类型提示
+
+### 开发者工具
+- `build.py` - 本地构建脚本
+- `release.py` - 自动发布脚本
+- `test_settings.py` - 设置模块测试
+- `.github/workflows/build-release.yml` - CI/CD 工作流
 
 ## 📄 许可证
 
