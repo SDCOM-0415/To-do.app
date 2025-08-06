@@ -110,7 +110,7 @@ def main():
     if not check_dependencies():
         print("❌ 缺少必要依赖，程序无法启动")
         print("请运行: pip install -r requirements.txt")
-        input("按回车键退出...")
+        # 移除 input() 调用，直接退出
         sys.exit(1)
     
     # 设置环境
@@ -132,7 +132,7 @@ def main():
         print(f"❌ 程序运行出错: {e}")
         import traceback
         traceback.print_exc()
-        input("按回车键退出...")
+        # 移除 input() 调用，直接退出
         sys.exit(1)
 
 if __name__ == "__main__":
