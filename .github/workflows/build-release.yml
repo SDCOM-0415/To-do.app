@@ -14,10 +14,10 @@ jobs:
             platform: windows
             arch: x64
             executable_ext: .exe
-          # - os: macos-13-large
-          #   platform: macos
-          #   arch: x64
-          #   executable_ext: ""
+          - os: macos-latest
+            platform: macos
+            arch: universal2
+            executable_ext: ""
           - os: ubuntu-22.04
             platform: linux
             arch: x64
@@ -87,10 +87,10 @@ jobs:
         pip install -r requirements.txt
         pip install pyinstaller
 
-    # - name: Install DMG creation tools (macOS)
-    #   if: matrix.platform == 'macos'
-    #   run: |
-    #     brew install create-dmg
+    - name: Install DMG creation tools (macOS)
+      if: matrix.platform == 'macos'
+      run: |
+        brew install create-dmg
 
     - name: Build executable (Windows)
       if: matrix.platform == 'windows'
@@ -118,8 +118,28 @@ jobs:
         pyinstaller build.spec --log-level DEBUG
       shell: pwsh
 
-    - name: Build executable (macOS/Linux)
-      if: matrix.platform != 'windows'
+    - name: Build executable (macOS)
+      if: matrix.platform == 'macos'
+      run: |
+        # 设置环境变量以构建通用二进制（同时支持 Intel 和 Apple Silicon）
+        export ARCHFLAGS="-arch x86_64 -arch arm64"
+        
+        # 输出Python和依赖库版本信息
+        python -c "import sys; print(f'Python版本: {sys.version}')"
+        python -c "import platform; print(f'平台: {platform.platform()}')"
+        python -c "import customtkinter; print(f'CustomTkinter版本: {customtkinter.__version__}')"
+        python -c "import tkinter; print(f'Tkinter版本: {tkinter.TkVersion}')"
+        
+        # 使用 --target-architecture universal2 构建通用二进制
+        pyinstaller --onefile --windowed --name "TodoApp" --target-architecture universal2 \
+          --collect-all tkinter --collect-all customtkinter \
+          --hidden-import=tkinter --hidden-import=tkinter.ttk \
+          --hidden-import=tkinter.messagebox --hidden-import=tkinter.filedialog \
+          app.py
+      shell: bash
+      
+    - name: Build executable (Linux)
+      if: matrix.platform == 'linux'
       run: |
         pyinstaller --onefile --windowed --name "TodoApp" --collect-all tkinter --collect-all customtkinter --hidden-import=tkinter --hidden-import=tkinter.ttk --hidden-import=tkinter.messagebox --hidden-import=tkinter.filedialog app.py
       shell: bash
@@ -135,56 +155,67 @@ jobs:
       run: |
         mv dist/TodoApp "dist/${{ steps.version.outputs.artifact_name_linux }}"
 
-    # - name: Create macOS App Bundle and DMG
-    #   if: matrix.platform == 'macos'
-    #   run: |
-    #     mkdir -p "dist/Todo App.app/Contents/MacOS"
-    #     mkdir -p "dist/Todo App.app/Contents/Resources"
-    #     
-    #     mv dist/TodoApp "dist/Todo App.app/Contents/MacOS/TodoApp"
-    #     chmod +x "dist/Todo App.app/Contents/MacOS/TodoApp"
-    #     
-    #     cat > "dist/Todo App.app/Contents/Info.plist" << EOF
-    #     <?xml version="1.0" encoding="UTF-8"?>
-    #     <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    #     <plist version="1.0">
-    #     <dict>
-    #         <key>CFBundleExecutable</key>
-    #         <string>TodoApp</string>
-    #         <key>CFBundleIdentifier</key>
-    #         <string>com.sdcom.todoapp</string>
-    #         <key>CFBundleName</key>
-    #         <string>Todo App</string>
-    #         <key>CFBundleDisplayName</key>
-    #         <string>Todo App v0.3.1</string>
-    #         <key>CFBundleVersion</key>
-    #         <string>0.3.1</string>
-    #         <key>CFBundleShortVersionString</key>
-    #         <string>0.3.1</string>
-    #         <key>CFBundlePackageType</key>
-    #         <string>APPL</string>
-    #         <key>NSHighResolutionCapable</key>
-    #         <true/>
-    #         <key>LSMinimumSystemVersion</key>
-    #         <string>10.14.0</string>
-    #     </dict>
-    #     </plist>
-    #     EOF
-    #     
-    #     create-dmg \
-    #       --volname "Todo App v0.3.1" \
-    #       --window-pos 200 120 \
-    #       --window-size 600 300 \
-    #       --icon-size 100 \
-    #       --icon "Todo App.app" 175 120 \
-    #       --hide-extension "Todo App.app" \
-    #       --app-drop-link 425 120 \
-    #       "dist/${{ matrix.artifact_name }}.dmg" \
-    #       "dist/Todo App.app" || true
-    #     
-    #     if [ ! -f "dist/${{ matrix.artifact_name }}.dmg" ]; then
-    #       hdiutil create -volname "Todo App v0.3.1" -srcfolder "dist/Todo App.app" -ov -format UDZO "dist/${{ matrix.artifact_name }}.dmg"
-    #     fi
+    - name: Create macOS App Bundle and DMG
+      if: matrix.platform == 'macos'
+      run: |
+        mkdir -p "dist/Todo App.app/Contents/MacOS"
+        mkdir -p "dist/Todo App.app/Contents/Resources"
+        
+        mv dist/TodoApp "dist/Todo App.app/Contents/MacOS/TodoApp"
+        chmod +x "dist/Todo App.app/Contents/MacOS/TodoApp"
+        
+        # 检查是否为通用二进制
+        lipo -info "dist/Todo App.app/Contents/MacOS/TodoApp" || true
+        
+        # 获取当前版本号
+        VERSION="${{ steps.version.outputs.version }}"
+        
+        cat > "dist/Todo App.app/Contents/Info.plist" << EOF
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>CFBundleExecutable</key>
+            <string>TodoApp</string>
+            <key>CFBundleIdentifier</key>
+            <string>com.sdcom.todoapp</string>
+            <key>CFBundleName</key>
+            <string>Todo App</string>
+            <key>CFBundleDisplayName</key>
+            <string>Todo App ${VERSION}</string>
+            <key>CFBundleVersion</key>
+            <string>${VERSION}</string>
+            <key>CFBundleShortVersionString</key>
+            <string>${VERSION}</string>
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
+            <key>NSHighResolutionCapable</key>
+            <true/>
+            <key>LSMinimumSystemVersion</key>
+            <string>10.14.0</string>
+            <key>LSArchitecturePriority</key>
+            <array>
+                <string>arm64</string>
+                <string>x86_64</string>
+            </array>
+        </dict>
+        </plist>
+        EOF
+        
+        create-dmg \
+          --volname "Todo App ${VERSION}" \
+          --window-pos 200 120 \
+          --window-size 600 300 \
+          --icon-size 100 \
+          --icon "Todo App.app" 175 120 \
+          --hide-extension "Todo App.app" \
+          --app-drop-link 425 120 \
+          "dist/${{ steps.version.outputs.artifact_name_macos }}.dmg" \
+          "dist/Todo App.app" || true
+        
+        if [ ! -f "dist/${{ steps.version.outputs.artifact_name_macos }}.dmg" ]; then
+          hdiutil create -volname "Todo App ${VERSION}" -srcfolder "dist/Todo App.app" -ov -format UDZO "dist/${{ steps.version.outputs.artifact_name_macos }}.dmg"
+        fi
 
     - name: Create archive (Windows)
       if: matrix.platform == 'windows'
@@ -206,12 +237,12 @@ jobs:
         name: ${{ steps.version.outputs.artifact_name_windows }}
         path: dist/${{ steps.version.outputs.artifact_name_windows }}.zip
 
-    # - name: Upload artifact (macOS)
-    #   if: matrix.platform == 'macos'
-    #   uses: actions/upload-artifact@v4
-    #   with:
-    #     name: ${{ steps.version.outputs.artifact_name_macos }}
-    #     path: dist/${{ steps.version.outputs.artifact_name_macos }}.dmg
+    - name: Upload artifact (macOS)
+      if: matrix.platform == 'macos'
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ steps.version.outputs.artifact_name_macos }}
+        path: dist/${{ steps.version.outputs.artifact_name_macos }}.dmg
 
     - name: Upload artifact (Linux)
       if: matrix.platform == 'linux'
@@ -320,15 +351,15 @@ jobs:
         asset_name: ${{ steps.version.outputs.artifact_name_windows }}.zip
         asset_content_type: application/zip
 
-    # - name: Upload macOS Release Asset
-    #   uses: actions/upload-release-asset@v1
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #   with:
-    #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-    #     asset_path: ./${{ steps.version.outputs.artifact_name_macos }}/${{ steps.version.outputs.artifact_name_macos }}.dmg
-    #     asset_name: ${{ steps.version.outputs.artifact_name_macos }}.dmg
-    #     asset_content_type: application/x-apple-diskimage
+    - name: Upload macOS Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./${{ steps.version.outputs.artifact_name_macos }}/${{ steps.version.outputs.artifact_name_macos }}.dmg
+        asset_name: ${{ steps.version.outputs.artifact_name_macos }}.dmg
+        asset_content_type: application/x-apple-diskimage
 
     - name: Upload Linux Release Asset
       uses: actions/upload-release-asset@v1
