@@ -113,8 +113,8 @@ jobs:
         python -c "import tkinter; print(f'Tkinter版本: {tkinter.TkVersion}')"
         python -c "import PIL; print(f'PIL版本: {PIL.__version__}')"
         
-        # 直接使用本地的build.spec文件构建，使用本地的hook文件
-        pyinstaller build.spec --log-level DEBUG --additional-hooks-dir=.
+        # 直接使用本地的build.spec文件构建
+        pyinstaller build.spec --log-level DEBUG
       shell: pwsh
 
     # - name: Build executable (macOS)

@@ -41,7 +41,7 @@ a = Analysis(
         'tkinter.simpledialog',
         'tkinter.tix',
     ],
-    hookspath=[],
+    hookspath=['.'],  # 添加当前目录作为hooks路径
     hooksconfig={},
     runtime_hooks=[],
     excludes=[
@@ -61,23 +61,48 @@ a = Analysis(
 # 添加Tcl/Tk库文件
 import os
 import tkinter
+import shutil
+from pathlib import Path
 
 # 获取Tcl/Tk库路径
 tcl_dir = os.path.join(os.path.dirname(os.path.dirname(tkinter.__file__)), 'tcl')
 tk_dir = os.path.join(os.path.dirname(os.path.dirname(tkinter.__file__)), 'tk')
 
-# 如果路径存在，添加到datas列表
-if os.path.exists(tcl_dir):
-    tcl_lib = os.path.join(tcl_dir, 'tcl8.6')
-    if os.path.exists(tcl_lib):
-        a.datas += [(os.path.join(tcl_lib, f), os.path.join('tcl', 'tcl8.6', f)) 
-                   for f in os.listdir(tcl_lib) if os.path.isfile(os.path.join(tcl_lib, f))]
+print(f"Tcl目录: {tcl_dir}")
+print(f"Tk目录: {tk_dir}")
 
-if os.path.exists(tk_dir):
-    tk_lib = os.path.join(tk_dir, 'tk8.6')
-    if os.path.exists(tk_lib):
-        a.datas += [(os.path.join(tk_lib, f), os.path.join('tk', 'tk8.6', f)) 
-                   for f in os.listdir(tk_lib) if os.path.isfile(os.path.join(tk_lib, f))]
+# 递归收集所有Tcl/Tk文件
+def collect_all_files(src_dir, target_prefix):
+    collected_data = []
+    if not os.path.exists(src_dir):
+        print(f"警告: 目录不存在 {src_dir}")
+        return collected_data
+        
+    for root, dirs, files in os.walk(src_dir):
+        for file in files:
+            source_path = os.path.join(root, file)
+            # 计算相对路径
+            rel_path = os.path.relpath(source_path, os.path.dirname(src_dir))
+            target_path = os.path.join(target_prefix, rel_path)
+            collected_data.append((source_path, os.path.dirname(target_path)))
+            print(f"添加文件: {source_path} -> {os.path.dirname(target_path)}")
+    return collected_data
+
+# 收集Tcl文件
+tcl_lib = os.path.join(tcl_dir, 'tcl8.6')
+if os.path.exists(tcl_lib):
+    print(f"收集Tcl文件从: {tcl_lib}")
+    a.datas += collect_all_files(tcl_lib, '_tcl_data/tcl8.6')
+else:
+    print(f"警告: Tcl库目录不存在: {tcl_lib}")
+
+# 收集Tk文件
+tk_lib = os.path.join(tk_dir, 'tk8.6')
+if os.path.exists(tk_lib):
+    print(f"收集Tk文件从: {tk_lib}")
+    a.datas += collect_all_files(tk_lib, '_tcl_data/tk8.6')
+else:
+    print(f"警告: Tk库目录不存在: {tk_lib}")
 
 # 过滤掉 None 值
 a.datas = [item for item in a.datas if item is not None]
