@@ -20,12 +20,10 @@ a = Analysis(
     pathex=[str(project_root)],
     binaries=[],
     datas=[
-        # 包含配置文件
-        ('config.json', '.'),
-        # 包含任务数据文件（如果存在）
-        ('tasks.json', '.') if (project_root / 'tasks.json').exists() else None,
         # 包含图标文件（如果存在）
         ('icon.ico', '.') if (project_root / 'icon.ico').exists() else None,
+        # 包含资源目录（如果存在）
+        ('res', 'res') if (project_root / 'res').exists() else None,
     ],
     hiddenimports=[
         'customtkinter',
