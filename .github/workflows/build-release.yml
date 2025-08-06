@@ -95,44 +95,47 @@ jobs:
     - name: Build executable (Windows)
       if: matrix.platform == 'windows'
       run: |
-        # 确保tkinter已正确安装
-        python -c "import tkinter; print(f'Tkinter已安装，版本: {tkinter.TkVersion}')"
+        # Set console encoding to UTF-8 to handle Chinese characters
+        $OutputEncoding = [console]::InputEncoding = [console]::OutputEncoding = New-Object System.Text.UTF8Encoding
         
-        # 获取Tcl/Tk路径并添加到环境变量
+        # Ensure tkinter is properly installed (using English output)
+        python -c "import tkinter; print(f'Tkinter installed, version: {tkinter.TkVersion}')"
+        
+        # Get Tcl/Tk paths and set environment variables
         $tclPath = python -c "import tkinter, os; print(os.path.join(os.path.dirname(os.path.dirname(tkinter.__file__)), 'tcl'))"
         $tkPath = python -c "import tkinter, os; print(os.path.join(os.path.dirname(os.path.dirname(tkinter.__file__)), 'tk'))"
         
-        # 设置环境变量
+        # Set environment variables
         $env:TCL_LIBRARY = "$tclPath\tcl8.6"
         $env:TK_LIBRARY = "$tkPath\tk8.6"
         
-        # 输出环境变量以便调试
+        # Output environment variables for debugging
         Write-Host "TCL_LIBRARY: $env:TCL_LIBRARY"
         Write-Host "TK_LIBRARY: $env:TK_LIBRARY"
         
-        # 输出Python和依赖库版本信息
-        python -c "import sys; print(f'Python版本: {sys.version}')"
-        python -c "import customtkinter; print(f'CustomTkinter版本: {customtkinter.__version__}')"
-        python -c "import tkinter; print(f'Tkinter版本: {tkinter.TkVersion}')"
-        python -c "import PIL; print(f'PIL版本: {PIL.__version__}')"
+        # Output Python and dependency version info (using English)
+        python -c "import sys; print(f'Python version: {sys.version}')"
+        python -c "import customtkinter; print(f'CustomTkinter version: {customtkinter.__version__}')"
+        python -c "import tkinter; print(f'Tkinter version: {tkinter.TkVersion}')"
+        python -c "import PIL; print(f'PIL version: {PIL.__version__}')"
         
-        # 直接使用本地的build.spec文件构建，添加额外的收集选项
-        pyinstaller build.spec --log-level DEBUG --collect-all tkinter --collect-all customtkinter
+        # Build using the local build.spec file (without --collect-all options)
+        pyinstaller build.spec --log-level DEBUG
         
-        # 确保包含所有必要的tkinter文件
+        # Ensure all necessary tkinter files are included
         $distPath = "dist/TodoApp.exe"
         if (Test-Path $distPath) {
-            Write-Host "✅ 构建成功: $distPath"
-            # 复制Tcl/Tk库文件到dist目录
+            Write-Host "Build successful: $distPath"
+            # Copy Tcl/Tk library files to dist directory
             $distTclDir = "dist/tcl"
             $distTkDir = "dist/tk"
             if (-not (Test-Path $distTclDir)) { New-Item -ItemType Directory -Path $distTclDir -Force }
             if (-not (Test-Path $distTkDir)) { New-Item -ItemType Directory -Path $distTkDir -Force }
             Copy-Item -Path "$tclPath\tcl8.6\*" -Destination "$distTclDir" -Recurse -Force
             Copy-Item -Path "$tkPath\tk8.6\*" -Destination "$distTkDir" -Recurse -Force
-            Write-Host "✅ 已复制Tcl/Tk库文件到dist目录"
+            Write-Host "Tcl/Tk library files copied to dist directory"
         } else {
-            Write-Host "❌ 构建失败，未找到可执行文件"
+            Write-Host "Build failed, executable not found"
         }
       shell: pwsh
 

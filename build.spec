@@ -43,7 +43,7 @@ a = Analysis(
     ],
     hookspath=['.'],  # 添加当前目录作为hooks路径
     hooksconfig={},
-    runtime_hooks=[],
+    runtime_hooks=['hook-runtime.py'],
     excludes=[
         'matplotlib',
         'numpy',
@@ -70,7 +70,7 @@ tk_dir = os.path.join(os.path.dirname(os.path.dirname(tkinter.__file__)), 'tk')
 
 print(f"TCL_LIBRARY: {tcl_dir}")
 print(f"TK_LIBRARY: {tk_dir}")
-# 使用英文输出，避免编码问题
+# Use English output to avoid encoding issues
 
 # 递归收集所有Tcl/Tk文件
 def collect_all_files(src_dir, target_prefix):
