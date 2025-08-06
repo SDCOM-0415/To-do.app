@@ -43,11 +43,54 @@ def setup_environment():
 
 def print_system_info():
     """打印系统信息"""
+    # 获取操作系统信息
+    platform_name = sys.platform
+    if platform_name == "darwin":
+        try:
+            # 尝试获取真正的 macOS 版本号
+            import subprocess
+            result = subprocess.run(['sw_vers', '-productVersion'], 
+                                  capture_output=True, text=True, check=True)
+            macos_version = result.stdout.strip()
+            os_display = f"macOS {macos_version}"
+        except:
+            # 如果获取失败，只显示 macOS 不显示版本号
+            os_display = "macOS"
+    elif platform_name == "win32":
+        os_display = "Windows"
+    elif platform_name.startswith("linux"):
+        try:
+            # 尝试获取 Linux 发行版信息
+            import subprocess
+            # 优先尝试 lsb_release
+            try:
+                result = subprocess.run(['lsb_release', '-d'], 
+                                      capture_output=True, text=True, check=True)
+                distro_info = result.stdout.strip().split('\t')[1] if '\t' in result.stdout else result.stdout.strip()
+                os_display = distro_info
+            except:
+                # 如果 lsb_release 不可用，尝试读取 /etc/os-release
+                try:
+                    with open('/etc/os-release', 'r') as f:
+                        lines = f.readlines()
+                        for line in lines:
+                            if line.startswith('PRETTY_NAME='):
+                                os_display = line.split('=')[1].strip().strip('"')
+                                break
+                        else:
+                            os_display = "Linux"
+                except:
+                    os_display = "Linux"
+        except:
+            os_display = "Linux"
+    else:
+        os_display = platform_name
+    
     print("=" * 50)
     print("Todo App v0.3 - 系统信息")
     print("=" * 50)
     print(f"Python 版本: {sys.version}")
-    print(f"操作系统: {sys.platform}")
+    print(f"操作系统: {os_display}")
     print(f"工作目录: {os.getcwd()}")
     print("=" * 50)
 

@@ -498,9 +498,51 @@ class SettingsDialog(ctk.CTkToplevel):
         python_version_label.pack(anchor="w", padx=20, pady=1)
         
         # 操作系统
+        platform_name = platform.system()
+        if platform_name == "Darwin":
+            try:
+                # 尝试获取真正的 macOS 版本号
+                import subprocess
+                result = subprocess.run(['sw_vers', '-productVersion'], 
+                                      capture_output=True, text=True, check=True)
+                macos_version = result.stdout.strip()
+                os_display = f"macOS {macos_version}"
+            except:
+                # 如果获取失败，只显示 macOS 不显示版本号
+                os_display = "macOS"
+        elif platform_name == "Windows":
+            os_display = f"Windows {platform.release()}"
+        elif platform_name == "Linux":
+            try:
+                # 尝试获取 Linux 发行版信息
+                import subprocess
+                # 优先尝试 lsb_release
+                try:
+                    result = subprocess.run(['lsb_release', '-d'], 
+                                          capture_output=True, text=True, check=True)
+                    distro_info = result.stdout.strip().split('\t')[1] if '\t' in result.stdout else result.stdout.strip()
+                    os_display = distro_info
+                except:
+                    # 如果 lsb_release 不可用，尝试读取 /etc/os-release
+                    try:
+                        with open('/etc/os-release', 'r') as f:
+                            lines = f.readlines()
+                            for line in lines:
+                                if line.startswith('PRETTY_NAME='):
+                                    os_display = line.split('=')[1].strip().strip('"')
+                                    break
+                            else:
+                                os_display = f"Linux {platform.release()}"
+                    except:
+                        os_display = f"Linux {platform.release()}"
+            except:
+                os_display = f"Linux {platform.release()}"
+        else:
+            os_display = f"{platform_name} {platform.release()}"
+        
         os_info_label = ctk.CTkLabel(
             system_info_frame,
-            text=f"操作系统: {platform.system()} {platform.release()}",
+            text=f"操作系统: {os_display}",
             font=("", 11),
             text_color="gray"
         )
