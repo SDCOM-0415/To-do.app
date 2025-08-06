@@ -19,11 +19,19 @@ a = Analysis(
     ['app.py'],
     pathex=[str(project_root)],
     binaries=[],
-    datas=[
-        # 包含图标文件（如果存在）
-        ('icon.ico', '.') if (project_root / 'icon.ico').exists() else None,
-        # 包含资源目录（如果存在）
-        ('res', 'res') if (project_root / 'res').exists() else None,
+    # 初始化数据列表
+    datas=[],
+    
+    # 添加Tcl/Tk库文件
+    hiddenimports=[
+        'customtkinter',
+        'tkinter',
+        'tkinter.ttk',
+        'tkinter.messagebox',
+        'tkinter.filedialog',
+        'tkinter.colorchooser',
+        'PIL',
+        'PIL._tkinter_finder',
     ],
     hiddenimports=[
         'customtkinter',
@@ -51,6 +59,27 @@ a = Analysis(
     cipher=block_cipher,
     noarchive=False,
 )
+
+# 添加Tcl/Tk库文件
+import os
+import tkinter
+
+# 获取Tcl/Tk库路径
+tcl_dir = os.path.join(os.path.dirname(os.path.dirname(tkinter.__file__)), 'tcl')
+tk_dir = os.path.join(os.path.dirname(os.path.dirname(tkinter.__file__)), 'tk')
+
+# 如果路径存在，添加到datas列表
+if os.path.exists(tcl_dir):
+    tcl_lib = os.path.join(tcl_dir, 'tcl8.6')
+    if os.path.exists(tcl_lib):
+        a.datas += [(os.path.join(tcl_lib, f), os.path.join('tcl', 'tcl8.6', f)) 
+                   for f in os.listdir(tcl_lib) if os.path.isfile(os.path.join(tcl_lib, f))]
+
+if os.path.exists(tk_dir):
+    tk_lib = os.path.join(tk_dir, 'tk8.6')
+    if os.path.exists(tk_lib):
+        a.datas += [(os.path.join(tk_lib, f), os.path.join('tk', 'tk8.6', f)) 
+                   for f in os.listdir(tk_lib) if os.path.isfile(os.path.join(tk_lib, f))]
 
 # 过滤掉 None 值
 a.datas = [item for item in a.datas if item is not None]
