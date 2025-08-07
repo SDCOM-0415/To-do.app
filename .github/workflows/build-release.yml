@@ -284,7 +284,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{ steps.version.outputs.artifact_name_windows }}
-        path: dist/${{ steps.version.outputs.artifact_name_windows }}.zip
+        path: ${{ steps.version.outputs.artifact_name_windows }}.zip
 
     # - name: Upload artifact (macOS)
     #   if: matrix.platform == 'macos'
@@ -396,7 +396,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./${{ steps.version.outputs.artifact_name_windows }}/${{ steps.version.outputs.artifact_name_windows }}.zip
+        asset_path: ./${{ steps.version.outputs.artifact_name_windows }}.zip
         asset_name: ${{ steps.version.outputs.artifact_name_windows }}.zip
         asset_content_type: application/zip
 
