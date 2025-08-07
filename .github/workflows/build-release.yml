@@ -123,7 +123,7 @@ jobs:
         pyinstaller build.spec --log-level DEBUG
         
         # Ensure all necessary tkinter files are included
-        $distPath = "dist/TodoApp.exe"
+        $distPath = "dist/TodoApp/TodoApp.exe"
         if (Test-Path $distPath) {
             Write-Host "Build successful: $distPath"
             
@@ -198,7 +198,7 @@ jobs:
     - name: Rename executable (Windows)
       if: matrix.platform == 'windows'
       run: |
-        mv dist/TodoApp.exe "dist/${{ steps.version.outputs.artifact_name_windows }}.exe"
+        mv dist/TodoApp/TodoApp.exe "dist/${{ steps.version.outputs.artifact_name_windows }}.exe"
       shell: bash
 
     - name: Rename executable (Linux)
