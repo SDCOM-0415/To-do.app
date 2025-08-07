@@ -30,8 +30,19 @@ jobs:
     - name: Read version
       id: version
       run: |
-        VERSION=$(head -n 1 ./version)
-        TAG_TYPE=$(tail -n 1 ./version)
+        # 调试信息
+        echo "Current directory: $(pwd)"
+        echo "Files in current directory:"
+        ls -la
+        echo "Version file exists: $(test -f version && echo 'yes' || echo 'no')"
+        echo "Version file content:"
+        cat version
+        echo "---"
+        
+        VERSION=$(head -n 1 version)
+        TAG_TYPE=$(tail -n 1 version)
+        echo "Parsed VERSION: $VERSION"
+        echo "Parsed TAG_TYPE: $TAG_TYPE"
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         
         # 根据标签类型设置tag_name
