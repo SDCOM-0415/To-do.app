@@ -126,16 +126,46 @@ jobs:
         $distPath = "dist/TodoApp.exe"
         if (Test-Path $distPath) {
             Write-Host "Build successful: $distPath"
-            # Copy Tcl/Tk library files to dist directory
+            
+            # Copy Tcl/Tk library files to dist directory with path checking
             $distTclDir = "dist/tcl"
             $distTkDir = "dist/tk"
             if (-not (Test-Path $distTclDir)) { New-Item -ItemType Directory -Path $distTclDir -Force }
             if (-not (Test-Path $distTkDir)) { New-Item -ItemType Directory -Path $distTkDir -Force }
-            Copy-Item -Path "$tclPath\tcl8.6\*" -Destination "$distTclDir" -Recurse -Force
-            Copy-Item -Path "$tkPath\tk8.6\*" -Destination "$distTkDir" -Recurse -Force
-            Write-Host "Tcl/Tk library files copied to dist directory"
+            
+            # Check and copy Tcl files
+            $tclSourcePath = "$tclPath\tcl8.6"
+            if (Test-Path $tclSourcePath) {
+                Copy-Item -Path "$tclSourcePath\*" -Destination "$distTclDir" -Recurse -Force
+                Write-Host "Tcl 8.6 library files copied from $tclSourcePath"
+            } elseif (Test-Path $tclPath) {
+                Copy-Item -Path "$tclPath\*" -Destination "$distTclDir" -Recurse -Force
+                Write-Host "Tcl library files copied from $tclPath"
+            } else {
+                Write-Host "Warning: Tcl library path not found: $tclPath"
+            }
+            
+            # Check and copy Tk files
+            $tkSourcePath = "$tkPath\tk8.6"
+            if (Test-Path $tkSourcePath) {
+                Copy-Item -Path "$tkSourcePath\*" -Destination "$distTkDir" -Recurse -Force
+                Write-Host "Tk 8.6 library files copied from $tkSourcePath"
+            } elseif (Test-Path $tkPath) {
+                Copy-Item -Path "$tkPath\*" -Destination "$distTkDir" -Recurse -Force
+                Write-Host "Tk library files copied from $tkPath"
+            } else {
+                Write-Host "Warning: Tk library path not found: $tkPath"
+            }
+            
+            Write-Host "Tcl/Tk library files processing completed"
         } else {
-            Write-Host "Build failed, executable not found"
+            Write-Host "Build failed, executable not found at $distPath"
+            Write-Host "Checking what files were actually created:"
+            if (Test-Path "dist") {
+                Get-ChildItem -Path "dist" -Recurse | ForEach-Object { Write-Host $_.FullName }
+            } else {
+                Write-Host "dist directory does not exist"
+            }
         }
       shell: pwsh
 
