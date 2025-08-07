@@ -30,7 +30,7 @@ jobs:
     - name: Read version
       id: version
       run: |
-        VERSION=$(head -n 1 。/version)
+        VERSION=$(head -n 1 version)
         TAG_TYPE=$(tail -n 1 version)
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         
