@@ -71,10 +71,10 @@ try:
             # 查找 tk8.6 目录
             tk86_path = location / 'tk8.6'
             if tk86_path.exists():
-                datas.append((str(tk86_path), '_tcl_data/tk8.6'))
+                datas.append((str(tk86_path), '_tk_data/tk8.6'))
                 print(f"Added TK library: {tk86_path}")
             else:
-                datas.append((str(location), '_tcl_data'))
+                datas.append((str(location), '_tk_data'))
                 print(f"Added TK library: {location}")
         
     # DLLs 目录中的 TCL/TK 相关文件
