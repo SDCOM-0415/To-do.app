@@ -23,8 +23,10 @@ if getattr(sys, 'frozen', False):
     ]
     
     possible_tk_paths = [
-        os.path.join(base_dir, '_tcl_data', 'tk8.6'),   # PyInstaller 默认路径
-        os.path.join(base_dir, '_tcl_data'),            # 备用路径
+        os.path.join(base_dir, '_tk_data', 'tk8.6'),    # PyInstaller 期望的路径
+        os.path.join(base_dir, '_tk_data'),             # PyInstaller 期望的备用路径
+        os.path.join(base_dir, '_tcl_data', 'tk8.6'),   # 旧的默认路径
+        os.path.join(base_dir, '_tcl_data'),            # 旧的备用路径
         os.path.join(base_dir, 'tk', 'tk8.6'),          # 自定义路径 1
         os.path.join(base_dir, 'tk'),                   # 自定义路径 2
         os.path.join(base_dir, 'lib', 'tk8.6'),         # 可能的 lib 路径
