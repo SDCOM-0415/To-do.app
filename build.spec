@@ -40,23 +40,50 @@ try:
     import tkinter
     import _tkinter
     
-    # 获取 Python 安装路径
-    python_path = Path(sys.executable).parent
+    # 获取 tkinter 模块路径
+    tkinter_path = Path(tkinter.__file__).parent.parent
     
-    # TCL/TK 库文件
-    tcl_path = python_path / 'tcl'
-    tk_path = python_path / 'tk'
+    # 查找 TCL/TK 库文件的多个可能位置
+    possible_locations = [
+        tkinter_path / 'tcl',
+        tkinter_path / 'tk', 
+        Path(sys.executable).parent / 'tcl',
+        Path(sys.executable).parent / 'tk',
+        Path(sys.executable).parent.parent / 'tcl',
+        Path(sys.executable).parent.parent / 'tk'
+    ]
     
-    if tcl_path.exists():
-        datas.append((str(tcl_path), 'tcl'))
-    if tk_path.exists():
-        datas.append((str(tk_path), 'tk'))
+    # 添加找到的 TCL 库
+    for location in possible_locations:
+        if location.exists() and location.name == 'tcl':
+            # 查找 tcl8.6 目录
+            tcl86_path = location / 'tcl8.6'
+            if tcl86_path.exists():
+                datas.append((str(tcl86_path), '_tcl_data/tcl8.6'))
+                print(f"Added TCL library: {tcl86_path}")
+            else:
+                datas.append((str(location), '_tcl_data'))
+                print(f"Added TCL library: {location}")
+    
+    # 添加找到的 TK 库
+    for location in possible_locations:
+        if location.exists() and location.name == 'tk':
+            # 查找 tk8.6 目录
+            tk86_path = location / 'tk8.6'
+            if tk86_path.exists():
+                datas.append((str(tk86_path), '_tcl_data/tk8.6'))
+                print(f"Added TK library: {tk86_path}")
+            else:
+                datas.append((str(location), '_tcl_data'))
+                print(f"Added TK library: {location}")
         
     # DLLs 目录中的 TCL/TK 相关文件
+    python_path = Path(sys.executable).parent
     dlls_path = python_path / 'DLLs'
     if dlls_path.exists():
         for dll_file in dlls_path.glob('t*.dll'):
             datas.append((str(dll_file), '.'))
+            print(f"Added DLL: {dll_file}")
             
 except ImportError:
     print("Warning: Tkinter not found")

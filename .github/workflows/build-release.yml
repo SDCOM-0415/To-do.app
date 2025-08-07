@@ -30,19 +30,8 @@ jobs:
     - name: Read version
       id: version
       run: |
-        # 调试信息
-        echo "Current directory: $(pwd)"
-        echo "Files in current directory:"
-        ls -la
-        echo "Version file exists: $(test -f version && echo 'yes' || echo 'no')"
-        echo "Version file content:"
-        cat version
-        echo "---"
-        
-        VERSION=$(head -n 1 version)
+        VERSION=$(head -n 1 。/version)
         TAG_TYPE=$(tail -n 1 version)
-        echo "Parsed VERSION: $VERSION"
-        echo "Parsed TAG_TYPE: $TAG_TYPE"
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         
         # 根据标签类型设置tag_name
@@ -52,13 +41,13 @@ jobs:
           
           # 检查是否已经有今天的构建，并获取最新的构建次数
           BUILD_COUNT=1
-          # 获取所有以当前版本和日期开头的标签（添加错误处理）
-          EXISTING_TAGS=$(git ls-remote --tags origin 2>/dev/null | grep "${VERSION}-${DATE}-" | sed -E "s/.*${VERSION}-${DATE}-([0-9]+).*/\1/" | sort -n || true)
+          # 获取所有以当前版本和日期开头的标签
+          EXISTING_TAGS=$(git ls-remote --tags origin | grep "${VERSION}-${DATE}-" | sed -E "s/.*${VERSION}-${DATE}-([0-9]+).*/\1/" | sort -n)
           
           # 如果存在标签，获取最大值并加1
           if [ ! -z "$EXISTING_TAGS" ]; then
             LATEST_COUNT=$(echo "$EXISTING_TAGS" | tail -n 1)
-            if [ ! -z "$LATEST_COUNT" ] && [ "$LATEST_COUNT" -gt 0 ] 2>/dev/null; then
+            if [ ! -z "$LATEST_COUNT" ]; then
               BUILD_COUNT=$((LATEST_COUNT + 1))
             fi
           fi
@@ -133,14 +122,10 @@ jobs:
         # Build using the local build.spec file (without --collect-all options)
         pyinstaller build.spec --log-level DEBUG
         
-        # 检查构建结果（build.spec中的名称是To-do.exe）
-        $distPath = "dist/To-do.exe"
+        # Ensure all necessary tkinter files are included
+        $distPath = "dist/TodoApp.exe"
         if (Test-Path $distPath) {
             Write-Host "Build successful: $distPath"
-            # 重命名为期望的文件名
-            Move-Item -Path $distPath -Destination "dist/TodoApp.exe" -Force
-            Write-Host "Renamed To-do.exe to TodoApp.exe"
-            
             # Copy Tcl/Tk library files to dist directory
             $distTclDir = "dist/tcl"
             $distTkDir = "dist/tk"
@@ -150,9 +135,7 @@ jobs:
             Copy-Item -Path "$tkPath\tk8.6\*" -Destination "$distTkDir" -Recurse -Force
             Write-Host "Tcl/Tk library files copied to dist directory"
         } else {
-            Write-Host "Build failed, executable not found at $distPath"
-            Write-Host "Checking what files were actually created:"
-            Get-ChildItem -Path "dist" -Recurse | ForEach-Object { Write-Host $_.FullName }
+            Write-Host "Build failed, executable not found"
         }
       shell: pwsh
 
@@ -311,13 +294,13 @@ jobs:
           
           # 检查是否已经有今天的构建，并获取最新的构建次数
           BUILD_COUNT=1
-          # 获取所有以当前版本和日期开头的标签（添加错误处理）
-          EXISTING_TAGS=$(git ls-remote --tags origin 2>/dev/null | grep "${VERSION}-${DATE}-" | sed -E "s/.*${VERSION}-${DATE}-([0-9]+).*/\1/" | sort -n || true)
+          # 获取所有以当前版本和日期开头的标签
+          EXISTING_TAGS=$(git ls-remote --tags origin | grep "${VERSION}-${DATE}-" | sed -E "s/.*${VERSION}-${DATE}-([0-9]+).*/\1/" | sort -n)
           
           # 如果存在标签，获取最大值并加1
           if [ ! -z "$EXISTING_TAGS" ]; then
             LATEST_COUNT=$(echo "$EXISTING_TAGS" | tail -n 1)
-            if [ ! -z "$LATEST_COUNT" ] && [ "$LATEST_COUNT" -gt 0 ] 2>/dev/null; then
+            if [ ! -z "$LATEST_COUNT" ]; then
               BUILD_COUNT=$((LATEST_COUNT + 1))
             fi
           fi
