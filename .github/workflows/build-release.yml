@@ -119,8 +119,8 @@ jobs:
         python -c "import tkinter; print(f'Tkinter version: {tkinter.TkVersion}')"
         python -c "import PIL; print(f'PIL version: {PIL.__version__}')"
         
-        # Build using the local build.spec file (without --collect-all options)
-        pyinstaller build.spec --log-level DEBUG
+        # Build using the local build.spec file with console enabled
+        pyinstaller build.spec --log-level DEBUG --console
         
         # Ensure all necessary tkinter files are included
         $distPath = "dist/TodoApp.exe"
