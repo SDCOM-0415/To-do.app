@@ -88,6 +88,16 @@ try:
 except ImportError:
     print("Warning: Tkinter not found")
 
+# 添加 tkinter 模块源码
+try:
+    import tkinter
+    tkinter_module_path = Path(tkinter.__file__).parent
+    # 将整个 tkinter 模块目录作为数据文件包含
+    datas.append((str(tkinter_module_path), 'tkinter'))
+    print(f"Added tkinter module source: {tkinter_module_path}")
+except ImportError:
+    print("Warning: Could not add tkinter module source")
+
 # 隐藏导入
 hiddenimports = [
     'customtkinter',
