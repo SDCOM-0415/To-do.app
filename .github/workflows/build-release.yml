@@ -133,10 +133,14 @@ jobs:
         # Build using the local build.spec file (without --collect-all options)
         pyinstaller build.spec --log-level DEBUG
         
-        # Ensure all necessary tkinter files are included
-        $distPath = "dist/TodoApp.exe"
+        # 检查构建结果（build.spec中的名称是To-do.exe）
+        $distPath = "dist/To-do.exe"
         if (Test-Path $distPath) {
             Write-Host "Build successful: $distPath"
+            # 重命名为期望的文件名
+            Move-Item -Path $distPath -Destination "dist/TodoApp.exe" -Force
+            Write-Host "Renamed To-do.exe to TodoApp.exe"
+            
             # Copy Tcl/Tk library files to dist directory
             $distTclDir = "dist/tcl"
             $distTkDir = "dist/tk"
@@ -146,7 +150,9 @@ jobs:
             Copy-Item -Path "$tkPath\tk8.6\*" -Destination "$distTkDir" -Recurse -Force
             Write-Host "Tcl/Tk library files copied to dist directory"
         } else {
-            Write-Host "Build failed, executable not found"
+            Write-Host "Build failed, executable not found at $distPath"
+            Write-Host "Checking what files were actually created:"
+            Get-ChildItem -Path "dist" -Recurse | ForEach-Object { Write-Host $_.FullName }
         }
       shell: pwsh
 
