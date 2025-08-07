@@ -408,7 +408,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./${{ steps.version.outputs.artifact_name_windows }}.zip
+        asset_path: ./${{ steps.version.outputs.artifact_name_windows }}/${{ steps.version.outputs.artifact_name_windows }}.zip
         asset_name: ${{ steps.version.outputs.artifact_name_windows }}.zip
         asset_content_type: application/zip
 
