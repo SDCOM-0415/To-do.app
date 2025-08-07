@@ -352,6 +352,18 @@ jobs:
     - name: Download all artifacts
       uses: actions/download-artifact@v4
 
+    - name: Debug - List all files and directories
+      run: |
+        echo "=== 当前目录结构 ==="
+        find . -type f -name "*.zip" -o -name "*.tar.gz" -o -name "*.dmg" | head -20
+        echo ""
+        echo "=== 根目录文件 ==="
+        ls -la
+        echo ""
+        echo "=== 所有目录内容 ==="
+        find . -maxdepth 3 -type f | head -30
+      shell: bash
+
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
