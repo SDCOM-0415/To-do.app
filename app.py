@@ -17,6 +17,11 @@ sys.path.insert(0, str(current_dir))
 def check_dependencies():
     """检查依赖包"""
     try:
+        # 首先检查 tkinter
+        import tkinter
+        print(f"✓ tkinter 可用")
+        
+        # 然后检查 customtkinter
         import customtkinter
         print(f"✓ customtkinter 版本: {customtkinter.__version__}")
         return True
