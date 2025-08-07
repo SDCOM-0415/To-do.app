@@ -52,13 +52,13 @@ jobs:
           
           # 检查是否已经有今天的构建，并获取最新的构建次数
           BUILD_COUNT=1
-          # 获取所有以当前版本和日期开头的标签
-          EXISTING_TAGS=$(git ls-remote --tags origin | grep "${VERSION}-${DATE}-" | sed -E "s/.*${VERSION}-${DATE}-([0-9]+).*/\1/" | sort -n)
+          # 获取所有以当前版本和日期开头的标签（添加错误处理）
+          EXISTING_TAGS=$(git ls-remote --tags origin 2>/dev/null | grep "${VERSION}-${DATE}-" | sed -E "s/.*${VERSION}-${DATE}-([0-9]+).*/\1/" | sort -n || true)
           
           # 如果存在标签，获取最大值并加1
           if [ ! -z "$EXISTING_TAGS" ]; then
             LATEST_COUNT=$(echo "$EXISTING_TAGS" | tail -n 1)
-            if [ ! -z "$LATEST_COUNT" ]; then
+            if [ ! -z "$LATEST_COUNT" ] && [ "$LATEST_COUNT" -gt 0 ] 2>/dev/null; then
               BUILD_COUNT=$((LATEST_COUNT + 1))
             fi
           fi
@@ -305,13 +305,13 @@ jobs:
           
           # 检查是否已经有今天的构建，并获取最新的构建次数
           BUILD_COUNT=1
-          # 获取所有以当前版本和日期开头的标签
-          EXISTING_TAGS=$(git ls-remote --tags origin | grep "${VERSION}-${DATE}-" | sed -E "s/.*${VERSION}-${DATE}-([0-9]+).*/\1/" | sort -n)
+          # 获取所有以当前版本和日期开头的标签（添加错误处理）
+          EXISTING_TAGS=$(git ls-remote --tags origin 2>/dev/null | grep "${VERSION}-${DATE}-" | sed -E "s/.*${VERSION}-${DATE}-([0-9]+).*/\1/" | sort -n || true)
           
           # 如果存在标签，获取最大值并加1
           if [ ! -z "$EXISTING_TAGS" ]; then
             LATEST_COUNT=$(echo "$EXISTING_TAGS" | tail -n 1)
-            if [ ! -z "$LATEST_COUNT" ]; then
+            if [ ! -z "$LATEST_COUNT" ] && [ "$LATEST_COUNT" -gt 0 ] 2>/dev/null; then
               BUILD_COUNT=$((LATEST_COUNT + 1))
             fi
           fi
