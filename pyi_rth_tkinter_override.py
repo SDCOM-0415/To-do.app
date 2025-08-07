@@ -76,6 +76,34 @@ def setup_tkinter_environment():
     print(f"[Tkinter Override] MEIPASS: {base_dir}")
     print(f"[Tkinter Override] TCL_LIBRARY: {os.environ.get('TCL_LIBRARY', '未设置')}")
     print(f"[Tkinter Override] TK_LIBRARY: {os.environ.get('TK_LIBRARY', '未设置')}")
+    
+    # 尝试直接导入 tkinter 模块进行测试
+    try:
+        # 确保 _tkinter 模块可以被找到
+        tkinter_pyd = os.path.join(base_dir, '_tkinter.pyd')
+        if os.path.exists(tkinter_pyd):
+            print(f"[Tkinter Override] 找到 _tkinter.pyd: {tkinter_pyd}")
+        
+        # 尝试导入 _tkinter
+        import _tkinter
+        print("[Tkinter Override] ✓ _tkinter 模块导入成功")
+        
+        # 尝试导入 tkinter
+        import tkinter
+        print("[Tkinter Override] ✓ tkinter 模块导入成功")
+        
+    except ImportError as e:
+        print(f"[Tkinter Override] ❌ 模块导入失败: {e}")
+        # 尝试添加更多调试信息
+        print(f"[Tkinter Override] Python 路径: {sys.path}")
+        
+        # 检查是否有其他 tkinter 相关文件
+        for item in os.listdir(base_dir):
+            if 'tkinter' in item.lower() or 'tcl' in item.lower() or 'tk' in item.lower():
+                print(f"[Tkinter Override] 相关文件: {item}")
+                
+    except Exception as e:
+        print(f"[Tkinter Override] ❌ 其他错误: {e}")
 
 # 立即执行设置
 setup_tkinter_environment()
