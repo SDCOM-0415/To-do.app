@@ -131,13 +131,17 @@ a = Analysis(
     hiddenimports=hiddenimports,
     hookspath=['.'],
     hooksconfig={},
-    runtime_hooks=['hook-runtime.py'],
+    runtime_hooks=['pyi_rth_tkinter_override.py', 'hook-runtime.py'],
     excludes=excludes,
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
     cipher=block_cipher,
     noarchive=False,
 )
+
+# 禁用 PyInstaller 的内置 tkinter 运行时钩子，使用我们自己的
+import PyInstaller.utils.hooks as hookutils
+hookutils.remove_prefix_from_path = lambda path, prefix: path
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
