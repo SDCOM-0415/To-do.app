@@ -24,10 +24,11 @@ def setup_tkinter_environment():
         os.path.join(base_dir, 'lib', 'tcl8.6'),
     ]
     
-    # 所有可能的 TK 路径
+    # 所有可能的 TK 路径 - 根据错误信息调整优先级
     tk_paths = [
+        os.path.join(base_dir, '_tk_data'),  # 错误显示tk.tcl应该直接在这里
         os.path.join(base_dir, '_tk_data', 'tk8.6'),
-        os.path.join(base_dir, '_tk_data'),
+        os.path.join(base_dir, '_tcl_data', 'tcl8.6', 'tk8.6'),  # 有时tk在tcl目录下
         os.path.join(base_dir, '_tcl_data', 'tk8.6'),
         os.path.join(base_dir, '_tcl_data'),
         os.path.join(base_dir, 'tk', 'tk8.6'),

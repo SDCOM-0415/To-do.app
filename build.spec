@@ -79,7 +79,7 @@ try:
                 print(f"Added complete TCL library: {tcl_path}")
                 break
     
-    # 查找 TK 库 - 关键是找到包含 tk.tcl 的完整目录
+    # 查找 TK 库 - 将tk.tcl直接放在_tk_data根目录
     tk_locations = [
         python_path / 'tcl' / 'tk8.6',  # 通常在 tcl 目录下
         python_path / 'tk' / 'tk8.6',
@@ -89,22 +89,30 @@ try:
         python_path.parent / 'lib' / 'tk8.6',
     ]
     
+    tk_library_found = False
     for tk_path in tk_locations:
         if tk_path.exists():
             tk_tcl = tk_path / 'tk.tcl'
             if tk_tcl.exists():
-                datas.append((str(tk_path), '_tk_data/tk8.6'))
-                print(f"Added complete TK library with tk.tcl: {tk_path}")
+                # 将整个TK库内容直接放在_tk_data目录，而不是_tk_data/tk8.6子目录
+                datas.append((str(tk_path), '_tk_data'))
+                print(f"Added complete TK library with tk.tcl: {tk_path} -> _tk_data")
                 print(f"Verified tk.tcl exists: {tk_tcl}")
+                tk_library_found = True
                 break
-    else:
+    
+    if not tk_library_found:
         # 如果没找到标准位置，尝试查找任何包含 tk.tcl 的目录
         print("Warning: 未找到标准 TK 库位置，尝试搜索 tk.tcl 文件...")
         for root_path in [python_path, python_path.parent]:
             for tk_tcl_file in root_path.rglob('tk.tcl'):
                 tk_dir = tk_tcl_file.parent
-                datas.append((str(tk_dir), '_tk_data/tk8.6'))
-                print(f"Found tk.tcl and added TK library: {tk_dir}")
+                # 直接放在_tk_data根目录
+                datas.append((str(tk_dir), '_tk_data'))
+                print(f"Found tk.tcl and added TK library: {tk_dir} -> _tk_data")
+                tk_library_found = True
+                break
+            if tk_library_found:
                 break
     
     # 3. 添加 DLLs 目录中的 TCL/TK 相关文件
@@ -168,7 +176,7 @@ a = Analysis(
     hiddenimports=hiddenimports,
     hookspath=['.'],
     hooksconfig={},
-    runtime_hooks=['pyi_rth_tkinter_fix.py', 'pyi_rth_tkinter_override.py', 'hook-runtime.py'],
+    runtime_hooks=['pyi_rth_tkinter_fix.py', 'pyi_rth_tkinter_override.py', 'pyi_rth_tkinter_final.py', 'hook-runtime.py'],
     additional_hooks_dir=['.'],
     excludes=excludes,
     win_no_prefer_redirects=False,

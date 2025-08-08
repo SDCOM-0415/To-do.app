@@ -57,32 +57,15 @@ def main():
     
     print(f"✓ 输出文件名: {output_name}")
     
-    # 构建命令
+    # 构建命令 - 使用.spec文件时不能添加额外参数
     build_cmd = [
         "pyinstaller",
-        "TodoApp.spec",
+        "build.spec",  # 使用正确的spec文件名
         "--distpath", "dist",
         "--workpath", "build"
     ]
     
-    # 添加图标（如果存在）
-    icon_path = Path("icon.ico")
-    if icon_path.exists():
-        build_cmd.extend(["--icon", str(icon_path)])
-        print("✓ 使用自定义图标")
-    
-    # 添加隐藏导入
-    hidden_imports = [
-        "customtkinter",
-        "tkinter",
-        "tkinter.ttk",
-        "tkinter.messagebox",
-        "tkinter.filedialog",
-        "tkinter.colorchooser",
-    ]
-    
-    for module in hidden_imports:
-        build_cmd.extend(["--hidden-import", module])
+    print("✓ 使用 build.spec 配置文件")
     
     print("\n开始构建...")
     print("构建命令:", " ".join(build_cmd))
