@@ -30,8 +30,30 @@ jobs:
     - name: Read version
       id: version
       run: |
-        VERSION=$(head -n 1 version)
-        TAG_TYPE=$(tail -n 1 version)
+        # 确保文件存在并可读
+        if [ ! -f "version" ]; then
+          echo "Error: version file not found"
+          exit 1
+        fi
+        
+        # 读取版本信息，去除可能的空白字符
+        VERSION=$(head -n 1 version | tr -d '\r\n' | xargs)
+        TAG_TYPE=$(tail -n 1 version | tr -d '\r\n' | xargs)
+        
+        # 验证读取的内容
+        if [ -z "$VERSION" ]; then
+          echo "Error: VERSION is empty"
+          exit 1
+        fi
+        
+        if [ -z "$TAG_TYPE" ]; then
+          echo "Error: TAG_TYPE is empty"
+          exit 1
+        fi
+        
+        echo "Read VERSION: $VERSION"
+        echo "Read TAG_TYPE: $TAG_TYPE"
+        
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         
         # 根据标签类型设置tag_name
@@ -311,8 +333,30 @@ jobs:
     - name: Read version
       id: version
       run: |
-        VERSION=$(head -n 1 version)
-        TAG_TYPE=$(tail -n 1 version)
+        # 确保文件存在并可读
+        if [ ! -f "version" ]; then
+          echo "Error: version file not found"
+          exit 1
+        fi
+        
+        # 读取版本信息，去除可能的空白字符
+        VERSION=$(head -n 1 version | tr -d '\r\n' | xargs)
+        TAG_TYPE=$(tail -n 1 version | tr -d '\r\n' | xargs)
+        
+        # 验证读取的内容
+        if [ -z "$VERSION" ]; then
+          echo "Error: VERSION is empty"
+          exit 1
+        fi
+        
+        if [ -z "$TAG_TYPE" ]; then
+          echo "Error: TAG_TYPE is empty"
+          exit 1
+        fi
+        
+        echo "Read VERSION: $VERSION"
+        echo "Read TAG_TYPE: $TAG_TYPE"
+        
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         
         # 根据标签类型设置tag_name
