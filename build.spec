@@ -200,7 +200,7 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=True,
+    console=False,  # 关闭控制台模式
     disable_windowed_traceback=False,
     icon='res/icon.ico' if os.path.exists('res/icon.ico') else None,
 )

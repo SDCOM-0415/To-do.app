@@ -291,8 +291,9 @@ jobs:
       run: |
         # 重命名 dist/TodoApp 文件夹为最终名称
         mv dist/TodoApp "dist/${{ steps.version.outputs.artifact_name_windows }}"
-        # 打包整个 dist 文件夹
-        7z a "${{ steps.version.outputs.artifact_name_windows }}.zip" dist/
+        # 只打包软件目录，不包含dist父目录
+        cd dist
+        7z a "../${{ steps.version.outputs.artifact_name_windows }}.zip" "${{ steps.version.outputs.artifact_name_windows }}/"
       shell: bash
 
     - name: Create archive (Linux)
