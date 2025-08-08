@@ -67,12 +67,55 @@ def setup_environment():
                 print(f"已设置TCL_LIBRARY={tcl_path}")
                 break
         
-        # 查找有效的TK路径
+        # 查找有效的TK路径 - 需要找到包含 tk.tcl 的目录
+        tk_library_set = False
         for tk_path in possible_tk_paths:
             if os.path.exists(tk_path):
-                os.environ['TK_LIBRARY'] = tk_path
-                print(f"已设置TK_LIBRARY={tk_path}")
-                break
+                # 检查是否包含 tk.tcl 文件
+                tk_tcl_file = os.path.join(tk_path, 'tk.tcl')
+                if os.path.exists(tk_tcl_file):
+                    os.environ['TK_LIBRARY'] = tk_path
+                    print(f"已设置TK_LIBRARY={tk_path} (找到 tk.tcl)")
+                    tk_library_set = True
+                    break
+                else:
+                    print(f"路径 {tk_path} 存在但缺少 tk.tcl 文件")
+        
+        # 如果没有找到包含 tk.tcl 的路径，尝试其他位置
+        if not tk_library_set:
+            additional_tk_paths = [
+                os.path.join(base_dir, '_tk_data'),
+                os.path.join(base_dir, '_tcl_data', 'tcl8.6', 'tk8.6'),
+                os.path.join(base_dir, 'lib', 'tk8.6'),
+            ]
+            
+            for tk_path in additional_tk_paths:
+                if os.path.exists(tk_path):
+                    tk_tcl_file = os.path.join(tk_path, 'tk.tcl')
+                    if os.path.exists(tk_tcl_file):
+                        os.environ['TK_LIBRARY'] = tk_path
+                        print(f"已设置TK_LIBRARY={tk_path} (在备用位置找到 tk.tcl)")
+                        tk_library_set = True
+                        break
+        
+        if not tk_library_set:
+            print("⚠️ 警告：未找到包含 tk.tcl 的 TK 库路径")
+            # 列出 MEIPASS 中的相关文件用于调试
+            print("MEIPASS 中的 TK 相关文件:")
+            for item in os.listdir(base_dir):
+                if 'tk' in item.lower() or 'tcl' in item.lower():
+                    item_path = os.path.join(base_dir, item)
+                    if os.path.isdir(item_path):
+                        print(f"  目录: {item}/")
+                        # 检查目录内容
+                        try:
+                            for subitem in os.listdir(item_path):
+                                if subitem.endswith('.tcl'):
+                                    print(f"    - {subitem}")
+                        except:
+                            pass
+                    else:
+                        print(f"  文件: {item}")
 
 def print_system_info():
     """打印系统信息"""

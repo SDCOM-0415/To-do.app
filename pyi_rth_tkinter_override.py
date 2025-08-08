@@ -44,14 +44,29 @@ def setup_tkinter_environment():
     else:
         print("[Tkinter Override] 警告：未找到 TCL 库")
     
-    # 设置 TK_LIBRARY
+    # 设置 TK_LIBRARY - 优先查找包含 tk.tcl 的目录
+    tk_library_set = False
     for tk_path in tk_paths:
         if os.path.exists(tk_path):
-            os.environ['TK_LIBRARY'] = tk_path
-            print(f"[Tkinter Override] 设置 TK_LIBRARY={tk_path}")
-            break
-    else:
-        print("[Tkinter Override] 警告：未找到 TK 库")
+            # 检查是否包含 tk.tcl 文件
+            tk_tcl_file = os.path.join(tk_path, 'tk.tcl')
+            if os.path.exists(tk_tcl_file):
+                os.environ['TK_LIBRARY'] = tk_path
+                print(f"[Tkinter Override] 设置 TK_LIBRARY={tk_path} (包含 tk.tcl)")
+                tk_library_set = True
+                break
+            else:
+                print(f"[Tkinter Override] 跳过 {tk_path} (缺少 tk.tcl)")
+    
+    # 如果没找到包含 tk.tcl 的目录，使用第一个存在的目录
+    if not tk_library_set:
+        for tk_path in tk_paths:
+            if os.path.exists(tk_path):
+                os.environ['TK_LIBRARY'] = tk_path
+                print(f"[Tkinter Override] 设置 TK_LIBRARY={tk_path} (备用选择)")
+                break
+        else:
+            print("[Tkinter Override] 警告：未找到 TK 库")
     
     # 创建 _tk_data 目录的符号链接（如果不存在）
     tk_data_dir = os.path.join(base_dir, '_tk_data')

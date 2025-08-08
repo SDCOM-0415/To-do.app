@@ -61,37 +61,51 @@ try:
                 datas.append((str(py_file), f'tkinter/{rel_path.parent}'))
                 print(f"Added tkinter submodule file: {rel_path}")
     
-    # 2. 查找并添加 TCL/TK 库文件
-    possible_locations = [
-        python_path / 'tcl',
-        python_path / 'tk',
-        python_path.parent / 'tcl',
-        python_path.parent / 'tk',
-        Path(tkinter.__file__).parent.parent / 'tcl',
-        Path(tkinter.__file__).parent.parent / 'tk'
+    # 2. 查找并添加 TCL/TK 库文件 - 更精确的方法
+    
+    # 查找 TCL 库
+    tcl_locations = [
+        python_path / 'tcl' / 'tcl8.6',
+        python_path / 'lib' / 'tcl8.6',
+        python_path.parent / 'tcl' / 'tcl8.6',
+        python_path.parent / 'lib' / 'tcl8.6',
     ]
     
-    # 添加 TCL 库
-    for location in possible_locations:
-        if location.exists() and location.name == 'tcl':
-            tcl86_path = location / 'tcl8.6'
-            if tcl86_path.exists():
-                datas.append((str(tcl86_path), '_tcl_data/tcl8.6'))
-                print(f"Added TCL library: {tcl86_path}")
-            else:
-                datas.append((str(location), '_tcl_data'))
-                print(f"Added TCL library: {location}")
+    for tcl_path in tcl_locations:
+        if tcl_path.exists():
+            init_tcl = tcl_path / 'init.tcl'
+            if init_tcl.exists():
+                datas.append((str(tcl_path), '_tcl_data/tcl8.6'))
+                print(f"Added complete TCL library: {tcl_path}")
+                break
     
-    # 添加 TK 库
-    for location in possible_locations:
-        if location.exists() and location.name == 'tk':
-            tk86_path = location / 'tk8.6'
-            if tk86_path.exists():
-                datas.append((str(tk86_path), '_tk_data/tk8.6'))
-                print(f"Added TK library: {tk86_path}")
-            else:
-                datas.append((str(location), '_tk_data'))
-                print(f"Added TK library: {location}")
+    # 查找 TK 库 - 关键是找到包含 tk.tcl 的完整目录
+    tk_locations = [
+        python_path / 'tcl' / 'tk8.6',  # 通常在 tcl 目录下
+        python_path / 'tk' / 'tk8.6',
+        python_path / 'lib' / 'tk8.6',
+        python_path.parent / 'tcl' / 'tk8.6',
+        python_path.parent / 'tk' / 'tk8.6',
+        python_path.parent / 'lib' / 'tk8.6',
+    ]
+    
+    for tk_path in tk_locations:
+        if tk_path.exists():
+            tk_tcl = tk_path / 'tk.tcl'
+            if tk_tcl.exists():
+                datas.append((str(tk_path), '_tk_data/tk8.6'))
+                print(f"Added complete TK library with tk.tcl: {tk_path}")
+                print(f"Verified tk.tcl exists: {tk_tcl}")
+                break
+    else:
+        # 如果没找到标准位置，尝试查找任何包含 tk.tcl 的目录
+        print("Warning: 未找到标准 TK 库位置，尝试搜索 tk.tcl 文件...")
+        for root_path in [python_path, python_path.parent]:
+            for tk_tcl_file in root_path.rglob('tk.tcl'):
+                tk_dir = tk_tcl_file.parent
+                datas.append((str(tk_dir), '_tk_data/tk8.6'))
+                print(f"Found tk.tcl and added TK library: {tk_dir}")
+                break
     
     # 3. 添加 DLLs 目录中的 TCL/TK 相关文件
     dlls_path = python_path / 'DLLs'

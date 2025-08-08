@@ -36,9 +36,21 @@ def setup_tkinter_environment():
             if tk86_path.exists():
                 os.environ['TK_LIBRARY'] = str(tk86_path)
                 print(f"✅ 设置 TK_LIBRARY: {tk86_path}")
+                # 检查 tk.tcl 文件
+                tk_tcl_file = tk86_path / 'tk.tcl'
+                if tk_tcl_file.exists():
+                    print(f"✅ 找到 tk.tcl: {tk_tcl_file}")
+                else:
+                    print(f"❌ 未找到 tk.tcl 在: {tk86_path}")
             else:
                 os.environ['TK_LIBRARY'] = str(tk_data_path)
                 print(f"✅ 设置 TK_LIBRARY: {tk_data_path}")
+                # 检查 tk.tcl 文件
+                tk_tcl_file = tk_data_path / 'tk.tcl'
+                if tk_tcl_file.exists():
+                    print(f"✅ 找到 tk.tcl: {tk_tcl_file}")
+                else:
+                    print(f"❌ 未找到 tk.tcl 在: {tk_data_path}")
         
         # 2. 确保 tkinter 模块在 sys.path 中
         tkinter_path = app_dir / 'tkinter'
