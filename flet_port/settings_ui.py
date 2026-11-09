@@ -16,6 +16,7 @@ from typing import Any, Callable
 import flet as ft
 
 import storage
+from appearance import PALETTES, normalize_theme
 
 DEFAULT_COLORS = storage.DEFAULT_SETTINGS["priority_colors"]
 BACKUP_DIR = storage.APP_DIR / "backups"
@@ -28,8 +29,8 @@ def validate_settings(values: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("设置必须是 JSON 对象")
     candidate = json.loads(json.dumps(storage.DEFAULT_SETTINGS))
     candidate.update({k: v for k, v in values.items() if k in candidate})
-    # Compatibility: accept legacy theme values but always apply Graphite Focus.
-    candidate["theme"] = "dark"
+    # Preserve explicit user choice, translating legacy theme values.
+    candidate["theme"] = normalize_theme(candidate.get("theme"))
     if candidate["language"] not in ("zh-cn", "en", "zh-tw"):
         raise ValueError("语言设置无效")
     if candidate["sort"] not in ("created_at", "priority", "due_date", "title", "completed"):
@@ -104,6 +105,12 @@ def show_settings(
                 controls=controls, spacing=18, scroll=ft.ScrollMode.AUTO, expand=True,
             ),
         )
+
+    theme_control = option("theme", "界面风格", [
+        (PALETTES["graphite"]["label"], "graphite"),
+        (PALETTES["paper"]["label"], "paper"),
+        (PALETTES["blue"]["label"], "blue"),
+    ], 310)
 
     size_value = ft.Text(f'{draft["font_size"]} px', weight=ft.FontWeight.W_500)
     def update_size(e) -> None:
@@ -182,6 +189,7 @@ def show_settings(
         """Load imported preferences into live controls before applying."""
         draft.clear()
         draft.update(candidate)
+        theme_control.value = candidate["theme"]
         language.value = candidate["language"]
         sort.value = candidate["sort"]
         font.value = candidate["font_size"]
@@ -288,9 +296,14 @@ def show_settings(
         status("已恢复默认值；点击应用或确定保存")
 
     appearances = scroll_tab([
-        heading("Graphite Focus", "唯一界面风格 · 固定石墨深色与柔和紫色强调。"),
-        ft.Text("为了跨平台保持一致，Flet 版本不提供外观主题切换。",
-                color=ft.Colors.ON_SURFACE_VARIANT, size=12),
+        heading("界面风格", "独立于 Tk 版本保存，可随时切换。"),
+        theme_control,
+        ft.Text("Graphite Focus · 深色石墨与淡紫色强调", size=12,
+                color=ft.Colors.ON_SURFACE_VARIANT),
+        ft.Text("Paper & Ink · 暖白纸张与低饱和绿色", size=12,
+                color=ft.Colors.ON_SURFACE_VARIANT),
+        ft.Text("Blue Hour · 深海蓝与冷青色强调", size=12,
+                color=ft.Colors.ON_SURFACE_VARIANT),
         heading("字体", "任务标题和部分界面文字的字号。"),
         ft.Row([font, size_value]),
         heading("默认窗口大小", "下次启动时按照保存的尺寸打开。"),
@@ -384,7 +397,7 @@ def show_settings(
                         ft.IconButton(ft.Icons.ARROW_BACK, tooltip="返回任务列表", on_click=close_view),
                         ft.Column([
                             ft.Text("应用设置", size=23, weight=ft.FontWeight.BOLD),
-                            ft.Text("TodoApp Flet · Graphite Focus", size=12, color=ft.Colors.ON_SURFACE_VARIANT),
+                            ft.Text("TodoApp Flet · 3 种外观风格", size=12, color=ft.Colors.ON_SURFACE_VARIANT),
                         ], expand=True, spacing=3),
                     ]),
                 ),
