@@ -1,10 +1,10 @@
-name: Flet Preview Build
+name: Flet Build
 
 # Separate from the legacy release workflow: no tags or Releases are created.
 on:
   push:
     branches:
-      - feature/flet-port
+      - flet-version
   workflow_dispatch:
 
 permissions:
