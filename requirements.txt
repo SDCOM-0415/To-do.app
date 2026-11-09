@@ -7,6 +7,9 @@ customtkinter>=5.2.2
 # 图像处理（用于图标等）
 Pillow>=10.0.0
 
+# Per-user application data directories
+platformdirs>=4.0,<6
+
 # 注意事项：
 # 1. tkinter 是 Python 标准库的一部分，但在某些系统上需要单独安装
 # 2. Windows: 安装Python时请确保勾选"tcl/tk and IDLE"选项
