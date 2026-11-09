@@ -12,16 +12,16 @@ from pathlib import Path
 
 import flet as ft
 
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT))
-from models import Task  # noqa: E402
-import storage  # noqa: E402
+from models import Task
+import storage
 
 
 def main(page: ft.Page) -> None:
     page.title = "Todo App · Flet Preview"
     page.padding = 24
     page.spacing = 14
+    picker = ft.FilePicker()
+    page.services.append(picker)
     page.window.width = 1100
     page.window.height = 760
     page.window.min_width = 750
@@ -337,7 +337,7 @@ def main(page: ft.Page) -> None:
     async def export_tasks(e) -> None:
         payload = json.dumps([t.to_dict() for t in tasks], ensure_ascii=False, indent=2).encode("utf-8")
         try:
-            path = await ft.FilePicker().save_file(
+            path = await picker.save_file(
                 dialog_title="导出待办任务", file_name="todo-tasks.json",
                 file_type=ft.FilePickerFileType.CUSTOM, allowed_extensions=["json"],
                 src_bytes=payload,
@@ -349,7 +349,7 @@ def main(page: ft.Page) -> None:
 
     async def import_tasks(e) -> None:
         try:
-            files = await ft.FilePicker().pick_files(
+            files = await picker.pick_files(
                 dialog_title="导入待办任务",
                 allow_multiple=False,
                 file_type=ft.FilePickerFileType.CUSTOM,
