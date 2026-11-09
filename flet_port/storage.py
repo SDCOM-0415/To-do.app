@@ -11,7 +11,7 @@ TASKS_FILE = APP_DIR / "tasks.json"
 TK_SETTINGS_FILE = APP_DIR / "tk-config.json"
 SETTINGS_FILE = APP_DIR / "flet-settings.json"
 DEFAULT_SETTINGS: dict[str, Any] = {
-    "theme": "system", "window_size": "900x700", "window_position": "center",
+    "theme": "dark", "window_size": "900x700", "window_position": "center",
     "auto_save": True, "show_completed": True, "show_statistics": True,
     "confirm_delete": True, "font_size": 14, "language": "zh-cn",
     "priority_colors": {"高": "#ff4444", "中": "#ffaa00", "低": "#44ff44"},
@@ -104,8 +104,11 @@ def load_settings() -> dict[str, Any]:
                         settings[key] = raw[key]
         except (OSError, ValueError, TypeError):
             pass
+    # Graphite Focus is the sole supported appearance, including imported legacy configs.
+    settings["theme"] = "dark"
     return settings
 
 def save_settings(settings: dict[str, Any]) -> None:
-    _atomic_json_write(SETTINGS_FILE, {
-        key: settings.get(key, default) for key, default in DEFAULT_SETTINGS.items()})
+    data = {key: settings.get(key, default) for key, default in DEFAULT_SETTINGS.items()}
+    data["theme"] = "dark"
+    _atomic_json_write(SETTINGS_FILE, data)
