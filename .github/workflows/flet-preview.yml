@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   package:
-    name: Flet preview / ${{ matrix.label }}
+    name: Flet / ${{ matrix.label }}
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -78,10 +78,10 @@ jobs:
           archive-output: false
           extra-args: ${{ matrix.arch }}
 
-      - name: Upload preview output
+      - name: Upload Flet build output
         uses: actions/upload-artifact@v4
         with:
-          name: todo-flet-preview-${{ matrix.platform }}-${{ matrix.label }}
+          name: todo-flet-${{ matrix.platform }}-${{ matrix.label }}
           path: ${{ steps.flet.outputs.output-path }}
           if-no-files-found: error
           retention-days: 7
