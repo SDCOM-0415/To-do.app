@@ -120,6 +120,10 @@ def main(page: ft.Page) -> None:
             apply_theme()
         refresh()
 
+    def manual_save(e=None) -> None:
+        if save(force=True):
+            message("任务已保存")
+
     def quick_add() -> None:
         title = (quick.value or "").strip()
         if not title:
@@ -448,7 +452,7 @@ def main(page: ft.Page) -> None:
                     ft.Row(
                         controls=[
                             ft.Text(f"数据目录：{storage.APP_DIR}", size=11, color=ft.Colors.ON_SURFACE_VARIANT, expand=True),
-                            ft.TextButton("保存更改", on_click=lambda e: (save(force=True), message("任务已保存") if not dirty else None)),
+                            ft.TextButton("保存更改", on_click=manual_save),
                             ft.TextButton("导入 JSON", on_click=import_tasks),
                             ft.TextButton("导出 JSON", on_click=export_tasks),
                             ft.TextButton("清除已完成", on_click=clear_completed),
