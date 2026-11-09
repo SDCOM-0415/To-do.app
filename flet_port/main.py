@@ -384,7 +384,6 @@ def main(page: ft.Page) -> None:
         for key, button in nav_widgets.items():
             button.bgcolor = (ft.Colors.SECONDARY_CONTAINER
                               if key == view_mode else ft.Colors.TRANSPARENT)
-            button.update()
         rows = visible_tasks()
         task_list.controls = [card(t) for t in rows] if rows else [
             ft.Container(
