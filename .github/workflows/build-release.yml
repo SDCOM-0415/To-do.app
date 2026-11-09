@@ -7,7 +7,7 @@ on:
     branches:
       - main
     paths:
-      - ".release-trigger/0.3.1-prerelease"
+      - ".release-trigger/0.3.2-prerelease"
   workflow_dispatch:
     inputs:
       version:
@@ -19,7 +19,7 @@ on:
         type: boolean
         default: false
       prerelease:
-        description: "Append yyyy-mm-dd-N to the base version and mark as pre-release"
+        description: "Append YYYYMMDD-N to the base version and mark as pre-release"
         type: boolean
         default: true
 
@@ -44,7 +44,7 @@ jobs:
         id: refs
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION_INPUT: ${{ github.event_name == 'push' && 'v0.3.1' || inputs.version }}
+          VERSION_INPUT: ${{ github.event_name == 'push' && 'v0.3.2' || inputs.version }}
           IS_PRERELEASE: ${{ github.event_name == 'push' && 'true' || inputs.prerelease }}
         shell: bash
         run: |
@@ -264,7 +264,12 @@ jobs:
           TARGET: ${{ matrix.target }}
           FLET_OUTPUT_PATH: ${{ steps.flet.outputs.output-path }}
         run: |
-          echo "ARTIFACT_NAME=Todo-App-${RELEASE_VERSION}-${EDITION}-${TARGET}" >> "$GITHUB_ENV"
+          if [[ "$EDITION" == "Tk" ]]; then
+            prefix="TodoApp"
+          else
+            prefix="TodoApp-Flet"
+          fi
+          echo "ARTIFACT_NAME=${prefix}-${RELEASE_VERSION}-${TARGET}" >> "$GITHUB_ENV"
           if [[ -n "${FLET_OUTPUT_PATH:-}" ]]; then
             echo "FLET_BUILD_PATH=$FLET_OUTPUT_PATH" >> "$GITHUB_ENV"
           fi
@@ -340,7 +345,12 @@ jobs:
                 Windows-*|macOS-*) ext=zip ;;
                 *) ext=tar.gz ;;
               esac
-              test -s "release-files/Todo-App-$RELEASE_VERSION-$edition-$target.$ext" || {
+              if [[ "$edition" == "Tk" ]]; then
+                prefix="TodoApp"
+              else
+                prefix="TodoApp-Flet"
+              fi
+              test -s "release-files/$prefix-$RELEASE_VERSION-$target.$ext" || {
                 echo "::error::Missing $edition $target"
                 exit 1
               }
@@ -361,8 +371,8 @@ jobs:
           ## $RELEASE_VERSION
 
           This release contains **two independently maintained desktop editions**:
-          - **Tk**: CustomTkinter, source from `main` at `$TK_SHA`.
-          - **Flet**: Flutter/Flet, source from `flet-version` at `$FLET_SHA`.
+          - **TodoApp**: Original CustomTkinter edition, source from `main` at `$TK_SHA`.
+          - **TodoApp Flet**: Separate Flutter/Flet edition, source from `flet-version` at `$FLET_SHA`.
 
           Each edition has Windows x64, Linux x64, macOS Intel x64 and macOS Apple Silicon arm64 downloads.
           Pick the file matching your desired edition and operating system.
