@@ -3,3 +3,5 @@ One-time trigger for the Todo App 0.3.1 combined pre-release build.
 This marker is intentionally used by .github/workflows/build-release.yml.
 The workflow freezes main and flet-version, builds all eight platform/edition
 packages, and publishes only after every build succeeds.
+
+Compact pre-release tag format: YYYYMMDD-N. Re-run combined 0.3.1 prerelease after naming-format update.
