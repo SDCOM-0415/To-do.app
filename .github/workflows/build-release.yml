@@ -140,7 +140,9 @@ jobs:
           - { edition: Tk, target: macOS-arm64, runner: macos-26, os: macos, arch: arm64, flet_platform: '', flet_extra_args: '' }
           - { edition: Flet, target: Windows-x64, runner: windows-latest, os: windows, arch: x64, flet_platform: windows, flet_extra_args: '' }
           - { edition: Flet, target: Linux-x64, runner: ubuntu-24.04, os: linux, arch: x64, flet_platform: linux, flet_extra_args: '' }
-          - { edition: Flet, target: macOS-x64, runner: macos-26-intel, os: macos, arch: x64, flet_platform: macos, flet_extra_args: '--arch x86_64' }
+          # Flutter/Flet can target x86_64 from an ARM macOS host; verify
+          # Mach-O architecture below before a release can be published.
+          - { edition: Flet, target: macOS-x64, runner: macos-26, os: macos, arch: x64, flet_platform: macos, flet_extra_args: '--arch x86_64' }
           - { edition: Flet, target: macOS-arm64, runner: macos-26, os: macos, arch: arm64, flet_platform: macos, flet_extra_args: '--arch arm64' }
 
     steps:
@@ -155,6 +157,15 @@ jobs:
           python-version: '3.12'
           cache: pip
           cache-dependency-path: ${{ matrix.edition == 'Flet' && 'flet_port/requirements.txt' || 'requirements.txt' }}
+
+      - name: Install Flet Linux build dependencies
+        if: matrix.os == 'linux' && matrix.edition == 'Flet'
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev zenity
 
       - name: Install Tk Linux system packages
         if: matrix.os == 'linux' && matrix.edition == 'Tk'
@@ -226,9 +237,24 @@ jobs:
           runner-python-version: "3.12"
           bundled-python-version: "3.12"
           cache: true
-          install-linux-dependencies: true
+          install-linux-dependencies: false
           archive-output: false
           extra-args: ${{ matrix.flet_extra_args }}
+
+      - name: Verify Flet macOS target architecture
+        if: matrix.edition == 'Flet' && matrix.os == 'macos'
+        shell: bash
+        env:
+          FLET_OUTPUT_PATH: ${{ steps.flet.outputs.output-path }}
+          TARGET_ARCH: ${{ matrix.arch == 'x64' && 'x86_64' || 'arm64' }}
+        run: |
+          set -euo pipefail
+          app="$(find "$FLET_OUTPUT_PATH" -maxdepth 2 -type d -name '*.app' -print -quit)"
+          test -n "$app"
+          exe="$(/usr/libexec/PlistBuddy -c 'Print CFBundleExecutable' "$app/Contents/Info.plist")"
+          echo "Checking $app/Contents/MacOS/$exe for $TARGET_ARCH"
+          lipo -archs "$app/Contents/MacOS/$exe" | tr ' ' '\n' | grep -Fxq "$TARGET_ARCH"
+          echo "Verified target arch: $TARGET_ARCH"
 
       - name: Set artifact name
         shell: bash
