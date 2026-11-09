@@ -13,7 +13,7 @@ No release is implied by the existence of this branch.
 
 ## Run
 
-From the repository root, on Python 3.12+:
+From the repository root, on Python 3.12:
 
 ```bash
 python -m pip install -r flet_port/requirements.txt
@@ -34,12 +34,16 @@ If the old packaged app stored its data elsewhere, use the new app's Import JSON
 
 ## Packaging
 
-The experimental `flet-preview.yml` workflow runs a smoke test, then can build separate Windows x64, Linux x64 and macOS Intel artifacts from their native GitHub runners. This is **native CI matrix building, not cross-compilation**.
+The experimental `flet-preview.yml` workflow runs a smoke test, then can build separate Windows x64, Linux x64, macOS Intel x86_64 and macOS Apple Silicon arm64 artifacts from their native GitHub runners. This is **native CI matrix building, not cross-compilation**.
 
-Flet CLI packaging uses Flutter; it is not the same as PyInstaller. For local builds, see https://flet.dev/docs/publish/ . The preview workflow does not publish a Release or modify production tags.
+Flet CLI packaging uses Flutter; it is not the same as PyInstaller. This preview bundles a copy of the original Task model in `flet_port/models.py` to keep the packaged app self-contained. For local builds, see https://flet.dev/docs/publish/ . The preview workflow does not publish a Release or modify production tags.
 
 ## Notes
 
 - This preview is a desktop-first application; web deployment requires separate file-storage and multi-user design.
 - Real GUI launch and packaged artifacts need validation on the target OS before a release.
 - Flet 1.x is API-incompatible with older Flet 0.2x examples; the implementation uses the 1.1 API.
+
+## CI status
+
+See the [Flet Preview Build workflow](https://github.com/SDCOM-0415/To-do.app/actions/workflows/flet-preview.yml). The workflow builds on pushes to `feature/flet-port`, also supports manual dispatch after it is merged to the default branch, and uploads short-lived test artifacts. Builds may take longer on their first run because Flutter is downloaded. Do not mistake a successful Python syntax/unit test for a validated GUI or distributable release.
