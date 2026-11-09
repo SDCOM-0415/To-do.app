@@ -9,6 +9,10 @@ on:
         description: "Release tag, e.g. v0.4.0 (must not already exist)"
         required: true
         type: string
+      publish:
+        description: "Publish GitHub Release after all eight builds pass (otherwise build only)"
+        type: boolean
+        default: false
       prerelease:
         description: "Mark release as pre-release"
         type: boolean
@@ -194,6 +198,7 @@ jobs:
 
   release:
     name: Publish one combined GitHub Release
+    if: ${{ inputs.publish }}
     needs: [prepare, build]
     runs-on: ubuntu-latest
     permissions:
