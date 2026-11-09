@@ -28,8 +28,8 @@ def validate_settings(values: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("设置必须是 JSON 对象")
     candidate = json.loads(json.dumps(storage.DEFAULT_SETTINGS))
     candidate.update({k: v for k, v in values.items() if k in candidate})
-    if candidate["theme"] not in ("system", "light", "dark"):
-        raise ValueError("主题设置无效")
+    # Compatibility: accept legacy theme values but always apply Graphite Focus.
+    candidate["theme"] = "dark"
     if candidate["language"] not in ("zh-cn", "en", "zh-tw"):
         raise ValueError("语言设置无效")
     if candidate["sort"] not in ("created_at", "priority", "due_date", "title", "completed"):
@@ -61,7 +61,7 @@ def _make_backup(values: dict[str, Any], description: str = "手动备份") -> P
     output = BACKUP_DIR / f"flet_settings_{stamp}.json"
     storage._atomic_json_write(output, {
         "timestamp": stamp, "description": description,
-        "app_version": "0.3.1", "settings": validate_settings(values),
+        "app_version": "0.3.2", "settings": validate_settings(values),
     })
     for old in sorted(BACKUP_DIR.glob("flet_settings_*.json"), reverse=True)[10:]:
         old.unlink()
@@ -105,9 +105,6 @@ def show_settings(
             ),
         )
 
-    theme = option("theme", "主题模式", [
-        ("跟随系统", "system"), ("浅色模式", "light"), ("深色模式", "dark"),
-    ], 280)
     size_value = ft.Text(f'{draft["font_size"]} px', weight=ft.FontWeight.W_500)
     def update_size(e) -> None:
         draft["font_size"] = int(e.control.value)
@@ -185,7 +182,6 @@ def show_settings(
         """Load imported preferences into live controls before applying."""
         draft.clear()
         draft.update(candidate)
-        theme.value = candidate["theme"]
         language.value = candidate["language"]
         sort.value = candidate["sort"]
         font.value = candidate["font_size"]
@@ -217,7 +213,7 @@ def show_settings(
         try:
             candidate = collect()
             payload = json.dumps({
-                "app_name": "Todo App", "app_version": "0.3.1",
+                "app_name": "TodoApp Flet", "app_version": "0.3.2",
                 "export_time": datetime.now().isoformat(timespec="seconds"),
                 "settings": candidate,
             }, ensure_ascii=False, indent=2).encode("utf-8")
@@ -292,8 +288,9 @@ def show_settings(
         status("已恢复默认值；点击应用或确定保存")
 
     appearances = scroll_tab([
-        heading("显示与主题", "跟随系统或指定浅色、深色外观。"),
-        theme,
+        heading("Graphite Focus", "唯一界面风格 · 固定石墨深色与柔和紫色强调。"),
+        ft.Text("为了跨平台保持一致，Flet 版本不提供外观主题切换。",
+                color=ft.Colors.ON_SURFACE_VARIANT, size=12),
         heading("字体", "任务标题和部分界面文字的字号。"),
         ft.Row([font, size_value]),
         heading("默认窗口大小", "下次启动时按照保存的尺寸打开。"),
@@ -338,7 +335,7 @@ def show_settings(
                 color=ft.Colors.ON_SURFACE_VARIANT, size=11),
     ])
     about = scroll_tab([
-        heading("Todo App 0.3.1"),
+        heading("TodoApp Flet 0.3.2"),
         ft.Text("现代化跨平台待办事项管理器"),
         ft.Text("开发者：SDCOM"),
         ft.Text(f"版权所有 © {datetime.now().year} SDCOM"),
@@ -387,7 +384,7 @@ def show_settings(
                         ft.IconButton(ft.Icons.ARROW_BACK, tooltip="返回任务列表", on_click=close_view),
                         ft.Column([
                             ft.Text("应用设置", size=23, weight=ft.FontWeight.BOLD),
-                            ft.Text("Todo App · Flet Edition", size=12, color=ft.Colors.ON_SURFACE_VARIANT),
+                            ft.Text("TodoApp Flet · Graphite Focus", size=12, color=ft.Colors.ON_SURFACE_VARIANT),
                         ], expand=True, spacing=3),
                     ]),
                 ),
