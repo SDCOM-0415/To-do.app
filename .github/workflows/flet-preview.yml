@@ -2,6 +2,9 @@ name: Flet Preview Build
 
 # Separate from the legacy release workflow: no tags or Releases are created.
 on:
+  push:
+    branches:
+      - feature/flet-port
   workflow_dispatch:
 
 permissions:
