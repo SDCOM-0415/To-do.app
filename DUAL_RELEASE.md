@@ -16,7 +16,7 @@ each branch's latest commit directly and records both SHA values in the notes.
 Open [Actions → Build and Release (Tk + Flet)](https://github.com/SDCOM-0415/To-do.app/actions/workflows/build-release.yml)
 on the **main** branch and select **Run workflow**.
 
-1. Enter the **base version**, e.g. `v0.4.0` (do not include a date or sequence). When **Prerelease** is checked, CI automatically creates a tag like `v0.4.0-2026-11-09-1`, then `v0.4.0-2026-11-09-2` for the next prerelease on that date. The date follows China Standard Time (UTC+08:00). Sequences reset to `1` for a new date or base version. When **Prerelease** is unchecked, the tag is exactly `v0.4.0`. Existing tags are never overwritten.
+1. Enter the **base version**, e.g. `v0.4.0` (do not include a date or sequence). When **Prerelease** is checked, CI automatically creates a tag like `v0.4.0-20261109-1`, then `v0.4.0-20261109-2` for the next prerelease on that date. The date follows China Standard Time (UTC+08:00). Sequences reset to `1` for a new date or base version. When **Prerelease** is unchecked, the tag is exactly `v0.4.0`. Existing tags are never overwritten.
 2. Leave **Publish** unchecked to test the full eight-build matrix. This
    uploads CI artifacts but does **not** create a Release or reserve a version number. Only already-created Git tags determine the next prerelease sequence.
 3. When the matrix is known to work, run it again with **Publish** checked.
@@ -63,6 +63,8 @@ workflow. The separate Flet build workflow runs on pushes to `flet-version` and 
 > CI packaging success is not a guarantee that all UI paths work. Test each
 > resulting package on its target operating system before a stable release.
 
-For prereleases, the full generated tag is included in **all eight artifact names** and in the Release title. For example: `Todo-App-v0.4.0-2026-11-09-1-Flet-Windows-x64.zip`. The first prerelease of each base version each day ends with `-1`. Builds that do not publish do not consume an index.
+For prereleases, the full generated tag is included in **all eight artifact names** and in the Release title. For example: `Todo-App-v0.4.0-20261109-1-Flet-Windows-x64.zip`. The first prerelease of each base version each day ends with `-1`. Builds that do not publish do not consume an index.
 
 The Flet edition is maintained on `flet-version`. The old `feature/flet-port` branch is removed automatically after the renamed branch receives its first push.
+
+Pre-release tags use the compact date format `vX.X.X-YYYYMMDD-N` (for example `v0.3.1-20261109-2`). The sequence counter also recognizes same-day tags created with the previous `YYYY-MM-DD` date format during the transition, preventing duplicate sequence numbers.
