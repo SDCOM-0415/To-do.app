@@ -1,0 +1,21 @@
+name: Remove renamed legacy branch
+
+on:
+  push:
+    branches:
+      - flet-version
+
+permissions:
+  contents: write
+
+jobs:
+  delete-old-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete old feature branch alias
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api --method DELETE "repos/$GITHUB_REPOSITORY/git/refs/heads/feature/flet-port" || true
