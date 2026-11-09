@@ -28,11 +28,13 @@ permissions:
 
 concurrency:
   group: todo-dual-release-${{ inputs.version }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   prepare:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     outputs:
       tk_sha: ${{ steps.refs.outputs.tk_sha }}
       flet_sha: ${{ steps.refs.outputs.flet_sha }}
@@ -89,6 +91,23 @@ jobs:
           echo "tk_sha=$tk_sha" >> "$GITHUB_OUTPUT"
           echo "flet_sha=$flet_sha" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Normalize previous pre-release title
+        if: ${{ github.event_name == 'push' && steps.refs.outputs.version != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ steps.refs.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          sequence="${RELEASE_VERSION##*-}"
+          if [[ "$sequence" =~ ^[1-9][0-9]*$ ]] && (( sequence > 1 )); then
+            previous="${RELEASE_VERSION%-*}-$((sequence - 1))"
+            if gh release view "$previous" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+              gh release edit "$previous" --repo "$GITHUB_REPOSITORY" --title "$previous"
+              echo "Normalized previous release title: $previous"
+            fi
+          fi
 
   build:
     needs: prepare
@@ -296,7 +315,7 @@ jobs:
           FLET_SHA: ${{ needs.prepare.outputs.flet_sha }}
         run: |
           cat > release-notes.md <<EOF
-          ## Todo App $RELEASE_VERSION
+          ## $RELEASE_VERSION
 
           This release contains **two independently maintained desktop editions**:
           - **Tk**: CustomTkinter, source from `main` at `$TK_SHA`.
@@ -304,7 +323,7 @@ jobs:
 
           Each edition has Windows x64, Linux x64, macOS Intel x64 and macOS Apple Silicon arm64 downloads.
           Pick the file matching your desired edition and operating system.
-          The Tk and Flet versions use separate storage locations; back up or export your tasks before switching editions.
+          The Tk and Flet editions share `tasks.json` in the per-user data directory. UI settings remain separate (`tk-config.json` and `flet-settings.json`).
 
           The macOS artifacts are ZIP archives containing the application bundle.
           Check `SHA256SUMS.txt` for file integrity.
@@ -324,6 +343,6 @@ jobs:
           gh release create "$RELEASE_VERSION" release-files/* \
             --repo "$GITHUB_REPOSITORY" \
             --target "$TK_SHA" \
-            --title "Todo App $RELEASE_VERSION (Tk + Flet)" \
+            --title "$RELEASE_VERSION" \
             --notes-file release-notes.md \
             "${args[@]}"
