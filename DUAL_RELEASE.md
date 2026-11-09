@@ -5,7 +5,7 @@ This repository maintains two separate UI implementations:
 | Edition | Source branch | UI stack | Existing data |
 |---|---|---|---|
 | Tk | `main` | CustomTkinter | Original project directory, `tasks.json` |
-| Flet | `feature/flet-port` | Flet 1.1.x / Flutter | Per-user data directory; one-time legacy JSON import |
+| Flet | `flet-version` | Flet 1.1.x / Flutter | Per-user data directory; one-time legacy JSON import |
 
 Both editions are maintained independently. **Do not merge the Flet branch
 into main merely to publish a release.** The release workflow checks out
@@ -65,3 +65,5 @@ branch. No Release is published by pushes to either development branch.
 > resulting package on its target operating system before a stable release.
 
 For prereleases, the full generated tag is included in **all eight artifact names** and in the Release title. For example: `Todo-App-v0.4.0-2026-11-09-1-Flet-Windows-x64.zip`. The first prerelease of each base version each day ends with `-1`. Builds that do not publish do not consume an index.
+
+The Flet edition is maintained on `flet-version`. The old `feature/flet-port` branch is removed automatically after the renamed branch receives its first push.
