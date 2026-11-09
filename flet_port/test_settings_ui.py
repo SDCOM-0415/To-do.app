@@ -4,6 +4,7 @@ import unittest
 
 import settings_ui
 import storage
+from appearance import PALETTES, normalize_theme
 
 
 class SettingsValidationTests(unittest.TestCase):
@@ -21,8 +22,23 @@ class SettingsValidationTests(unittest.TestCase):
         }
         validated = settings_ui.validate_settings(source)
         for key, value in source.items():
-            self.assertEqual(validated[key], value)
+            if key == "theme":
+                self.assertEqual(validated[key], "graphite")
+            else:
+                self.assertEqual(validated[key], value)
         self.assertIn("sort", validated)
+
+    def test_all_three_appearances_are_preserved(self):
+        for name in ("graphite", "paper", "blue"):
+            with self.subTest(name=name):
+                validated = settings_ui.validate_settings({"theme": name})
+                self.assertEqual(validated["theme"], name)
+                self.assertIn(name, PALETTES)
+
+    def test_legacy_appearance_aliases(self):
+        self.assertEqual(normalize_theme("light"), "paper")
+        self.assertEqual(normalize_theme("dark"), "graphite")
+        self.assertEqual(normalize_theme("system"), "graphite")
 
     def test_invalid_colors_rejected(self):
         value = copy.deepcopy(storage.DEFAULT_SETTINGS)
