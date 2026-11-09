@@ -1,4 +1,4 @@
-"""Todo App Flet 1.1 desktop preview.
+"""Todo App 0.3.1 Flet desktop edition.
 
 The Tkinter UI remains untouched. This prototype reuses the existing Task
 dataclass and JSON schema while writing to per-user application storage.
@@ -14,10 +14,11 @@ import flet as ft
 
 from models import Task
 import storage
+from settings_ui import show_settings
 
 
 def main(page: ft.Page) -> None:
-    page.title = "Todo App · Flet Preview"
+    page.title = "Todo App 0.3.1"
     page.padding = 24
     page.spacing = 14
     picker = ft.FilePicker()
@@ -27,6 +28,7 @@ def main(page: ft.Page) -> None:
     page.window.min_width = 750
     page.window.min_height = 540
 
+    dirty = False
     try:
         tasks = storage.load_tasks()
         settings = storage.load_settings()
@@ -41,6 +43,12 @@ def main(page: ft.Page) -> None:
             "dark": ft.ThemeMode.DARK,
         }.get(settings["theme"], ft.ThemeMode.SYSTEM)
         page.theme = ft.Theme(color_scheme_seed=ft.Colors.INDIGO)
+        try:
+            width_value, height_value = settings.get("window_size", "900x700").split("x", 1)
+            page.window.width = int(width_value)
+            page.window.height = int(height_value)
+        except (ValueError, TypeError):
+            pass
 
     apply_theme()
 
@@ -89,9 +97,14 @@ def main(page: ft.Page) -> None:
     def message(text: str) -> None:
         page.show_dialog(ft.SnackBar(content=ft.Text(text)))
 
-    def save() -> bool:
+    def save(force: bool = False) -> bool:
+        nonlocal dirty
+        if not settings.get("auto_save", True) and not force:
+            dirty = True
+            return True
         try:
             storage.save_tasks(tasks)
+            dirty = False
             return True
         except Exception as exc:
             message(f"保存失败：{exc}")
@@ -127,6 +140,9 @@ def main(page: ft.Page) -> None:
                 tasks.append(task)
             refresh()
 
+        if not settings.get("confirm_delete", True):
+            do_delete(None)
+            return
         page.show_dialog(ft.AlertDialog(
             modal=True,
             title=ft.Text("删除任务？"),
@@ -248,6 +264,7 @@ def main(page: ft.Page) -> None:
             "中": ft.Colors.AMBER_600,
             "低": ft.Colors.GREEN_500,
         }.get(task.priority, ft.Colors.BLUE_400)
+        tint = settings.get("priority_colors", {}).get(task.priority, tint)
         meta = [f"{task.priority}优先级"]
         if task.due_date:
             meta.append(f"截止 {task.due_date}")
@@ -270,7 +287,7 @@ def main(page: ft.Page) -> None:
                         controls=[
                             ft.Text(
                                 task.title,
-                                size=15,
+                                size=settings.get("font_size", 14),
                                 weight=ft.FontWeight.W_600,
                                 color=ft.Colors.ON_SURFACE if not task.completed
                                 else ft.Colors.ON_SURFACE_VARIANT,
@@ -298,7 +315,7 @@ def main(page: ft.Page) -> None:
         query = (search.value or "").lower().strip()
         rows = [
             t for t in tasks
-            if (settings["show_completed"] or not t.completed)
+            if (settings.get("show_completed", True) or not t.completed)
             and (not query or query in t.title.lower()
                  or query in (t.description or "").lower()
                  or any(query in tag.lower() for tag in (t.tags or [])))
@@ -318,6 +335,7 @@ def main(page: ft.Page) -> None:
         complete = sum(1 for t in tasks if t.completed)
         overdue = sum(1 for t in tasks if t.is_overdue())
         stats.value = f"总计 {len(tasks)} 项  ·  已完成 {complete}  ·  未完成 {len(tasks) - complete}  ·  已逾期 {overdue}"
+        stats.visible = bool(settings.get("show_statistics", True))
         rows = visible_tasks()
         task_list.controls = [card(t) for t in rows] if rows else [
             ft.Container(
@@ -388,6 +406,11 @@ def main(page: ft.Page) -> None:
             ],
         ))
 
+    def on_settings_changed() -> None:
+        apply_theme()
+        refresh()
+        page.update()
+
     page.add(
         ft.SafeArea(
             expand=True,
@@ -399,8 +422,9 @@ def main(page: ft.Page) -> None:
                         controls=[
                             ft.Column([
                                 ft.Text("Today, in focus.", size=29, weight=ft.FontWeight.BOLD),
-                                ft.Text("一个更轻快的 Todo App · Flet 预览版", color=ft.Colors.ON_SURFACE_VARIANT),
+                                ft.Text("一个更轻快的跨平台待办事项管理器", color=ft.Colors.ON_SURFACE_VARIANT),
                             ], expand=True, spacing=2),
+                            ft.IconButton(icon=ft.Icons.SETTINGS_OUTLINED, tooltip="应用设置", on_click=lambda e: show_settings(page, settings, on_settings_changed, picker, message)),
                             theme,
                         ],
                     ),
@@ -424,6 +448,7 @@ def main(page: ft.Page) -> None:
                     ft.Row(
                         controls=[
                             ft.Text(f"数据目录：{storage.APP_DIR}", size=11, color=ft.Colors.ON_SURFACE_VARIANT, expand=True),
+                            ft.TextButton("保存更改", on_click=lambda e: (save(force=True), message("任务已保存") if not dirty else None)),
                             ft.TextButton("导入 JSON", on_click=import_tasks),
                             ft.TextButton("导出 JSON", on_click=export_tasks),
                             ft.TextButton("清除已完成", on_click=clear_completed),
