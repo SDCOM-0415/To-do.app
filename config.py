@@ -12,8 +12,8 @@ from platformdirs import user_data_path
 
 class Config:
     def __init__(self):
-        self.app_name = "Todo App v0.3.1"
-        self.version = "0.3.1"
+        self.app_name = "Todo App v0.3.2"
+        self.version = "0.3.2"
 
         # Shared task storage for Tk and Flet; UI preferences stay edition-specific.
         self.config_dir = Path(user_data_path("TodoApp", "SDCOM", ensure_exists=True))
