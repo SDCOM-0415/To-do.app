@@ -15,6 +15,7 @@ import flet as ft
 from models import Task
 import storage
 from settings_ui import show_settings
+from appearance import appearance, normalize_theme
 
 
 def main(page: ft.Page) -> None:
@@ -37,9 +38,18 @@ def main(page: ft.Page) -> None:
         page.add(ft.Text(f"数据目录：{storage.APP_DIR}"))
         return
 
+    theme_surfaces: list[tuple[ft.Container, str]] = []
+    colors = appearance(settings.get("theme"))
+
     def apply_theme() -> None:
-        page.theme_mode = ft.ThemeMode.DARK
-        page.theme = ft.Theme(color_scheme_seed=ft.Colors.DEEP_PURPLE_300)
+        nonlocal colors
+        settings["theme"] = normalize_theme(settings.get("theme"))
+        colors = appearance(settings["theme"])
+        page.theme_mode = colors["mode"]
+        page.theme = ft.Theme(color_scheme_seed=colors["accent"])
+        page.bgcolor = colors["canvas"]
+        for surface, token in theme_surfaces:
+            surface.bgcolor = colors[token]
         try:
             width_value, height_value = settings.get("window_size", "900x700").split("x", 1)
             page.window.width = int(width_value)
@@ -101,7 +111,9 @@ def main(page: ft.Page) -> None:
             return False
 
     def change_setting(name: str, value: object) -> None:
-        settings[name] = value
+        settings[name] = normalize_theme(value) if name == "theme" else value
+        if name == "theme":
+            apply_theme()
         try:
             storage.save_settings(settings)
         except Exception as exc:
@@ -264,7 +276,7 @@ def main(page: ft.Page) -> None:
             meta.extend(task.tags)
         return ft.Container(
             padding=ft.Padding.symmetric(horizontal=12, vertical=12),
-            border=ft.Border(bottom=ft.BorderSide(1, ft.Colors.OUTLINE_VARIANT)),
+            border=ft.Border(bottom=ft.BorderSide(1, colors["divider"])),
             content=ft.Row(
                 spacing=12,
                 vertical_alignment=ft.CrossAxisAlignment.CENTER,
@@ -366,7 +378,7 @@ def main(page: ft.Page) -> None:
                        f"进行中 {len(tasks) - complete}  ·  逾期 {overdue}")
         stats.visible = bool(settings.get("show_statistics", True))
         for key, button in nav_widgets.items():
-            button.bgcolor = (ft.Colors.SECONDARY_CONTAINER
+            button.bgcolor = (colors["selected"]
                               if key == view_mode else ft.Colors.TRANSPARENT)
         rows = visible_tasks()
         task_list.controls = [card(t) for t in rows] if rows else [
@@ -446,11 +458,22 @@ def main(page: ft.Page) -> None:
         refresh()
         page.update()
 
+    quick_panel = ft.Container(
+        bgcolor=colors["surface"],
+        border_radius=12,
+        padding=8,
+        content=ft.Row([
+            quick,
+            ft.Button("添加", icon=ft.Icons.ADD,
+                      on_click=lambda e: quick_add()),
+        ]),
+    )
+
     sidebar = ft.Container(
         width=208,
         padding=ft.Padding.symmetric(horizontal=14, vertical=24),
-        bgcolor=ft.Colors.SURFACE_CONTAINER_LOW,
-        border=ft.Border(right=ft.BorderSide(1, ft.Colors.OUTLINE_VARIANT)),
+        bgcolor=colors["sidebar"],
+        border=ft.Border(right=ft.BorderSide(1, colors["divider"])),
         content=ft.Column(
             expand=True,
             spacing=7,
@@ -484,11 +507,16 @@ def main(page: ft.Page) -> None:
                     on_click=lambda e: show_settings(
                         page, settings, on_settings_changed, picker, message),
                 ),
-                ft.Text("GRAPHITE FOCUS · 0.3.2", size=10,
+                ft.Text("TODOAPP FLET · 0.3.2", size=10,
                         color=ft.Colors.ON_SURFACE_VARIANT),
             ],
         ),
     )
+
+    theme_surfaces.extend([
+        (sidebar, "sidebar"),
+        (quick_panel, "surface"),
+    ])
 
     page.add(
         ft.SafeArea(
@@ -541,16 +569,7 @@ def main(page: ft.Page) -> None:
                                         expand=True, spacing=10,
                                         controls=[
                                             stats,
-                                            ft.Container(
-                                                bgcolor=ft.Colors.SURFACE_CONTAINER_LOW,
-                                                border_radius=12,
-                                                padding=8,
-                                                content=ft.Row([
-                                                    quick,
-                                                    ft.Button("添加", icon=ft.Icons.ADD,
-                                                              on_click=lambda e: quick_add()),
-                                                ]),
-                                            ),
+                                            quick_panel,
                                             task_list,
                                         ],
                                     ),
