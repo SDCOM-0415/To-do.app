@@ -10,6 +10,12 @@ on:
 permissions:
   contents: read
 
+# Avoid spending macOS build minutes on outdated commits when the Flet
+# branch is updated repeatedly in quick succession.
+concurrency:
+  group: flet-edition-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   package:
     name: Flet / ${{ matrix.label }}
