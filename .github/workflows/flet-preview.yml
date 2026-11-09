@@ -41,12 +41,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: pip
+          cache-dependency-path: flet_port/requirements.txt
 
-      - name: Install Linux desktop build requirements
-        if: matrix.platform == 'linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev zenity
 
       - name: Install Flet and project dependencies
         shell: bash
@@ -60,16 +57,31 @@ jobs:
           python -m compileall -q flet_port
           python -m unittest discover -s flet_port -p "test_*.py" -v
 
+      - name: Cache Dart Pub packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: flet-pub-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('flet_port/pyproject.toml', 'flet_port/requirements.txt') }}
+          restore-keys: |
+            flet-pub-v1-${{ runner.os }}-${{ runner.arch }}-
+
       - name: Build native Flet application
-        shell: bash
-        working-directory: flet_port
-        run: |
-          flet build ${{ matrix.platform }} ${{ matrix.arch }} --yes
+        id: flet
+        uses: flet-dev/flet-build-action@v1
+        with:
+          target: ${{ matrix.platform }}
+          working-directory: flet_port
+          runner-python-version: "3.12"
+          bundled-python-version: "3.12"
+          cache: true
+          install-linux-dependencies: true
+          archive-output: false
+          extra-args: ${{ matrix.arch }}
 
       - name: Upload preview output
         uses: actions/upload-artifact@v4
         with:
           name: todo-flet-preview-${{ matrix.platform }}-${{ matrix.label }}
-          path: flet_port/build/${{ matrix.platform }}/
+          path: ${{ steps.flet.outputs.output-path }}
           if-no-files-found: error
           retention-days: 7
