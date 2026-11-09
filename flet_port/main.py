@@ -18,7 +18,7 @@ from settings_ui import show_settings
 
 
 def main(page: ft.Page) -> None:
-    page.title = "Todo App 0.3.1"
+    page.title = "TodoApp Flet 0.3.2"
     page.padding = 0
     page.spacing = 0
     picker = ft.FilePicker()
@@ -38,10 +38,7 @@ def main(page: ft.Page) -> None:
         return
 
     def apply_theme() -> None:
-        page.theme_mode = {
-            "light": ft.ThemeMode.LIGHT,
-            "dark": ft.ThemeMode.DARK,
-        }.get(settings["theme"], ft.ThemeMode.SYSTEM)
+        page.theme_mode = ft.ThemeMode.DARK
         page.theme = ft.Theme(color_scheme_seed=ft.Colors.DEEP_PURPLE_300)
         try:
             width_value, height_value = settings.get("window_size", "900x700").split("x", 1)
@@ -80,17 +77,6 @@ def main(page: ft.Page) -> None:
         ],
         on_select=lambda e: change_setting("sort", e.control.value),
     )
-    theme = ft.Dropdown(
-        width=145,
-        label="外观",
-        value=settings["theme"],
-        options=[
-            ft.DropdownOption(key="system", text="跟随系统"),
-            ft.DropdownOption(key="light", text="浅色"),
-            ft.DropdownOption(key="dark", text="深色"),
-        ],
-        on_select=lambda e: change_setting("theme", e.control.value),
-    )
     stats = ft.Text(size=12, color=ft.Colors.ON_SURFACE_VARIANT)
     task_list = ft.ListView(expand=True, spacing=0)
     view_mode = "all"
@@ -120,8 +106,6 @@ def main(page: ft.Page) -> None:
             storage.save_settings(settings)
         except Exception as exc:
             message(f"无法保存设置：{exc}")
-        if name == "theme":
-            apply_theme()
         refresh()
 
     def manual_save(e=None) -> None:
@@ -457,7 +441,6 @@ def main(page: ft.Page) -> None:
     def on_settings_changed() -> None:
         # Keep task toolbar controls in sync with the settings workspace.
         apply_theme()
-        theme.value = settings.get("theme", "system")
         sort.value = settings.get("sort", "created_at")
         show_completed.value = bool(settings.get("show_completed", True))
         refresh()
@@ -480,7 +463,7 @@ def main(page: ft.Page) -> None:
                         content=ft.Icon(ft.Icons.DONE, size=19,
                                         color=ft.Colors.ON_PRIMARY),
                     ),
-                    ft.Text("Todo App", weight=ft.FontWeight.BOLD, size=17),
+                    ft.Text("TodoApp Flet", weight=ft.FontWeight.BOLD, size=17),
                 ], spacing=10),
                 ft.Container(height=22),
                 ft.Text("工作空间", size=11, weight=ft.FontWeight.BOLD,
@@ -501,7 +484,7 @@ def main(page: ft.Page) -> None:
                     on_click=lambda e: show_settings(
                         page, settings, on_settings_changed, picker, message),
                 ),
-                ft.Text("FLET EDITION · 0.3.1", size=10,
+                ft.Text("GRAPHITE FOCUS · 0.3.2", size=10,
                         color=ft.Colors.ON_SURFACE_VARIANT),
             ],
         ),
