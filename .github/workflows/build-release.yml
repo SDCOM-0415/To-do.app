@@ -59,23 +59,27 @@ jobs:
           if [[ "$IS_PRERELEASE" == "true" ]]; then
             # The day is evaluated in China Standard Time (UTC+08:00).
             # Count only exact version/date/positive-integer tags.
-            release_day="$(TZ=Asia/Shanghai date +%Y-%m-%d)"
+            release_day="$(TZ=Asia/Shanghai date +%Y%m%d)"
             prefix="${base_version}-${release_day}-"
+            legacy_day="${release_day:0:4}-${release_day:4:2}-${release_day:6:2}"
+            legacy_prefix="${base_version}-${legacy_day}-"
             highest=0
-            # GitHub returns a 404 if no ref begins with this prefix.
-            # We query existing matching tags to avoid counting older versions.
-            matches="$(gh api "repos/$GITHUB_REPOSITORY/git/matching-refs/tags/$prefix" --jq '.[].ref' 2>/dev/null || true)"
-            while IFS= read -r ref; do
-              [[ -n "$ref" ]] || continue
-              tag="${ref#refs/tags/}"
-              if [[ "$tag" == "$prefix"* ]]; then
-                suffix="${tag#"$prefix"}"
-                if [[ "$suffix" =~ ^[1-9][0-9]*$ ]]; then
-                  number=$((10#$suffix))
-                  if (( number > highest )); then highest="$number"; fi
+            # Count both the new compact date format and the previous dashed
+            # format so the sequence does not move backwards during migration.
+            for tag_prefix in "$prefix" "$legacy_prefix"; do
+              matches="$(gh api "repos/$GITHUB_REPOSITORY/git/matching-refs/tags/$tag_prefix" --jq '.[].ref' 2>/dev/null || true)"
+              while IFS= read -r ref; do
+                [[ -n "$ref" ]] || continue
+                tag="${ref#refs/tags/}"
+                if [[ "$tag" == "$tag_prefix"* ]]; then
+                  suffix="${tag#"$tag_prefix"}"
+                  if [[ "$suffix" =~ ^[1-9][0-9]*$ ]]; then
+                    number=$((10#$suffix))
+                    if (( number > highest )); then highest="$number"; fi
+                  fi
                 fi
-              fi
-            done <<< "$matches"
+              done <<< "$matches"
+            done
             version="${prefix}$((highest + 1))"
             echo "Pre-release tag: $version"
           else
@@ -103,9 +107,22 @@ jobs:
           sequence="${RELEASE_VERSION##*-}"
           if [[ "$sequence" =~ ^[1-9][0-9]*$ ]] && (( sequence > 1 )); then
             previous="${RELEASE_VERSION%-*}-$((sequence - 1))"
+            legacy_date="${RELEASE_VERSION#v}"
+            legacy_date="${legacy_date#*-}"
+            legacy_date="${legacy_date%-*}"
+            if [[ "$legacy_date" =~ ^[0-9]{8}$ ]]; then
+              legacy_date="${legacy_date:0:4}-${legacy_date:4:2}-${legacy_date:6:2}"
+              legacy_previous="v${RELEASE_VERSION#v}"
+              legacy_previous="${legacy_previous%%-*}-${legacy_date}-$((sequence - 1))"
+            else
+              legacy_previous=""
+            fi
             if gh release view "$previous" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
               gh release edit "$previous" --repo "$GITHUB_REPOSITORY" --title "$previous"
               echo "Normalized previous release title: $previous"
+            elif [[ -n "$legacy_previous" ]] && gh release view "$legacy_previous" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+              gh release edit "$legacy_previous" --repo "$GITHUB_REPOSITORY" --title "$legacy_previous"
+              echo "Normalized legacy release title: $legacy_previous"
             fi
           fi
 
