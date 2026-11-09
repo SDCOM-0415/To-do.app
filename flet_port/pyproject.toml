@@ -1,9 +1,9 @@
 [project]
 name = "todo-app-flet-preview"
-version = "0.4.0.dev1"
+version = "0.4.0"
 description = "Experimental cross-platform Flet UI for Todo App"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.13"
 dependencies = [
     "flet>=1.1.2,<1.2",
     "platformdirs>=4.0,<6",
@@ -14,3 +14,8 @@ product = "Todo App Flet Preview"
 org = "com.sdcom"
 bundle_id = "com.sdcom.todoapp.fletpreview"
 build_number = 1
+
+[tool.flet.app]
+path = "."
+module = "main"
+exclude = ["test_storage.py", "__pycache__"]
