@@ -87,22 +87,6 @@ def show_settings(
             on_select=lambda e: draft.update({key: e.control.value}),
         )
 
-    def toggle(key: str, label: str, subtitle: str) -> ft.Control:
-        switch = ft.Switch(
-            value=draft[key],
-            on_change=lambda e: draft.update({key: bool(e.control.value)}),
-        )
-        return ft.Row(
-            controls=[
-                ft.Column([
-                    ft.Text(label, size=14, weight=ft.FontWeight.W_500),
-                    ft.Text(subtitle, size=11, color=ft.Colors.ON_SURFACE_VARIANT),
-                ], expand=True, spacing=3),
-                switch,
-            ],
-            vertical_alignment=ft.CrossAxisAlignment.CENTER,
-        )
-
     def heading(name: str, detail: str = "") -> ft.Control:
         return ft.Column(
             controls=[
@@ -114,6 +98,7 @@ def show_settings(
 
     def scroll_tab(controls: list[ft.Control]) -> ft.Control:
         return ft.Container(
+            expand=True,
             padding=ft.Padding.symmetric(horizontal=22, vertical=18),
             content=ft.Column(
                 controls=controls, spacing=18, scroll=ft.ScrollMode.AUTO, expand=True,
