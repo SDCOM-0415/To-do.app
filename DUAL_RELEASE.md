@@ -58,8 +58,7 @@ Flet stores its data under the user's data directory and can import an old
 There is no automatic bidirectional synchronization.
 
 The previous single-edition workflow was replaced by the combined-release
-workflow. The separate Flet preview workflow remains available on the Flet
-branch. No Release is published by pushes to either development branch.
+workflow. The separate Flet build workflow runs on pushes to `flet-version` and uploads short-lived CI artifacts without publishing a Release. No Release is published by pushes to either development branch.
 
 > CI packaging success is not a guarantee that all UI paths work. Test each
 > resulting package on its target operating system before a stable release.
