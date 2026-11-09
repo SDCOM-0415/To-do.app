@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Release tag, e.g. v0.4.0 (must not already exist)"
+        description: "Base version (vX.X.X); pre-releases auto-append date and sequence"
         required: true
         type: string
       publish:
@@ -14,7 +14,7 @@ on:
         type: boolean
         default: false
       prerelease:
-        description: "Mark release as pre-release"
+        description: "Append yyyy-mm-dd-N to the base version and mark as pre-release"
         type: boolean
         default: true
 
@@ -33,21 +33,50 @@ jobs:
       flet_sha: ${{ steps.refs.outputs.flet_sha }}
       version: ${{ steps.refs.outputs.version }}
     steps:
-      - name: Validate version and freeze both branch heads
+      - name: Resolve release tag and freeze both branch heads
         id: refs
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION_INPUT: ${{ inputs.version }}
+          IS_PRERELEASE: ${{ inputs.prerelease }}
         shell: bash
         run: |
           set -euo pipefail
-          version="$VERSION_INPUT"
-          if [[ ! "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
-            echo "::error::Version must be like v0.4.0 or v0.4.0-rc.1"
+          base_version="$VERSION_INPUT"
+          if [[ ! "$base_version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Base version must be in vX.X.X format, for example v0.4.0"
             exit 1
           fi
+
+          version="$base_version"
+          if [[ "$IS_PRERELEASE" == "true" ]]; then
+            # The day is evaluated in China Standard Time (UTC+08:00).
+            # Count only exact version/date/positive-integer tags.
+            release_day="$(TZ=Asia/Shanghai date +%Y-%m-%d)"
+            prefix="${base_version}-${release_day}-"
+            highest=0
+            # GitHub returns a 404 if no ref begins with this prefix.
+            # We query existing matching tags to avoid counting older versions.
+            matches="$(gh api "repos/$GITHUB_REPOSITORY/git/matching-refs/tags/$prefix" --jq '.[].ref' 2>/dev/null || true)"
+            while IFS= read -r ref; do
+              [[ -n "$ref" ]] || continue
+              tag="${ref#refs/tags/}"
+              if [[ "$tag" == "$prefix"* ]]; then
+                suffix="${tag#"$prefix"}"
+                if [[ "$suffix" =~ ^[1-9][0-9]*$ ]]; then
+                  number=$((10#$suffix))
+                  if (( number > highest )); then highest="$number"; fi
+                fi
+              fi
+            done <<< "$matches"
+            version="${prefix}$((highest + 1))"
+            echo "Pre-release tag: $version"
+          else
+            echo "Stable release tag: $version"
+          fi
+          # Never overwrite an existing tag even if this is a build-only run.
           if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$version" >/dev/null 2>&1; then
-            echo "::error::Tag $version already exists. Use a new version; releases are immutable."
+            echo "::error::Tag $version already exists. Use a new version."
             exit 1
           fi
           tk_sha="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
