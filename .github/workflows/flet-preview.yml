@@ -1,0 +1,72 @@
+name: Flet Preview Build
+
+# Separate from the legacy release workflow: no tags or Releases are created.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Flet preview / ${{ matrix.label }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: Windows x64
+            runner: windows-latest
+            platform: windows
+            arch: ""
+          - label: Linux x64
+            runner: ubuntu-24.04
+            platform: linux
+            arch: ""
+          - label: macOS Intel x86_64
+            runner: macos-15-intel
+            platform: macos
+            arch: "--arch x86_64"
+          - label: macOS Apple Silicon arm64
+            runner: macos-15
+            platform: macos
+            arch: "--arch arm64"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Linux desktop build requirements
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev zenity
+
+      - name: Install Flet and project dependencies
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "flet-cli>=1.1.2,<1.2" -r flet_port/requirements.txt
+
+      - name: Python syntax and storage smoke tests
+        shell: bash
+        run: |
+          python -m compileall -q flet_port
+          python -m unittest discover -s flet_port -p "test_*.py" -v
+
+      - name: Build native Flet application
+        shell: bash
+        working-directory: flet_port
+        run: |
+          flet build ${{ matrix.platform }} ${{ matrix.arch }} --yes
+
+      - name: Upload preview output
+        uses: actions/upload-artifact@v4
+        with:
+          name: todo-flet-preview-${{ matrix.platform }}-${{ matrix.label }}
+          path: flet_port/build/${{ matrix.platform }}/
+          if-no-files-found: error
+          retention-days: 7
