@@ -27,11 +27,11 @@ jobs:
             platform: linux
             arch: ""
           - label: macOS Intel x86_64
-            runner: macos-15-intel
+            runner: macos-26-intel
             platform: macos
             arch: "--arch x86_64"
           - label: macOS Apple Silicon arm64
-            runner: macos-15
+            runner: macos-26
             platform: macos
             arch: "--arch arm64"
 
