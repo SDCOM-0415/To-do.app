@@ -80,7 +80,7 @@ jobs:
             exit 1
           fi
           tk_sha="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
-          flet_sha="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/feature/flet-port" --jq '.object.sha')"
+          flet_sha="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/flet-version" --jq '.object.sha')"
           echo "tk_sha=$tk_sha" >> "$GITHUB_OUTPUT"
           echo "flet_sha=$flet_sha" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
@@ -295,7 +295,7 @@ jobs:
 
           This release contains **two independently maintained desktop editions**:
           - **Tk**: CustomTkinter, source from `main` at `$TK_SHA`.
-          - **Flet**: Flutter/Flet, source from `feature/flet-port` at `$FLET_SHA`.
+          - **Flet**: Flutter/Flet, source from `flet-version` at `$FLET_SHA`.
 
           Each edition has Windows x64, Linux x64, macOS Intel x64 and macOS Apple Silicon arm64 downloads.
           Pick the file matching your desired edition and operating system.
