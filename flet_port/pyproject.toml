@@ -1,0 +1,16 @@
+[project]
+name = "todo-app-flet-preview"
+version = "0.4.0.dev1"
+description = "Experimental cross-platform Flet UI for Todo App"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "flet>=1.1.2,<1.2",
+    "platformdirs>=4.0,<6",
+]
+
+[tool.flet]
+product = "Todo App Flet Preview"
+org = "com.sdcom"
+bundle_id = "com.sdcom.todoapp.fletpreview"
+build_number = 1
