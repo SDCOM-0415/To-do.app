@@ -19,8 +19,8 @@ from settings_ui import show_settings
 
 def main(page: ft.Page) -> None:
     page.title = "Todo App 0.3.1"
-    page.padding = 24
-    page.spacing = 14
+    page.padding = 0
+    page.spacing = 0
     picker = ft.FilePicker()
     page.services.append(picker)
     page.window.width = 1100
@@ -42,7 +42,7 @@ def main(page: ft.Page) -> None:
             "light": ft.ThemeMode.LIGHT,
             "dark": ft.ThemeMode.DARK,
         }.get(settings["theme"], ft.ThemeMode.SYSTEM)
-        page.theme = ft.Theme(color_scheme_seed=ft.Colors.INDIGO)
+        page.theme = ft.Theme(color_scheme_seed=ft.Colors.DEEP_PURPLE_300)
         try:
             width_value, height_value = settings.get("window_size", "900x700").split("x", 1)
             page.window.width = int(width_value)
@@ -91,8 +91,12 @@ def main(page: ft.Page) -> None:
         ],
         on_select=lambda e: change_setting("theme", e.control.value),
     )
-    stats = ft.Text(size=13, color=ft.Colors.ON_SURFACE_VARIANT)
-    task_list = ft.ListView(expand=True, spacing=9)
+    stats = ft.Text(size=12, color=ft.Colors.ON_SURFACE_VARIANT)
+    task_list = ft.ListView(expand=True, spacing=0)
+    view_mode = "all"
+    view_title = ft.Text("全部任务", size=27, weight=ft.FontWeight.BOLD)
+    nav_widgets: dict[str, ft.Container] = {}
+
 
     def message(text: str) -> None:
         page.show_dialog(ft.SnackBar(content=ft.Text(text)))
@@ -273,12 +277,12 @@ def main(page: ft.Page) -> None:
         if task.due_date:
             meta.append(f"截止 {task.due_date}")
         if task.tags:
-            meta.append(" · ".join(task.tags))
+            meta.extend(task.tags)
         return ft.Container(
-            border_radius=16,
-            padding=14,
-            bgcolor=ft.Colors.SURFACE_CONTAINER_LOW,
+            padding=ft.Padding.symmetric(horizontal=12, vertical=12),
+            border=ft.Border(bottom=ft.BorderSide(1, ft.Colors.OUTLINE_VARIANT)),
             content=ft.Row(
+                spacing=12,
                 vertical_alignment=ft.CrossAxisAlignment.CENTER,
                 controls=[
                     ft.Checkbox(
@@ -287,39 +291,75 @@ def main(page: ft.Page) -> None:
                     ),
                     ft.Column(
                         expand=True,
-                        spacing=4,
+                        spacing=6,
                         controls=[
                             ft.Text(
                                 task.title,
                                 size=settings.get("font_size", 14),
                                 weight=ft.FontWeight.W_600,
-                                color=ft.Colors.ON_SURFACE if not task.completed
-                                else ft.Colors.ON_SURFACE_VARIANT,
+                                color=(ft.Colors.ON_SURFACE_VARIANT if task.completed
+                                       else ft.Colors.ON_SURFACE),
                             ),
-                            ft.Text("  •  ".join(meta), color=tint, size=12),
-                            *([ft.Text(task.description, size=12, color=ft.Colors.ON_SURFACE_VARIANT)]
+                            ft.Row(
+                                spacing=10,
+                                wrap=True,
+                                controls=[
+                                    ft.Text(f"● {meta[0]}", color=tint, size=11),
+                                    *[ft.Text(text, size=11, color=ft.Colors.ON_SURFACE_VARIANT)
+                                      for text in meta[1:]],
+                                ],
+                            ),
+                            *([ft.Text(task.description, size=12,
+                                       color=ft.Colors.ON_SURFACE_VARIANT)]
                               if task.description else []),
                         ],
                     ),
                     ft.IconButton(
                         icon=ft.Icons.EDIT_OUTLINED,
                         tooltip="编辑任务",
+                        icon_size=19,
                         on_click=lambda e, item=task: edit_task(item),
                     ),
                     ft.IconButton(
                         icon=ft.Icons.DELETE_OUTLINE,
                         tooltip="删除任务",
+                        icon_size=19,
                         on_click=lambda e, item=task: remove_task(item),
                     ),
                 ],
             ),
         )
 
+    def change_view(target: str) -> None:
+        nonlocal view_mode
+        view_mode = target
+        view_title.value = {
+            "all": "全部任务", "active": "进行中", "done": "已完成",
+        }[target]
+        refresh()
+
+    def nav_button(title: str, icon: str, target: str) -> ft.Container:
+        button = ft.Container(
+            border_radius=9,
+            padding=ft.Padding.symmetric(horizontal=12, vertical=10),
+            on_click=lambda e: change_view(target),
+            ink=True,
+            content=ft.Row([
+                ft.Icon(icon, size=19),
+                ft.Text(title, size=13, weight=ft.FontWeight.W_500),
+            ], spacing=11),
+        )
+        nav_widgets[target] = button
+        return button
+
     def visible_tasks() -> list[Task]:
         query = (search.value or "").lower().strip()
         rows = [
             t for t in tasks
-            if (settings.get("show_completed", True) or not t.completed)
+            if (settings.get("show_completed", True) or not t.completed or view_mode == "done")
+            and (view_mode == "all"
+                 or (view_mode == "active" and not t.completed)
+                 or (view_mode == "done" and t.completed))
             and (not query or query in t.title.lower()
                  or query in (t.description or "").lower()
                  or any(query in tag.lower() for tag in (t.tags or [])))
@@ -338,8 +378,13 @@ def main(page: ft.Page) -> None:
     def refresh() -> None:
         complete = sum(1 for t in tasks if t.completed)
         overdue = sum(1 for t in tasks if t.is_overdue())
-        stats.value = f"总计 {len(tasks)} 项  ·  已完成 {complete}  ·  未完成 {len(tasks) - complete}  ·  已逾期 {overdue}"
+        stats.value = (f"总计 {len(tasks)} 项  ·  已完成 {complete}  ·  "
+                       f"进行中 {len(tasks) - complete}  ·  逾期 {overdue}")
         stats.visible = bool(settings.get("show_statistics", True))
+        for key, button in nav_widgets.items():
+            button.bgcolor = (ft.Colors.SECONDARY_CONTAINER
+                              if key == view_mode else ft.Colors.TRANSPARENT)
+            button.update()
         rows = visible_tasks()
         task_list.controls = [card(t) for t in rows] if rows else [
             ft.Container(
@@ -419,53 +464,135 @@ def main(page: ft.Page) -> None:
         refresh()
         page.update()
 
+    sidebar = ft.Container(
+        width=208,
+        padding=ft.Padding.symmetric(horizontal=14, vertical=24),
+        bgcolor=ft.Colors.SURFACE_CONTAINER_LOW,
+        border=ft.Border(right=ft.BorderSide(1, ft.Colors.OUTLINE_VARIANT)),
+        content=ft.Column(
+            expand=True,
+            spacing=7,
+            controls=[
+                ft.Row([
+                    ft.Container(
+                        bgcolor=ft.Colors.PRIMARY,
+                        border_radius=9,
+                        padding=8,
+                        content=ft.Icon(ft.Icons.DONE, size=19,
+                                        color=ft.Colors.ON_PRIMARY),
+                    ),
+                    ft.Text("Todo App", weight=ft.FontWeight.BOLD, size=17),
+                ], spacing=10),
+                ft.Container(height=22),
+                ft.Text("工作空间", size=11, weight=ft.FontWeight.BOLD,
+                        color=ft.Colors.ON_SURFACE_VARIANT),
+                nav_button("全部任务", ft.Icons.LIST_ALT, "all"),
+                nav_button("进行中", ft.Icons.ACCESS_TIME, "active"),
+                nav_button("已完成", ft.Icons.CHECK_CIRCLE_OUTLINE, "done"),
+                ft.Container(expand=True),
+                ft.Divider(height=1, color=ft.Colors.OUTLINE_VARIANT),
+                ft.TextButton("导入任务", icon=ft.Icons.FILE_UPLOAD_OUTLINED,
+                              on_click=import_tasks),
+                ft.TextButton("导出任务", icon=ft.Icons.FILE_DOWNLOAD_OUTLINED,
+                              on_click=export_tasks),
+                ft.TextButton("清除已完成", icon=ft.Icons.DELETE_SWEEP_OUTLINED,
+                              on_click=clear_completed),
+                ft.TextButton(
+                    "应用设置", icon=ft.Icons.SETTINGS_OUTLINED,
+                    on_click=lambda e: show_settings(
+                        page, settings, on_settings_changed, picker, message),
+                ),
+                ft.Text("FLET EDITION · 0.3.1", size=10,
+                        color=ft.Colors.ON_SURFACE_VARIANT),
+            ],
+        ),
+    )
+
     page.add(
         ft.SafeArea(
             expand=True,
-            content=ft.Column(
+            content=ft.Row(
                 expand=True,
-                spacing=16,
+                spacing=0,
                 controls=[
-                    ft.Row(
-                        controls=[
-                            ft.Column([
-                                ft.Text("Today, in focus.", size=29, weight=ft.FontWeight.BOLD),
-                                ft.Text("一个更轻快的跨平台待办事项管理器", color=ft.Colors.ON_SURFACE_VARIANT),
-                            ], expand=True, spacing=2),
-                            ft.IconButton(icon=ft.Icons.SETTINGS_OUTLINED, tooltip="应用设置", on_click=lambda e: show_settings(page, settings, on_settings_changed, picker, message)),
-                            theme,
-                        ],
-                    ),
+                    sidebar,
                     ft.Container(
-                        padding=16,
-                        border_radius=18,
-                        bgcolor=ft.Colors.SURFACE_CONTAINER_LOW,
+                        expand=True,
                         content=ft.Column(
-                            spacing=10,
+                            expand=True,
+                            spacing=0,
                             controls=[
-                                ft.Row([quick, ft.Button("添加任务", icon=ft.Icons.ADD, on_click=lambda e: quick_add())]),
-                                ft.Row(
-                                    controls=[search, sort, show_completed],
-                                    vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                                ft.Container(
+                                    padding=ft.Padding.only(
+                                        left=32, top=28, right=32, bottom=22),
+                                    content=ft.Column(
+                                        spacing=18,
+                                        controls=[
+                                            ft.Row([
+                                                ft.Column([
+                                                    ft.Text("我的工作空间", size=11,
+                                                            color=ft.Colors.PRIMARY,
+                                                            weight=ft.FontWeight.BOLD),
+                                                    view_title,
+                                                    ft.Text("整理任务，专注当下。",
+                                                            color=ft.Colors.ON_SURFACE_VARIANT,
+                                                            size=12),
+                                                ], spacing=5, expand=True),
+                                                ft.Button(
+                                                    "新建任务",
+                                                    icon=ft.Icons.ADD,
+                                                    on_click=lambda e: edit_task(),
+                                                ),
+                                            ]),
+                                            ft.Row([search, sort, show_completed],
+                                                   spacing=11,
+                                                   vertical_alignment=ft.CrossAxisAlignment.CENTER),
+                                        ],
+                                    ),
+                                ),
+                                ft.Divider(height=1, color=ft.Colors.OUTLINE_VARIANT),
+                                ft.Container(
+                                    expand=True,
+                                    padding=ft.Padding.only(
+                                        left=32, right=32, top=18, bottom=6),
+                                    content=ft.Column(
+                                        expand=True, spacing=10,
+                                        controls=[
+                                            stats,
+                                            ft.Container(
+                                                bgcolor=ft.Colors.SURFACE_CONTAINER_LOW,
+                                                border_radius=12,
+                                                padding=8,
+                                                content=ft.Row([
+                                                    quick,
+                                                    ft.Button("添加", icon=ft.Icons.ADD,
+                                                              on_click=lambda e: quick_add()),
+                                                ]),
+                                            ),
+                                            task_list,
+                                        ],
+                                    ),
+                                ),
+                                ft.Divider(height=1, color=ft.Colors.OUTLINE_VARIANT),
+                                ft.Container(
+                                    padding=ft.Padding.symmetric(
+                                        horizontal=32, vertical=11),
+                                    content=ft.Row([
+                                        ft.Text("任务保存在本地 · 与 Tk 版共享",
+                                                size=11, expand=True,
+                                                color=ft.Colors.ON_SURFACE_VARIANT),
+                                        ft.TextButton("保存更改", icon=ft.Icons.SAVE_OUTLINED,
+                                                      on_click=manual_save),
+                                    ]),
                                 ),
                             ],
                         ),
-                    ),
-                    stats,
-                    task_list,
-                    ft.Row(
-                        controls=[
-                            ft.Text(f"数据目录：{storage.APP_DIR}", size=11, color=ft.Colors.ON_SURFACE_VARIANT, expand=True),
-                            ft.TextButton("保存更改", on_click=manual_save),
-                            ft.TextButton("导入 JSON", on_click=import_tasks),
-                            ft.TextButton("导出 JSON", on_click=export_tasks),
-                            ft.TextButton("清除已完成", on_click=clear_completed),
-                        ],
                     ),
                 ],
             ),
         )
     )
+
     refresh()
 
 
