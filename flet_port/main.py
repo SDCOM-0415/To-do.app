@@ -411,7 +411,11 @@ def main(page: ft.Page) -> None:
         ))
 
     def on_settings_changed() -> None:
+        # Keep task toolbar controls in sync with the settings workspace.
         apply_theme()
+        theme.value = settings.get("theme", "system")
+        sort.value = settings.get("sort", "created_at")
+        show_completed.value = bool(settings.get("show_completed", True))
         refresh()
         page.update()
 
