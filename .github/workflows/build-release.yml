@@ -93,14 +93,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { edition: Tk, target: Windows-x64, runner: windows-latest, os: windows, arch: x64, flet_platform: '' }
-          - { edition: Tk, target: Linux-x64, runner: ubuntu-24.04, os: linux, arch: x64, flet_platform: '' }
-          - { edition: Tk, target: macOS-x64, runner: macos-26-intel, os: macos, arch: x64, flet_platform: '' }
-          - { edition: Tk, target: macOS-arm64, runner: macos-26, os: macos, arch: arm64, flet_platform: '' }
-          - { edition: Flet, target: Windows-x64, runner: windows-latest, os: windows, arch: x64, flet_platform: windows }
-          - { edition: Flet, target: Linux-x64, runner: ubuntu-24.04, os: linux, arch: x64, flet_platform: linux }
-          - { edition: Flet, target: macOS-x64, runner: macos-26-intel, os: macos, arch: x64, flet_platform: macos }
-          - { edition: Flet, target: macOS-arm64, runner: macos-26, os: macos, arch: arm64, flet_platform: macos }
+          - { edition: Tk, target: Windows-x64, runner: windows-latest, os: windows, arch: x64, flet_platform: '', flet_extra_args: '' }
+          - { edition: Tk, target: Linux-x64, runner: ubuntu-24.04, os: linux, arch: x64, flet_platform: '', flet_extra_args: '' }
+          - { edition: Tk, target: macOS-x64, runner: macos-26-intel, os: macos, arch: x64, flet_platform: '', flet_extra_args: '' }
+          - { edition: Tk, target: macOS-arm64, runner: macos-26, os: macos, arch: arm64, flet_platform: '', flet_extra_args: '' }
+          - { edition: Flet, target: Windows-x64, runner: windows-latest, os: windows, arch: x64, flet_platform: windows, flet_extra_args: '' }
+          - { edition: Flet, target: Linux-x64, runner: ubuntu-24.04, os: linux, arch: x64, flet_platform: linux, flet_extra_args: '' }
+          - { edition: Flet, target: macOS-x64, runner: macos-26-intel, os: macos, arch: x64, flet_platform: macos, flet_extra_args: '--arch x86_64' }
+          - { edition: Flet, target: macOS-arm64, runner: macos-26, os: macos, arch: arm64, flet_platform: macos, flet_extra_args: '--arch arm64' }
 
     steps:
       - name: Checkout the edition's frozen source revision
@@ -112,13 +112,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: pip
+          cache-dependency-path: ${{ matrix.edition == 'Flet' && 'flet_port/requirements.txt' || 'requirements.txt' }}
 
-      - name: Install Linux system packages
-        if: matrix.os == 'linux'
+      - name: Install Tk Linux system packages
+        if: matrix.os == 'linux' && matrix.edition == 'Tk'
         shell: bash
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3-tk python3-dev clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev zenity
+          sudo apt-get install -y python3-tk python3-dev
 
       - name: Install Tk dependencies
         if: matrix.edition == 'Tk'
@@ -164,13 +166,28 @@ jobs:
             --collect-all customtkinter app.py
           test -d dist/TodoApp.app
 
+      - name: Cache Dart Pub packages
+        if: matrix.edition == 'Flet'
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: flet-pub-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('flet_port/pyproject.toml', 'flet_port/requirements.txt') }}
+          restore-keys: |
+            flet-pub-v1-${{ runner.os }}-${{ runner.arch }}-
+
       - name: Build Flet
         if: matrix.edition == 'Flet'
-        shell: bash
-        working-directory: flet_port
-        run: |
-          flet build ${{ matrix.flet_platform }} --yes
-          test -d build/${{ matrix.flet_platform }} || test -d build\\${{ matrix.flet_platform }}
+        id: flet
+        uses: flet-dev/flet-build-action@v1
+        with:
+          target: ${{ matrix.flet_platform }}
+          working-directory: flet_port
+          runner-python-version: "3.12"
+          bundled-python-version: "3.12"
+          cache: true
+          install-linux-dependencies: true
+          archive-output: false
+          extra-args: ${{ matrix.flet_extra_args }}
 
       - name: Set artifact name
         shell: bash
@@ -178,8 +195,12 @@ jobs:
           RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
           EDITION: ${{ matrix.edition }}
           TARGET: ${{ matrix.target }}
+          FLET_OUTPUT_PATH: ${{ steps.flet.outputs.output-path }}
         run: |
           echo "ARTIFACT_NAME=Todo-App-${RELEASE_VERSION}-${EDITION}-${TARGET}" >> "$GITHUB_ENV"
+          if [[ -n "${FLET_OUTPUT_PATH:-}" ]]; then
+            echo "FLET_BUILD_PATH=$FLET_OUTPUT_PATH" >> "$GITHUB_ENV"
+          fi
 
       - name: Package Windows
         if: matrix.os == 'windows'
@@ -189,7 +210,7 @@ jobs:
           if ("${{ matrix.edition }}" -eq "Tk") {
             Compress-Archive -Path "dist/TodoApp" -DestinationPath "release-files/$env:ARTIFACT_NAME.zip" -Force
           } else {
-            Compress-Archive -Path "flet_port/build/windows/*" -DestinationPath "release-files/$env:ARTIFACT_NAME.zip" -Force
+            Compress-Archive -Path "$env:FLET_BUILD_PATH/*" -DestinationPath "release-files/$env:ARTIFACT_NAME.zip" -Force
           }
 
       - name: Package Linux
@@ -200,7 +221,7 @@ jobs:
           if [[ "${{ matrix.edition }}" == "Tk" ]]; then
             tar -czf "release-files/$ARTIFACT_NAME.tar.gz" -C dist TodoApp
           else
-            tar -czf "release-files/$ARTIFACT_NAME.tar.gz" -C flet_port/build/linux .
+            tar -czf "release-files/$ARTIFACT_NAME.tar.gz" -C "$FLET_BUILD_PATH" .
           fi
 
       - name: Package macOS
@@ -212,7 +233,7 @@ jobs:
           if [[ "${{ matrix.edition }}" == "Tk" ]]; then
             app="dist/TodoApp.app"
           else
-            app="$(find flet_port/build/macos -maxdepth 2 -type d -name '*.app' -print -quit)"
+            app="$(find "$FLET_BUILD_PATH" -maxdepth 2 -type d -name '*.app' -print -quit)"
           fi
           test -n "$app" && test -d "$app"
           ditto -c -k --sequesterRsrc --keepParent "$app" "release-files/$ARTIFACT_NAME.zip"
