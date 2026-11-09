@@ -1,0 +1,5 @@
+One-time combined TodoApp 0.3.2 prerelease trigger.
+
+Sources: main (TodoApp Tk) + flet-version (TodoApp Flet).
+Release tag format: v0.3.2-YYYYMMDD-N.
+All four platforms per edition must pass before publishing.
