@@ -16,7 +16,8 @@ from typing import Any, Callable
 import flet as ft
 
 import storage
-from appearance import PALETTES, normalize_theme
+from appearance import PALETTES, appearance, normalize_theme
+from window_chrome import with_titlebar
 
 DEFAULT_COLORS = storage.DEFAULT_SETTINGS["priority_colors"]
 BACKUP_DIR = storage.APP_DIR / "backups"
@@ -78,6 +79,7 @@ def show_settings(
 ) -> None:
     """Show a five-tab settings view in place of the task workspace."""
     original_controls = list(page.controls)
+    title_surface: ft.Container | None = None
     draft = validate_settings(settings)
     error_text = ft.Text("", color=ft.Colors.RED_400, size=12)
 
@@ -167,6 +169,9 @@ def show_settings(
         settings.clear()
         settings.update(candidate)
         on_changed()
+        if title_surface is not None:
+            title_surface.bgcolor = appearance(settings["theme"])["sidebar"]
+            page.update()
         if close:
             close_view()
             notify("设置已保存")
@@ -417,7 +422,8 @@ def show_settings(
         ),
     )
 
+    layout, title_surface = with_titlebar(screen, settings.get("theme"))
     page.controls.clear()
-    page.add(screen)
+    page.add(layout)
     # Controls need to be mounted before update() can be used.
     refresh_backups()
