@@ -1,7 +1,7 @@
-"""macOS 原生标题栏与 Flet 工作空间的对齐布局。
+"""macOS 原生红绿灯与 Flet 标题栏的统一背景。
 
-保留由 AppKit 管理的红黄绿窗口按钮，仅隐藏系统标题栏；
-窗口顶部采用与下方侧栏同宽、同分割线的两栏拖动区域。
+AppKit 负责绘制真实的红黄绿窗口按钮。隐藏系统标题文字后，
+统一整个顶部拖动带的底色，而不是在原生按钮旁拼接两种材质。
 """
 from __future__ import annotations
 
@@ -27,34 +27,21 @@ def configure_window(page: ft.Page) -> None:
 def update_titlebar_theme(
     surface: ft.Container, theme: str | None, *, settings_view: bool = False
 ) -> None:
-    """首页按侧栏分区；没有侧栏的设置页使用完整统一的背景。"""
+    """无论主页还是设置页，顶部整条使用与原生按钮区域相近的侧栏底色。
+
+    Paper & Ink 下的原生按钮区由 macOS 绘制，截图实测为 #EAE5DB；
+    主题侧栏色 #EBE5DA 与之接近。统一整条标题栏可消除横向拼接。
+    """
     colors = appearance(theme)
-    surface.bgcolor = colors["canvas" if settings_view else "sidebar"]
-    if settings_view:
-        surface.content = None
-    else:
-        surface.content = ft.Row(
-            spacing=0,
-            controls=[
-                ft.Container(
-                    width=SIDEBAR_WIDTH,
-                    height=TITLEBAR_HEIGHT,
-                    bgcolor=colors["sidebar"],
-                    border=ft.Border(right=ft.BorderSide(1, colors["divider"])),
-                ),
-                ft.Container(
-                    expand=True, height=TITLEBAR_HEIGHT, bgcolor=colors["canvas"]
-                ),
-            ],
-        )
+    surface.bgcolor = colors["sidebar"]
+    surface.content = None
 
 
-def titlebar(theme: str | None, *, settings_view: bool = False) -> tuple[ft.Control | None, ft.Container | None]:
+def titlebar(
+    theme: str | None, *, settings_view: bool = False
+) -> tuple[ft.Control | None, ft.Container | None]:
     if not has_integrated_titlebar():
         return None, None
-
-    # 红绿灯由 macOS 原生绘制，左侧 208 逻辑像素范围内不放控件。
-    # 与下方侧栏使用完全相同的宽度，竖分割线自然贯穿整窗。
     surface = ft.Container(height=TITLEBAR_HEIGHT)
     update_titlebar_theme(surface, theme, settings_view=settings_view)
     return ft.WindowDragArea(content=surface, maximizable=True), surface
