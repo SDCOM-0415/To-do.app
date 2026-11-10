@@ -16,6 +16,7 @@ from models import Task
 import storage
 from settings_ui import show_settings
 from appearance import appearance, normalize_theme
+from window_chrome import configure_window, with_titlebar
 
 
 def main(page: ft.Page) -> None:
@@ -28,6 +29,7 @@ def main(page: ft.Page) -> None:
     page.window.height = 760
     page.window.min_width = 750
     page.window.min_height = 540
+    configure_window(page)
 
     dirty = False
     try:
@@ -48,6 +50,7 @@ def main(page: ft.Page) -> None:
         page.theme_mode = colors["mode"]
         page.theme = ft.Theme(color_scheme_seed=colors["accent"])
         page.bgcolor = colors["canvas"]
+        page.window.bgcolor = colors["sidebar"]
         for surface, token in theme_surfaces:
             surface.bgcolor = colors[token]
         try:
@@ -518,10 +521,9 @@ def main(page: ft.Page) -> None:
         (quick_panel, "surface"),
     ])
 
-    page.add(
-        ft.SafeArea(
-            expand=True,
-            content=ft.Row(
+    workspace = ft.SafeArea(
+        expand=True,
+        content=ft.Row(
                 expand=True,
                 spacing=0,
                 controls=[
@@ -593,6 +595,10 @@ def main(page: ft.Page) -> None:
             ),
         )
     )
+    app_layout, title_surface = with_titlebar(workspace, settings.get("theme"))
+    if title_surface is not None:
+        theme_surfaces.append((title_surface, "sidebar"))
+    page.add(app_layout)
 
     refresh()
 
