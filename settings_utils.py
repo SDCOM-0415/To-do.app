@@ -1,5 +1,5 @@
 """
-设置工具 - Todo App v0.3.1
+设置工具 - Todo App v0.3.2
 提供设置相关的实用工具函数
 """
 import json

@@ -1,5 +1,5 @@
 """
-设置对话框 - Todo App v0.3.1
+设置对话框 - Todo App v0.3.2
 完整的应用程序设置界面
 """
 import customtkinter as ctk

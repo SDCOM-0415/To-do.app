@@ -1,4 +1,4 @@
-# Todo App v0.3.1 - 构建说明
+# Todo App v0.3.2 - 构建说明
 
 本文档说明如何构建 Todo App 的二进制可执行文件。
 
@@ -76,16 +76,16 @@ pyinstaller build.spec
 构建完成后，你会在 `dist/` 目录找到：
 
 ### Windows
-- `Todo-App-v0.3.1-Windows-x64.exe` - 可执行文件
-- `Todo-App-v0.3.1-Windows-x64.zip` - 压缩包
+- `Todo-App-v0.3.2-Windows-x64.exe` - 可执行文件
+- `Todo-App-v0.3.2-Windows-x64.zip` - 压缩包
 
 ### macOS
 - `TodoApp` 或 `TodoApp.app` - 可执行文件/应用程序包
-- `Todo-App-v0.3.1-macOS-x64.tar.gz` - 压缩包
+- `Todo-App-v0.3.2-macOS-x64.tar.gz` - 压缩包
 
 ### Linux
 - `TodoApp` - 可执行文件
-- `Todo-App-v0.3.1-Linux-x64.tar.gz` - 压缩包
+- `Todo-App-v0.3.2-Linux-x64.tar.gz` - 压缩包
 
 ## 🐛 构建问题排查
 
@@ -138,7 +138,7 @@ pyinstaller build.spec
 `.github/workflows/build-release.yml` 文件定义了自动构建流程：
 
 ### 触发条件
-- 推送版本标签（如 `v0.3.1`）
+- 推送版本标签（如 `v0.3.2`）
 - 手动触发
 
 ### 构建矩阵
@@ -171,20 +171,20 @@ pyinstaller build.spec
 
 1. **更新版本号**
    ```bash
-   # 已在代码中更新为 v0.3.1
+   # 已在代码中更新为 v0.3.2
    ```
 
 2. **提交更改**
    ```bash
    git add .
-   git commit -m "Release v0.3.1"
+   git commit -m "release: 发布 v0.3.2"
    git push origin main
    ```
 
 3. **创建标签**
    ```bash
-   git tag v0.3.1
-   git push origin v0.3.1
+   git tag v0.3.2
+   git push origin v0.3.2
    ```
 
 4. **等待构建完成**

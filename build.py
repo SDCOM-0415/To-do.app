@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Todo App v0.3.1 - 本地构建脚本
+Todo App v0.3.2 - 本地构建脚本
 用于在本地环境构建可执行文件
 """
 
@@ -10,11 +10,17 @@ import sys
 import subprocess
 import platform
 from pathlib import Path
+from config import app_config
+
+
+def get_app_version():
+    """从应用配置读取统一版本号。"""
+    return app_config.version
 
 def main():
     """主构建函数"""
     print("=" * 60)
-    print("Todo App v0.3.1 - 本地构建脚本")
+    print(f"Todo App v{get_app_version()} - 本地构建脚本")
     print("=" * 60)
     
     # 检查 PyInstaller
@@ -43,16 +49,16 @@ def main():
     
     # 确定输出文件名
     if system == "Windows":
-        output_name = f"Todo-App-v0.3.1-Windows-{arch}"
+        output_name = f"Todo-App-v{get_app_version()}-Windows-{arch}"
         exe_ext = ".exe"
     elif system == "Darwin":
-        output_name = f"Todo-App-v0.3.1-macOS-{arch}"
+        output_name = f"Todo-App-v{get_app_version()}-macOS-{arch}"
         exe_ext = ""
     elif system == "Linux":
-        output_name = f"Todo-App-v0.3.1-Linux-{arch}"
+        output_name = f"Todo-App-v{get_app_version()}-Linux-{arch}"
         exe_ext = ""
     else:
-        output_name = f"Todo-App-v0.3.1-{system}-{arch}"
+        output_name = f"Todo-App-v{get_app_version()}-{system}-{arch}"
         exe_ext = ""
     
     print(f"✓ 输出文件名: {output_name}")

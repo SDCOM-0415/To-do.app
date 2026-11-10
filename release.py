@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Todo App v0.3.1 - 发布脚本
+Todo App v0.3.2 - 发布脚本
 自动化版本发布流程
 """
 
@@ -101,7 +101,7 @@ def push_tag(tag_name):
 def main():
     """主函数"""
     print("=" * 60)
-    print("Todo App v0.3.1 - 自动发布脚本")
+    print("Todo App v0.3.2 - 自动发布脚本")
     print("=" * 60)
     
     # 检查是否在 Git 仓库中

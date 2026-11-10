@@ -1,5 +1,5 @@
 """
-主应用程序 - Todo App v0.3.1
+主应用程序 - Todo App v0.3.2
 现代化跨平台待办事项管理器
 支持 Windows、Linux、macOS 和深色模式
 """
@@ -102,7 +102,7 @@ class TodoApp(ctk.CTk):
         # 左侧：标题
         title_label = ctk.CTkLabel(
             toolbar,
-            text="📝 Todo App v0.3.1",
+            text=f"📝 Todo App v{app_config.version}",
             font=("", 20, "bold")
         )
         title_label.pack(side="left", padx=20, pady=15)
