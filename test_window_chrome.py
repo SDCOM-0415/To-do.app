@@ -28,6 +28,19 @@ class WindowChromeTests(unittest.TestCase):
             self.assertEqual(left.bgcolor, "#1C1D23")
             self.assertEqual(right.bgcolor, "#141519")
 
+    def test_settings_page_uses_full_width_uniform_background(self):
+        with patch.object(window_chrome.sys, "platform", "darwin"):
+            _, surface = window_chrome.with_titlebar(
+                ft.Text("设置"), "paper", settings_view=True
+            )
+            self.assertIsNone(surface.content)
+            self.assertEqual(surface.bgcolor, "#F5F1E9")
+            window_chrome.update_titlebar_theme(
+                surface, "blue", settings_view=True
+            )
+            self.assertIsNone(surface.content)
+            self.assertEqual(surface.bgcolor, "#101A27")
+
     def test_non_mac_keeps_native_titlebar(self):
         with patch.object(window_chrome.sys, "platform", "win32"):
             content, surface = window_chrome.with_titlebar(ft.Text("Tasks"), "paper")
