@@ -1,243 +1,80 @@
-# Todo App v0.3.2 - 现代化跨平台待办事项管理器
+# TodoApp — 跨平台待办事项管理器（Tk 版本）
 
-一个使用 **customtkinter** 构建的现代化跨平台待办事项应用程序，支持深色/浅色模式切换，完美兼容 Windows、Linux、macOS 系统。
+TodoApp 是使用 Python 与 **CustomTkinter** 开发的桌面待办事项工具，支持 Windows、Linux 和 macOS。当前 Tk 应用版本为 **0.3.2**。本分支继续维护轻量桌面版；Flet 版本和历史版本分别由独立分支维护。
 
-## 🌟 项目特色
+## 主要功能
 
-- ✅ **跨平台支持**: Windows、Linux、macOS 原生支持
-- 🌙 **深色模式**: 支持深色/浅色/系统主题自动切换
-- 🎨 **现代化界面**: 基于 customtkinter 的美观现代化 UI
-- ⚡ **轻量级**: 基于 Tkinter，无重型依赖
-- 💾 **自动保存**: 智能自动保存，数据永不丢失
-- 🔍 **智能搜索**: 实时搜索任务内容
-- 📊 **统计分析**: 任务完成率和统计信息
-- 🏷️ **优先级管理**: 高中低优先级分类
-- 📅 **截止日期**: 任务截止日期提醒
+- 创建、编辑、完成和删除任务，支持标题与备注。
+- 设置任务优先级、截止日期，搜索和排序任务。
+- 支持深色、浅色及跟随系统的主题模式。
+- 显示任务统计，支持用户偏好设置和 JSON 数据保存。
+- 跨平台构建 Windows、Linux、macOS Intel 与 Apple Silicon 安装包。
 
-## 📁 项目结构
+## 下载与安装
 
-```
-Todo App v0.3.2/
-├── app.py              # 🚀 程序入口文件
-├── main_app.py         # 🏠 主应用程序
-├── ui_components.py    # 🎨 UI组件模块
-├── models.py           # 📋 数据模型
-├── database.py         # 💾 数据库管理
-├── config.py           # ⚙️ 配置管理
-├── requirements.txt    # 📦 依赖包列表
-├── README.md           # 📖 项目说明
-└── DUAL_RELEASE.md     # 📖 分支维护与联合发布说明
-```
+在 [GitHub Releases](https://github.com/SDCOM-0415/To-do.app/releases) 中选择文件名前缀为 **`TodoApp-`** 的安装包，不要与 **`TodoApp-Flet-`** 混淆。
 
-## 🛠️ 技术架构
+| 平台 | Tk 版本安装包命名示例 |
+|---|---|
+| Windows x64 | `TodoApp-v0.3.2-20261110-1-Windows-x64.zip` |
+| Linux x64 | `TodoApp-v0.3.2-20261110-1-Linux-x64.tar.gz` |
+| macOS Intel | `TodoApp-v0.3.2-20261110-1-macOS-x64.zip` |
+| macOS Apple Silicon | `TodoApp-v0.3.2-20261110-1-macOS-arm64.zip` |
 
-### 核心模块说明
+示例文件名对应一次预发布；请以 Release 页面实际提供的最新版本为准。macOS 安装包为包含 `.app` 的 ZIP 压缩文件，而不是 DMG。若 macOS 阻止打开未经签名或公证的应用，请按系统安全提示处理。
 
-#### 1. `app.py` - 程序入口
-- 系统环境检测和初始化
-- 依赖包检查
-- DPI 感知设置（Windows）
-- 异常处理和错误报告
+## 从源码运行
 
-#### 2. `main_app.py` - 主应用程序
-- `TodoApp` 主窗口类
-- 界面布局和交互逻辑
-- 主题切换和设置管理
-- 任务的增删改查操作
+建议使用 **Python 3.12**。先安装 Python、pip，并确保 tkinter/Tcl/Tk 可用。
 
-#### 3. `ui_components.py` - UI组件
-- `TaskEditDialog` - 任务编辑对话框
-- `TaskItem` - 任务列表项组件
-- `StatisticsFrame` - 统计信息面板
-- 自定义界面组件实现
-
-#### 4. `models.py` - 数据模型
-- `Task` 任务数据类
-- 任务属性和方法定义
-- 数据验证和转换
-- 优先级和日期处理
-
-#### 5. `database.py` - 数据库管理
-- `TaskDatabase` 数据管理类
-- JSON 文件存储
-- 任务的 CRUD 操作
-- 搜索、排序、统计功能
-
-#### 6. `config.py` - 配置管理
-- `Config` 配置管理类
-- 用户设置持久化
-- 主题和界面配置
-- 跨平台路径处理
-
-## 🚀 快速开始
-
-### 方式一：下载二进制文件（推荐）
-
-1. 访问 [Releases 页面](https://github.com/SDCOM-0415/To-do.app/releases)
-2. 下载适合你系统的版本：
-   - **Windows**: `Todo-App-v0.3.1-Windows-x64.zip`
-   - **macOS**: `Todo-App-v0.3.1-macOS-x64.dmg`
-   - **Linux**: `Todo-App-v0.3.1-Linux-x64.tar.gz`
-3. 安装并运行：
-   - **Windows**: 解压 ZIP 文件，双击运行 .exe 文件
-   - **macOS**: 双击 DMG 文件，将应用拖拽到应用程序文件夹
-   - **Linux**: 解压 tar.gz 文件，运行可执行文件
-
-### 方式二：从源码运行
-
-#### 环境要求
-- Python 3.7+
-- 支持的操作系统: Windows 10+, macOS 10.14+, Ubuntu 18.04+
-
-#### 安装步骤
-
-1. **克隆项目**
 ```bash
-git clone <repository-url>
-cd Todo-App-v0.3.1
-```
-
-2. **安装依赖**
-```bash
-pip install -r requirements.txt
-```
-
-3. **Linux 用户额外步骤**（如果遇到 tkinter 问题）
-```bash
-bash install_linux_tkinter.sh
-```
-
-4. **运行程序**
-```bash
+git clone --branch main https://github.com/SDCOM-0415/To-do.app.git
+cd To-do.app
+python -m pip install -r requirements.txt
 python app.py
 ```
 
-## 📖 使用指南
+Linux 若缺少 tkinter，可使用仓库提供的 `install_linux_tkinter.sh`，或使用发行版包管理器安装 `python3-tk`。Windows 需确保 Python 安装时包含 Tcl/Tk 支持。
 
-### 基本操作
+## 源码目录
 
-1. **添加任务**
-   - 在输入框中输入任务标题，按回车快速添加
-   - 点击"详细添加"按钮设置优先级、描述、截止日期
+| 文件 | 用途 |
+|---|---|
+| `app.py` | Tk 程序入口 |
+| `main_app.py` | 主窗口及任务交互 |
+| `ui_components.py` | 可复用界面组件 |
+| `settings_dialog.py` | 设置窗口 |
+| `settings_manager.py`、`settings_utils.py` | 设置管理与辅助功能 |
+| `models.py`、`database.py` | 任务模型、数据管理 |
+| `config.py` | 程序配置与用户数据路径 |
+| `build.spec`、`build.py` | PyInstaller 打包配置与辅助脚本 |
+| `DUAL_RELEASE.md` | 双版本分支及联合发布说明 |
 
-2. **管理任务**
-   - 点击复选框标记任务完成/未完成
-   - 点击"编辑"按钮修改任务信息
-   - 点击"删除"按钮删除任务
+## 数据保存与版本兼容
 
-3. **任务筛选**
-   - 使用搜索框实时搜索任务
-   - 选择排序方式：创建时间、优先级、截止日期等
-   - 切换显示/隐藏已完成任务
+Tk 与 Flet 使用同一份任务数据：
 
-4. **主题切换**
-   - 点击工具栏的 🌙 按钮切换深色/浅色模式
-   - 支持跟随系统主题设置
-
-### 高级功能
-
-- **统计信息**: 右侧面板显示任务完成率和统计数据
-- **批量操作**: 快捷清除已完成任务或所有任务
-- **数据导出**: 将任务数据导出为 JSON 格式
-- **自动保存**: 每30秒自动保存，程序关闭时保存设置
-
-## 🔧 配置说明
-
-配置文件位置：
-- 所有系统: 软件根目录下
-
-配置文件：
-- `config.json` - 应用设置
-- `tasks.json` - 任务数据
-
-配置文件与程序文件存放在同一目录，便于备份和迁移。
-
-## 🎨 自定义主题
-
-支持的主题模式：
-- `dark` - 深色模式
-- `light` - 浅色模式  
-- `system` - 跟随系统
-
-优先级颜色自定义：
-```json
-{
-  "priority_colors": {
-    "高": "#ff4444",
-    "中": "#ffaa00",
-    "低": "#44ff44"
-  }
-}
+```text
+platformdirs.user_data_path("TodoApp", "SDCOM")/
+├── tasks.json          # 两个版本共享
+├── tk-config.json      # Tk 的独立设置
+└── flet-settings.json  # Flet 的独立设置
 ```
 
-## 🔄 版本历史
+在 macOS 上，通常位于 `~/Library/Application Support/SDCOM/TodoApp/`。原 Tk 版本若曾将 `tasks.json`、`config.json` 放在应用包内部，新版本会在共享目标文件尚不存在时尝试复制迁移，保留旧文件不动。切换版本前建议自行备份任务；不要让两个程序同时修改同一任务，以免互相覆盖。
 
-### v0.3.1 (当前版本)
-- 🔧 优化系统检测显示，macOS 显示真实版本号
-- 🔧 添加 Linux 发行版本显示支持
-- 🆕 完全重构，使用 customtkinter 框架
-- 🆕 现代化界面设计
-- 🆕 改进的跨平台支持
-- 🆕 模块化架构设计
-- 🆕 增强的主题系统
-- 🆕 实时搜索功能
-- 🆕 统计信息面板
+## 分支与构建
 
-### v0.2 (PySide6 版本)
-- 基于 PySide6 (Qt) 的实现
-- 支持深色模式
-- 任务优先级和截止日期
-- 右键菜单操作
+- **[main](https://github.com/SDCOM-0415/To-do.app/tree/main)**：CustomTkinter 当前版本。
+- **[flet-version](https://github.com/SDCOM-0415/To-do.app/tree/flet-version)**：基于 Flet 的独立版本，源码直接位于该分支根目录。
+- **[old-version](https://github.com/SDCOM-0415/To-do.app/tree/old-version)**：历史 Qt 版和 v0.2 归档。
 
-### v0.1 (原始版本)
-- 基础的任务管理功能
-- 简单的界面设计
+两个现行版本由 [联合发布工作流](https://github.com/SDCOM-0415/To-do.app/actions/workflows/build-release.yml) 分别构建，再上传到同一个 GitHub Release。发布方式、命名和预发布编号见 [DUAL_RELEASE.md](DUAL_RELEASE.md)。
 
-欢迎提交 Issue 和 Pull Request！
+## 参与开发
 
-### 开发环境设置
-1. Fork 项目
-2. 创建功能分支: `git checkout -b feature/new-feature`
-3. 提交更改: `git commit -am 'Add new feature'`
-4. 推送分支: `git push origin feature/new-feature`
-5. 提交 Pull Request
+请先阅读 [AGENT.md](AGENT.md)。新增 Git 提交信息及 README 统一使用简体中文，代码标识、命令及标准技术术语保留原文。欢迎通过 [Issues](https://github.com/SDCOM-0415/To-do.app/issues) 反馈问题，或提交 Pull Request。
 
-### 代码规范
-- 使用中文注释和文档字符串
-- 遵循 PEP 8 代码风格
-- 保持模块单一职责
-- 添加类型提示
+## 许可证
 
-### 开发者工具
-- `build.py` - 本地构建脚本
-- `release.py` - 自动发布脚本
-- `test_settings.py` - 设置模块测试
-- `.github/workflows/build-release.yml` - CI/CD 工作流
-
-## 📄 许可证
-
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
-
-## 📞 联系方式
-
-- 项目作者: SDCOM
-- 项目主页: [GitHub Repository]
-- 问题反馈: [Issues Page]
-
-## 🙏 致谢
-
-感谢以下开源项目：
-- [customtkinter](https://github.com/TomSchimansky/CustomTkinter) - 现代化 Tkinter 界面框架
-- [Python](https://python.org) - 强大的编程语言
-
----
-
-**Todo App v0.3.1** - 让任务管理变得简单而美观 ✨
-
-## 版本分支
-
-- [Tk / CustomTkinter 当前版本（main）](https://github.com/SDCOM-0415/To-do.app/tree/main)
-- [Flet 独立版本（flet-version）](https://github.com/SDCOM-0415/To-do.app/tree/flet-version)：Flet 源码直接位于仓库根目录
-- [历史版本归档（old-version）](https://github.com/SDCOM-0415/To-do.app/tree/old-version)：原 `old version/` 文件已移至此分支
-
-两个现行版本通过 `main` 的联合构建工作流发布，详情见 [DUAL_RELEASE.md](DUAL_RELEASE.md)。
+本项目采用 [MIT 许可证](LICENSE)。项目维护者：SDCOM。
