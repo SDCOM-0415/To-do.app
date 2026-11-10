@@ -1,7 +1,10 @@
 联合发布触发标记
 
-本文件仅用于用户明确授权的 main 分支双版本预发布。
+本文件仅用于用户明确授权的 main 分支 Tk + Flet 双版本预发布。
 基础版本：v0.3.2
 发布类型：预发布（Prerelease）
 目标分支：main（Tk）与 flet-version（Flet）
-文件提交本身触发一次 GitHub Actions；不得因普通代码更新自动发布。
+构建平台：Windows x64、Linux x64、macOS x64、macOS arm64，两种版本共八份产物。
+本次触发：20261110-10-presets-release
+目的：发布包含 Flet 十套主题以及此前修复的界面风格持久化问题的更新。
+仅此文件变化可触发本工作流，正常代码提交不会自动发布。
