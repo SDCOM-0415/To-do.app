@@ -107,6 +107,7 @@ def main(page: ft.Page) -> None:
             content=ft.Text(text, color=foreground),
             bgcolor=appearance(settings.get("theme"))["surface"],
             behavior=ft.SnackBarBehavior.FLOATING,
+            width=300,
         ))
 
     def save(force: bool = False) -> bool:
