@@ -13,6 +13,7 @@ from database import task_db
 from config import app_config
 from ui_components import TaskEditDialog, TaskItem, StatisticsFrame
 from settings_dialog import SettingsDialog
+from modern_ui import create_modern_widgets, normalize_layout
 
 class TodoApp(ctk.CTk):
     """主应用程序类"""
@@ -64,7 +65,15 @@ class TodoApp(ctk.CTk):
             pass
     
     def create_widgets(self):
-        """创建界面组件"""
+        """根据偏好构建经典或现代工作空间。"""
+        self.ui_layout = normalize_layout(app_config.get("ui_layout", "classic"))
+        if self.ui_layout == "modern":
+            create_modern_widgets(self)
+        else:
+            self.create_classic_widgets()
+
+    def create_classic_widgets(self):
+        """保留原版 Tk UI，不改变其任务操作。"""
         # 主容器
         main_container = ctk.CTkFrame(self)
         main_container.pack(fill="both", expand=True, padx=10, pady=10)
@@ -310,7 +319,7 @@ class TodoApp(ctk.CTk):
         
         # 更新统计信息
         self.update_statistics()
-    
+
     def get_filtered_and_sorted_tasks(self) -> List[Task]:
         """获取过滤和排序后的任务列表"""
         # 搜索过滤
@@ -320,6 +329,14 @@ class TodoApp(ctk.CTk):
         else:
             tasks = task_db.get_all_tasks()
         
+        # 现代导航可按任务状态进一步筛选，不改变原始任务数据。
+        if getattr(self, "ui_layout", "classic") == "modern":
+            view = getattr(self, "current_view", "全部任务")
+            if view == "进行中":
+                tasks = [task for task in tasks if not task.completed]
+            elif view == "已完成":
+                tasks = [task for task in tasks if task.completed]
+
         # 排序
         sort_mapping = {
             "创建时间": "created_at",
@@ -366,9 +383,14 @@ class TodoApp(ctk.CTk):
             # 重新应用主题
             self.setup_theme()
             
-            # 刷新任务列表以应用新的颜色设置
+            # 切换 UI 时重建视图，复用既有 CRUD、搜索和统计回调。
+            new_layout = normalize_layout(app_config.get("ui_layout", "classic"))
+            if new_layout != getattr(self, "ui_layout", "classic"):
+                for child in self.winfo_children():
+                    child.destroy()
+                self.create_widgets()
             self.refresh_tasks()
-            
+
             # 更新窗口大小（如果需要）
             window_size = app_config.get("window_size", "900x700")
             current_geometry = self.geometry()
@@ -441,8 +463,12 @@ class TodoApp(ctk.CTk):
     
     def show_status_message(self, message: str, duration: int = 3000):
         """显示状态消息"""
-        # 在这里可以实现状态栏或临时消息显示
-        print(f"状态: {message}")
+        if getattr(self, "ui_layout", "classic") == "modern" and hasattr(self, "status_label"):
+            self.status_label.configure(text=message)
+            self.after(duration, lambda: self.status_label.winfo_exists() and
+                       self.status_label.configure(text="任务存储在本地 · 与 Flet 版共享数据"))
+        else:
+            print(f"状态: {message}")
     
     def start_auto_save(self):
         """启动自动保存"""
