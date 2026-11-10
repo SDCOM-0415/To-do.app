@@ -1,13 +1,16 @@
-"""macOS unified native window chrome for the Flet edition.
+"""macOS 原生标题栏与 Flet 工作空间的对齐布局。
 
-Keep the real AppKit traffic-light buttons; do not draw fake window controls.
-Only macOS hides its native title bar. Windows/Linux retain native chrome.
+保留由 AppKit 管理的红黄绿窗口按钮，仅隐藏系统标题栏；
+窗口顶部采用与下方侧栏同宽、同分割线的两栏拖动区域。
 """
 from __future__ import annotations
 
 import sys
 import flet as ft
 from appearance import appearance
+
+SIDEBAR_WIDTH = 208
+TITLEBAR_HEIGHT = 44
 
 
 def has_integrated_titlebar() -> bool:
@@ -17,31 +20,37 @@ def has_integrated_titlebar() -> bool:
 def configure_window(page: ft.Page) -> None:
     if has_integrated_titlebar():
         page.window.title_bar_hidden = True
-        # macOS still owns the red/yellow/green controls and their behavior.
         page.window.title_bar_buttons_hidden = False
         page.window.frameless = False
+
+
+def update_titlebar_theme(surface: ft.Container, theme: str | None) -> None:
+    """同时更新标题栏两侧的背景和竖分割线。"""
+    colors = appearance(theme)
+    surface.bgcolor = colors["sidebar"]
+    left, right = surface.content.controls
+    left.bgcolor = colors["sidebar"]
+    left.border = ft.Border(right=ft.BorderSide(1, colors["divider"]))
+    right.bgcolor = colors["canvas"]
 
 
 def titlebar(theme: str | None) -> tuple[ft.Control | None, ft.Container | None]:
     if not has_integrated_titlebar():
         return None, None
-    colors = appearance(theme)
+
+    # 红绿灯由 macOS 原生绘制，左侧 208 逻辑像素范围内不放控件。
+    # 与下方侧栏使用完全相同的宽度，竖分割线自然贯穿整窗。
     surface = ft.Container(
-        height=44,
-        bgcolor=colors["sidebar"],
-        padding=ft.Padding.only(left=94, right=18),
+        height=TITLEBAR_HEIGHT,
         content=ft.Row(
+            spacing=0,
             controls=[
-                ft.Text("TodoApp Flet", size=12, weight=ft.FontWeight.W_600,
-                        color=ft.Colors.ON_SURFACE_VARIANT),
-                ft.Container(expand=True),
-                ft.Text("0.3.2", size=11, color=ft.Colors.ON_SURFACE_VARIANT),
+                ft.Container(width=SIDEBAR_WIDTH, height=TITLEBAR_HEIGHT),
+                ft.Container(expand=True, height=TITLEBAR_HEIGHT),
             ],
-            vertical_alignment=ft.CrossAxisAlignment.CENTER,
         ),
     )
-    # Reserve the left 94 logical pixels for native macOS traffic lights.
-    # The rest of the strip is a draggable part of the window.
+    update_titlebar_theme(surface, theme)
     return ft.WindowDragArea(content=surface, maximizable=True), surface
 
 
