@@ -7,6 +7,8 @@ TodoApp 是使用 Python 与 **CustomTkinter** 开发的桌面待办事项工具
 - 创建、编辑、完成和删除任务，支持标题与备注。
 - 设置任务优先级、截止日期，搜索和排序任务。
 - 支持深色、浅色及跟随系统的主题模式。
+- **双 UI 模式**：经典界面完整保留，新增侧栏式现代工作空间；通过「应用设置 → 外观 → 主界面布局」切换，立即生效并记住选择。
+- 现代界面提供全部任务、进行中、已完成导航，同时沿用原有搜索、排序、任务操作及本地数据。
 - 显示任务统计，支持用户偏好设置和 JSON 数据保存。
 - 跨平台构建 Windows、Linux、macOS Intel 与 Apple Silicon 安装包。
 
@@ -41,7 +43,8 @@ Linux 若缺少 tkinter，可使用仓库提供的 `install_linux_tkinter.sh`，
 | 文件 | 用途 |
 |---|---|
 | `app.py` | Tk 程序入口 |
-| `main_app.py` | 主窗口及任务交互 |
+| `main_app.py` | 主窗口、任务交互和双布局切换 |
+| `modern_ui.py` | 新版侧栏工作空间 UI |
 | `ui_components.py` | 可复用界面组件 |
 | `settings_dialog.py` | 设置窗口 |
 | `settings_manager.py`、`settings_utils.py` | 设置管理与辅助功能 |

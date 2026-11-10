@@ -132,6 +132,19 @@ class SettingsDialog(ctk.CTkToplevel):
             )
             radio.pack(anchor="w", padx=20, pady=2)
         
+        # 主界面布局：经典版完全保留，现代版使用侧栏工作空间。
+        layout_frame = ctk.CTkFrame(scroll_frame)
+        layout_frame.pack(fill="x", padx=10, pady=10)
+        ctk.CTkLabel(layout_frame, text="主界面布局",
+                     font=("", 14, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
+        self.layout_var = ctk.StringVar(value=app_config.get("ui_layout", "classic"))
+        for label, value in (("经典界面（原版）", "classic"), ("现代工作空间（新版）", "modern")):
+            ctk.CTkRadioButton(layout_frame, text=label,
+                               variable=self.layout_var, value=value).pack(
+                                   anchor="w", padx=20, pady=3)
+        ctk.CTkLabel(layout_frame, text="应用后即可切换；任务与配置不会丢失。",
+                     font=("", 11)).pack(anchor="w", padx=20, pady=(5, 10))
+
         # 字体大小设置
         font_frame = ctk.CTkFrame(scroll_frame)
         font_frame.pack(fill="x", padx=10, pady=10)
@@ -752,8 +765,9 @@ class SettingsDialog(ctk.CTkToplevel):
     def apply_settings(self):
         """应用设置"""
         try:
-            # 保存主题设置
+            # 保存主题设置及主界面布局选择。
             app_config.set("theme", self.theme_var.get())
+            app_config.set("ui_layout", self.layout_var.get())
             
             # 保存字体大小
             app_config.set("font_size", self.font_size_var.get())

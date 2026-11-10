@@ -15,6 +15,7 @@ class SettingsManager:
     def __init__(self):
         self.validators = {
             "theme": self._validate_theme,
+            "ui_layout": self._validate_ui_layout,
             "window_size": self._validate_window_size,
             "font_size": self._validate_font_size,
             "language": self._validate_language,
@@ -144,6 +145,13 @@ class SettingsManager:
                 "choices": ["dark", "light", "system"],
                 "default": "dark"
             },
+            "ui_layout": {
+                "name": "主界面布局",
+                "description": "选择原版经典 UI 或现代工作空间 UI",
+                "type": "choice",
+                "choices": ["classic", "modern"],
+                "default": "classic"
+            },
             "window_size": {
                 "name": "窗口大小",
                 "description": "应用程序启动时的默认窗口大小",
@@ -206,6 +214,11 @@ class SettingsManager:
         })
     
     # 验证器方法
+    def _validate_ui_layout(self, value: Any) -> Tuple[bool, str]:
+        if value not in ("classic", "modern"):
+            return False, "界面布局只能是 classic 或 modern"
+        return True, ""
+
     def _validate_theme(self, value: Any) -> Tuple[bool, str]:
         """验证主题设置"""
         valid_themes = ["dark", "light", "system"]
