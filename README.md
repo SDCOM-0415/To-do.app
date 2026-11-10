@@ -1,4 +1,4 @@
-# Todo App v0.3.1 - 现代化跨平台待办事项管理器
+# Todo App v0.3.2 - 现代化跨平台待办事项管理器
 
 一个使用 **customtkinter** 构建的现代化跨平台待办事项应用程序，支持深色/浅色模式切换，完美兼容 Windows、Linux、macOS 系统。
 
@@ -17,7 +17,7 @@
 ## 📁 项目结构
 
 ```
-Todo App v0.3.1/
+Todo App v0.3.2/
 ├── app.py              # 🚀 程序入口文件
 ├── main_app.py         # 🏠 主应用程序
 ├── ui_components.py    # 🎨 UI组件模块
@@ -26,8 +26,7 @@ Todo App v0.3.1/
 ├── config.py           # ⚙️ 配置管理
 ├── requirements.txt    # 📦 依赖包列表
 ├── README.md           # 📖 项目说明
-├── todo_app.py         # 📜 旧版本（PySide6）
-└── old version/        # 📂 历史版本存档
+└── DUAL_RELEASE.md     # 📖 分支维护与联合发布说明
 ```
 
 ## 🛠️ 技术架构
@@ -234,3 +233,11 @@ python app.py
 ---
 
 **Todo App v0.3.1** - 让任务管理变得简单而美观 ✨
+
+## 版本分支
+
+- [Tk / CustomTkinter 当前版本（main）](https://github.com/SDCOM-0415/To-do.app/tree/main)
+- [Flet 独立版本（flet-version）](https://github.com/SDCOM-0415/To-do.app/tree/flet-version)：Flet 源码直接位于仓库根目录
+- [历史版本归档（old-version）](https://github.com/SDCOM-0415/To-do.app/tree/old-version)：原 `old version/` 文件已移至此分支
+
+两个现行版本通过 `main` 的联合构建工作流发布，详情见 [DUAL_RELEASE.md](DUAL_RELEASE.md)。

@@ -1,70 +1,36 @@
-# Two-edition maintenance and combined Releases
+# TodoApp — 独立版本分支与联合发布
 
-This repository maintains two separate UI implementations:
+本仓库同时维护三个分支：
 
-| Edition | Source branch | UI stack | Existing data |
+| 分支 | 用途 | 入口 | 构建方式 |
 |---|---|---|---|
-| Tk | `main` | CustomTkinter | Original project directory, `tasks.json` |
-| Flet | `flet-version` | Flet 1.1.x / Flutter | Per-user data directory; one-time legacy JSON import |
+| `main` | 现行 Tk / CustomTkinter 版 | `app.py` | PyInstaller |
+| `flet-version` | 独立 Flet / Flutter 版 | `main.py` | Flet CLI |
+| `old-version` | 历史 Qt 版和 v0.2 归档 | `todo_app.py`、`v0.2/` | 仅归档 |
 
-Both editions are maintained independently. **Do not merge the Flet branch
-into main merely to publish a release.** The release workflow checks out
-each branch's latest commit directly and records both SHA values in the notes.
+三个分支各自维护源码。**Flet 源码直接位于 `flet-version` 根目录**，不再嵌套在 `flet_port/` 中。旧代码已从 `main` 的工作树移出，保存在 `old-version`；原提交历史仍然可查看。
 
-## Combined release
+## 构建与联合发布
 
-Open [Actions → Build and Release (Tk + Flet)](https://github.com/SDCOM-0415/To-do.app/actions/workflows/build-release.yml)
-on the **main** branch and select **Run workflow**.
+在 `main` 分支运行 [Build and Release (Tk + Flet)](https://github.com/SDCOM-0415/To-do.app/actions/workflows/build-release.yml)，输入基础版本，例如 `v0.3.2`。
 
-1. Enter the **base version**, e.g. `v0.4.0` (do not include a date or sequence). When **Prerelease** is checked, CI automatically creates a tag like `v0.4.0-20261109-1`, then `v0.4.0-20261109-2` for the next prerelease on that date. The date follows China Standard Time (UTC+08:00). Sequences reset to `1` for a new date or base version. When **Prerelease** is unchecked, the tag is exactly `v0.4.0`. Existing tags are never overwritten.
-2. Leave **Publish** unchecked to test the full eight-build matrix. This
-   uploads CI artifacts but does **not** create a Release or reserve a version number. Only already-created Git tags determine the next prerelease sequence.
-3. When the matrix is known to work, run it again with **Publish** checked.
-   Choose **Prerelease** to generate the dated incrementing tag automatically, or uncheck it for a stable release.
+- **Publish** 默认关闭：只构建并上传 8 份临时 Actions 工件，不发布 Release。
+- **Prerelease** 勾选时使用北京时间生成 `vX.X.X-YYYYMMDD-N`，序号按同一天该基础版本已有 Git Tags 递增；兼容旧的 `YYYY-MM-DD` 日期格式以免序号重复。
+- 发布必须等八个目标全部成功：每版分别构建 Windows x64、Linux x64、macOS Intel 和 macOS ARM64。
+- `prepare` 会记录两个分支各自的提交 SHA，所有构建在同一次运行中检出对应 SHA，不需要合并分支。
 
-Each run freezes the current commit SHA of both branches before building.
-The eight CI jobs cover Windows x64, Linux x64, macOS Intel x86_64 and
-macOS Apple Silicon arm64 for **both** editions.
+正式发布文件名示例：
 
-The release is created **only after all eight packages have succeeded**.
-If any platform fails, no partial Release is created.
+- `TodoApp-v0.3.2-20261110-1-Windows-x64.zip`（Tk）
+- `TodoApp-Flet-v0.3.2-20261110-1-Windows-x64.zip`（Flet）
+- 其他目标分别有 Linux `.tar.gz` 及 macOS `.zip`，另外提供 `SHA256SUMS.txt`。
 
-## Asset naming
+`flet-version` 单独运行 [Flet Edition Build](https://github.com/SDCOM-0415/To-do.app/blob/flet-version/.github/workflows/flet-build.yml)，只上传测试工件，不发布 Release。
 
-A stable release tagged `v0.4.0` contains:
+## 数据兼容
 
-- `Todo-App-v0.4.0-Tk-Windows-x64.zip`
-- `Todo-App-v0.4.0-Tk-Linux-x64.tar.gz`
-- `Todo-App-v0.4.0-Tk-macOS-x64.zip`
-- `Todo-App-v0.4.0-Tk-macOS-arm64.zip`
-- `Todo-App-v0.4.0-Flet-Windows-x64.zip`
-- `Todo-App-v0.4.0-Flet-Linux-x64.tar.gz`
-- `Todo-App-v0.4.0-Flet-macOS-x64.zip`
-- `Todo-App-v0.4.0-Flet-macOS-arm64.zip`
-- `SHA256SUMS.txt`
+两个现行版本使用同一个 `platformdirs.user_data_path("TodoApp", "SDCOM")/tasks.json`。
+Tk 设置存储在 `tk-config.json`，Flet 设置存储在 `flet-settings.json`。
+切换版本之前请备份任务文件；不要在两个程序中并发修改相同任务，以免覆盖。
 
-The macOS archives contain .app bundles; their app may need signing and
-notarization for a smooth user experience. Both editions have different
-packaging dependencies and sizes.
-
-## Version semantics and safety
-
-The tag is a **distribution version**, not a guarantee that the two
-application UIs display the same internal version. Update their UI versions
-separately as appropriate.
-
-Flet stores its data under the user's data directory and can import an old
-`tasks.json` on first run. Back up existing tasks before switching editions.
-There is no automatic bidirectional synchronization.
-
-The previous single-edition workflow was replaced by the combined-release
-workflow. The separate Flet build workflow runs on pushes to `flet-version` and uploads short-lived CI artifacts without publishing a Release. No Release is published by pushes to either development branch.
-
-> CI packaging success is not a guarantee that all UI paths work. Test each
-> resulting package on its target operating system before a stable release.
-
-For prereleases, the full generated tag is included in **all eight artifact names** and in the Release title. For example: `Todo-App-v0.4.0-20261109-1-Flet-Windows-x64.zip`. The first prerelease of each base version each day ends with `-1`. Builds that do not publish do not consume an index.
-
-The Flet edition is maintained on `flet-version`. The old `feature/flet-port` branch is removed automatically after the renamed branch receives its first push.
-
-Pre-release tags use the compact date format `vX.X.X-YYYYMMDD-N` (for example `v0.3.1-20261109-2`). The sequence counter also recognizes same-day tags created with the previous `YYYY-MM-DD` date format during the transition, preventing duplicate sequence numbers.
+macOS 下载的应用包尚未自动签名和公证，正式发布前建议在目标系统上验证。
