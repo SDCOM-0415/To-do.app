@@ -23,6 +23,7 @@ class TodoApp(ctk.CTk):
         
         # 设置主题
         self.setup_theme()
+        self.current_theme = app_config.get("theme", "system")
         
         # 设置窗口属性
         self.setup_window()
@@ -76,6 +77,7 @@ class TodoApp(ctk.CTk):
         """保留原版 Tk UI，不改变其任务操作。"""
         # 主容器
         main_container = ctk.CTkFrame(self)
+        self.main_container = main_container
         main_container.pack(fill="both", expand=True, padx=10, pady=10)
         
         # 顶部工具栏
@@ -383,12 +385,15 @@ class TodoApp(ctk.CTk):
             # 重新应用主题
             self.setup_theme()
             
-            # 切换 UI 时重建视图，复用既有 CRUD、搜索和统计回调。
+            # 仅重建主布局容器，不销毁当前打开的设置对话框。
             new_layout = normalize_layout(app_config.get("ui_layout", "classic"))
-            if new_layout != getattr(self, "ui_layout", "classic"):
-                for child in self.winfo_children():
-                    child.destroy()
+            new_theme = app_config.get("theme", "system")
+            if new_layout != getattr(self, "ui_layout", "classic") or (
+                new_layout == "modern" and new_theme != self.current_theme
+            ):
+                self.main_container.destroy()
                 self.create_widgets()
+            self.current_theme = new_theme
             self.refresh_tasks()
 
             # 更新窗口大小（如果需要）
