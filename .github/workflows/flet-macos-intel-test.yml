@@ -1,0 +1,85 @@
+name: Flet macOS Intel 单平台测试
+
+# 只在用户明确要求时手动触发。一个 macos-26 Runner，仅编译 x86_64。
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: flet-macos-intel-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  macos-intel-test:
+    name: macOS Intel x86_64 测试包
+    runs-on: macos-26
+    timeout-minutes: 40
+
+    steps:
+      - name: 检出 Flet 源码
+        uses: actions/checkout@v4
+
+      - name: 安装 Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: 安装 Flet 和项目依赖
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "flet-cli>=1.1.2,<1.2" -r requirements.txt
+
+      - name: 运行语法及单元测试
+        shell: bash
+        run: |
+          python -m compileall -q main.py models.py storage.py settings_ui.py appearance.py window_chrome.py
+          python -m unittest discover -s . -p "test_*.py" -v
+
+      - name: 恢复 Dart 依赖缓存
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: flet-pub-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pyproject.toml', 'requirements.txt') }}
+          restore-keys: |
+            flet-pub-v1-${{ runner.os }}-${{ runner.arch }}-
+
+      - name: 构建 macOS Intel x86_64 应用
+        id: flet
+        uses: flet-dev/flet-build-action@v1
+        with:
+          target: macos
+          working-directory: .
+          runner-python-version: "3.12"
+          bundled-python-version: "3.12"
+          cache: true
+          archive-output: false
+          extra-args: --arch x86_64
+
+      - name: 验证 Intel 架构并打包 ZIP
+        shell: bash
+        env:
+          FLET_OUTPUT_PATH: ${{ steps.flet.outputs.output-path }}
+        run: |
+          set -euo pipefail
+          app="$(find "$FLET_OUTPUT_PATH" -maxdepth 2 -type d -name '*.app' -print -quit)"
+          test -n "$app"
+          test -f "$app/Contents/Info.plist"
+          executable="$(/usr/libexec/PlistBuddy -c 'Print CFBundleExecutable' "$app/Contents/Info.plist")"
+          lipo -archs "$app/Contents/MacOS/$executable" | tr ' ' '\n' | grep -Fxq x86_64
+          echo "已验证 x86_64 架构：$app/Contents/MacOS/$executable"
+          mkdir -p test-output
+          ditto -c -k --sequesterRsrc --keepParent "$app" "test-output/TodoApp-Flet-0.3.2-macOS-x64-test.zip"
+          shasum -a 256 "test-output/TodoApp-Flet-0.3.2-macOS-x64-test.zip" > test-output/SHA256SUMS.txt
+
+      - name: 上传 macOS Intel 测试安装包
+        uses: actions/upload-artifact@v4
+        with:
+          name: TodoApp-Flet-macOS-x64-test
+          path: test-output/*
+          if-no-files-found: error
+          retention-days: 7
