@@ -1,0 +1,77 @@
+name: Tk macOS Intel 单平台测试
+
+# 仅 main 的专用标记文件或手动执行；绝不触发联合发布。
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".test-trigger/tk-macos-intel-0.3.2"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tk-macos-intel-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  macos-intel-test:
+    name: Tk macOS Intel x86_64 测试包
+    runs-on: macos-26-intel
+    timeout-minutes: 40
+
+    steps:
+      - name: 检出 Tk 源码
+        uses: actions/checkout@v4
+
+      - name: 安装 Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: 安装构建依赖
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt pyinstaller
+
+      - name: 检查语法和运行单元测试
+        shell: bash
+        run: |
+          python -m compileall -q app.py main_app.py modern_ui.py config.py database.py models.py ui_components.py settings_dialog.py settings_manager.py
+          python -m unittest discover -s . -p "test_*.py" -v
+
+      - name: 构建 Tk macOS Intel App
+        shell: bash
+        run: |
+          set -euo pipefail
+          pyinstaller --noconfirm --clean --windowed --onedir --name TodoApp \
+            --collect-all customtkinter app.py
+          test -d dist/TodoApp.app
+
+      - name: 验证 x86_64 架构及生成 ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          app="dist/TodoApp.app"
+          exe="$(/usr/libexec/PlistBuddy -c 'Print CFBundleExecutable' "$app/Contents/Info.plist")"
+          binary="$app/Contents/MacOS/$exe"
+          test -f "$binary"
+          lipo -archs "$binary" | tr ' ' '\n' | grep -Fxq x86_64
+          echo "已验证 Intel 架构：$binary"
+          mkdir -p test-output
+          ditto -c -k --sequesterRsrc --keepParent "$app" \
+            test-output/TodoApp-Tk-v0.3.2-macOS-x64-test.zip
+          (cd test-output && shasum -a 256 TodoApp-Tk-v0.3.2-macOS-x64-test.zip > SHA256SUMS.txt)
+
+      - name: 上传单平台测试工件
+        uses: actions/upload-artifact@v4
+        with:
+          name: TodoApp-Tk-macOS-x64-test
+          path: test-output/*
+          if-no-files-found: error
+          retention-days: 7
