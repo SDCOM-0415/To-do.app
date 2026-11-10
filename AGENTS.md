@@ -22,8 +22,9 @@
 
 ## GitHub Actions 执行策略
 
-- **所有构建与联合发布工作流仅允许手动触发（`workflow_dispatch`）。**
-- 不要重新加入 `push`、`pull_request`、`schedule` 等自动构建触发器；避免文档及普通代码提交耗费跨平台 Runner 资源。
+- Flet 常规四平台构建仅允许手动触发（`workflow_dispatch`），不得对普通代码提交自动构建。
+- 仅在用户明确要求测试 macOS Intel 时，可在独立的 `flet-macos-intel-test.yml` 工作流中，通过 `flet-version` 的专用标记文件 `.test-trigger/macos-intel-0.3.2` 进行精确 Push 触发。此例外只占用一个 macOS Runner，不触发其他平台或 Release。
+- 禁止将该例外扩大为任意 `push`、`pull_request`、`schedule` 等自动构建。
 - 除非用户明确要求，禁止手动触发工作流、创建或覆盖标签、上传新 Release。
 - CI 失败时先调查日志，修改配置后也不要自动重新运行；等待用户明确指示。
 

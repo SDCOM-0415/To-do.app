@@ -1,7 +1,12 @@
 name: Flet macOS Intel 单平台测试
 
-# 只在用户明确要求时手动触发。一个 macos-26 Runner，仅编译 x86_64。
+# 仅响应特定测试触发文件或手动启动。一个 macos-26 Runner，仅编译 x86_64。
 on:
+  push:
+    branches:
+      - flet-version
+    paths:
+      - ".test-trigger/macos-intel-0.3.2"
   workflow_dispatch:
 
 permissions:
