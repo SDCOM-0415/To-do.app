@@ -1,17 +1,14 @@
 name: Flet Edition Build
 
-# Separate from the legacy release workflow: no tags or Releases are created.
+# 独立 Flet 构建仅生成 Actions 工件，不创建 Git Tag 或 Release。
+# 仅手动触发；普通代码提交不会自动占用构建资源。
 on:
-  push:
-    branches:
-      - flet-version
   workflow_dispatch:
 
 permissions:
   contents: read
 
-# Avoid spending macOS build minutes on outdated commits when the Flet
-# branch is updated repeatedly in quick succession.
+# 手动启动的新任务可取消同分支尚未完成的旧任务，以减少浪费。
 concurrency:
   group: flet-edition-${{ github.ref }}
   cancel-in-progress: true

@@ -68,4 +68,4 @@ Flet 与 Tk 版本共用 `platformdirs.user_data_path("TodoApp", "SDCOM")/tasks.
 
 ## 开发约定与许可证
 
-参与修改前请阅读 [AGENT.md](AGENT.md)。新提交信息与 README 使用简体中文；专业术语、API 和代码命令保留原文。本项目采用 [MIT 许可证](LICENSE)。
+参与修改前请阅读 [AGENTS.md](AGENTS.md)。新提交信息与 README 使用简体中文；专业术语、API 和代码命令保留原文。本项目采用 [MIT 许可证](LICENSE)。
