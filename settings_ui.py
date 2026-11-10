@@ -404,7 +404,7 @@ def show_settings(
                         ft.IconButton(ft.Icons.ARROW_BACK, tooltip="返回任务列表", on_click=close_view),
                         ft.Column([
                             ft.Text("应用设置", size=23, weight=ft.FontWeight.BOLD),
-                            ft.Text("f"TodoApp Flet · {len(PALETTES)} 种外观风格"", size=12, color=ft.Colors.ON_SURFACE_VARIANT),
+                            ft.Text(f"TodoApp Flet · {len(PALETTES)} 种外观风格", size=12, color=ft.Colors.ON_SURFACE_VARIANT),
                         ], expand=True, spacing=3),
                     ]),
                 ),
