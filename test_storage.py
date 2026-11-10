@@ -12,7 +12,8 @@ from models import Task
 class StorageTests(unittest.TestCase):
     def test_appearance_persists_after_reload(self):
         # 模拟重启：每种主题保存到磁盘后，使用全新的读取调用验证。
-        for theme in ("graphite", "paper", "blue"):
+        from appearance import PALETTES
+        for theme in PALETTES:
             with self.subTest(theme=theme), tempfile.TemporaryDirectory() as folder:
                 path = Path(folder) / "flet-settings.json"
                 with patch.object(storage, "SETTINGS_FILE", path):

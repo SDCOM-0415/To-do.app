@@ -7,10 +7,15 @@
 - 新建、编辑、完成及删除任务，支持优先级、截止日期、备注、搜索与排序。
 - 左侧工作空间导航，快速查看全部任务、进行中与已完成任务。
 - 完整设置页面，支持数据管理、优先级颜色、窗口偏好、设置备份等功能。
-- 三种可切换界面风格，通过「应用设置 → 外观 → 界面风格」选择并保存：
+- 八种可切换界面风格，通过「应用设置 → 外观 → 界面风格」选择并保存：
   - **Graphite Focus**：石墨深色与柔和紫色。
   - **Paper & Ink**：暖白色与低饱和绿色。
   - **Blue Hour**：深蓝色与冷青色。
+  - **Nord Frost**：冰川浅灰蓝与沉稳北欧蓝。
+  - **Forest Studio**：墨绿色与苔绿色。
+  - **Rose Quartz**：淡粉米白与柔和玫瑰色。
+  - **Solar Sand**：浅沙色与温暖赭橙。
+  - **Midnight OLED**：近黑色与薄荷青色。
 - macOS 使用 Flet 的自定义标题栏方案，使原生红绿灯按钮与应用界面尽可能协调；效果需在目标 macOS 环境实际验证。
 
 ## 下载与运行
@@ -42,7 +47,7 @@ python main.py
 | 文件 | 用途 |
 |---|---|
 | `main.py` | Flet 应用入口和任务工作空间 |
-| `appearance.py` | Graphite Focus、Paper & Ink、Blue Hour 配色方案 |
+| `appearance.py` | 八种预设界面风格的统一配色配置 |
 | `settings_ui.py` | 应用设置页面 |
 | `window_chrome.py` | macOS 窗口标题栏适配 |
 | `models.py` | 任务数据模型 |
@@ -62,7 +67,7 @@ Flet 与 Tk 版本共用 `platformdirs.user_data_path("TodoApp", "SDCOM")/tasks.
 
 ## 构建与发布
 
-推送 `flet-version` 后会触发 [Flet 独立构建](https://github.com/SDCOM-0415/To-do.app/actions/workflows/flet-build.yml)，为 Windows x64、Linux x64、macOS Intel 和 Apple Silicon 构建测试产物。该工作流不会自动创建 Release。
+需要构建时可手动运行 [Flet 独立构建](https://github.com/SDCOM-0415/To-do.app/actions/workflows/flet-build.yml)，为 Windows x64、Linux x64、macOS Intel 和 Apple Silicon 构建测试产物。该工作流不会自动创建 Release。
 
 正式及预发布由 [main 分支的联合发布工作流](https://github.com/SDCOM-0415/To-do.app/actions/workflows/build-release.yml) 统一处理，分别检出两个版本的源码，全部八项构建成功后才发布。
 

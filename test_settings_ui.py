@@ -28,12 +28,23 @@ class SettingsValidationTests(unittest.TestCase):
                 self.assertEqual(validated[key], value)
         self.assertIn("sort", validated)
 
-    def test_all_three_appearances_are_preserved(self):
-        for name in ("graphite", "paper", "blue"):
+    def test_all_appearance_presets_are_preserved(self):
+        self.assertEqual(len(PALETTES), 8)
+        for name in PALETTES:
             with self.subTest(name=name):
                 validated = settings_ui.validate_settings({"theme": name})
                 self.assertEqual(validated["theme"], name)
                 self.assertIn(name, PALETTES)
+
+    def test_all_palettes_have_required_tokens(self):
+        required = {"label", "description", "mode", "accent", "canvas", "sidebar",
+                    "surface", "selected", "divider"}
+        for name, preset in PALETTES.items():
+            with self.subTest(name=name):
+                self.assertTrue(required.issubset(preset))
+                self.assertEqual(normalize_theme(name), name)
+                for token in ("accent", "canvas", "sidebar", "surface", "selected", "divider"):
+                    self.assertRegex(preset[token], r"^#[0-9A-Fa-f]{6}$")
 
     def test_legacy_appearance_aliases(self):
         self.assertEqual(normalize_theme("light"), "paper")

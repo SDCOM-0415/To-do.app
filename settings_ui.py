@@ -108,11 +108,11 @@ def show_settings(
             ),
         )
 
-    theme_control = option("theme", "界面风格", [
-        (PALETTES["graphite"]["label"], "graphite"),
-        (PALETTES["paper"]["label"], "paper"),
-        (PALETTES["blue"]["label"], "blue"),
-    ], 310)
+    theme_control = option(
+        "theme", "界面风格",
+        [(preset["label"], key) for key, preset in PALETTES.items()],
+        310,
+    )
 
     size_value = ft.Text(f'{draft["font_size"]} px', weight=ft.FontWeight.W_500)
     def update_size(e) -> None:
@@ -303,12 +303,14 @@ def show_settings(
     appearances = scroll_tab([
         heading("界面风格", "独立于 Tk 版本保存，可随时切换。"),
         theme_control,
-        ft.Text("Graphite Focus · 深色石墨与淡紫色强调", size=12,
-                color=ft.Colors.ON_SURFACE_VARIANT),
-        ft.Text("Paper & Ink · 暖白纸张与低饱和绿色", size=12,
-                color=ft.Colors.ON_SURFACE_VARIANT),
-        ft.Text("Blue Hour · 深海蓝与冷青色强调", size=12,
-                color=ft.Colors.ON_SURFACE_VARIANT),
+        *[
+            ft.Text(
+                f'{preset["label"]} · {preset["description"]}',
+                size=12,
+                color=ft.Colors.ON_SURFACE_VARIANT,
+            )
+            for preset in PALETTES.values()
+        ],
         heading("字体", "任务标题和部分界面文字的字号。"),
         ft.Row([font, size_value]),
         heading("默认窗口大小", "下次启动时按照保存的尺寸打开。"),
@@ -402,7 +404,7 @@ def show_settings(
                         ft.IconButton(ft.Icons.ARROW_BACK, tooltip="返回任务列表", on_click=close_view),
                         ft.Column([
                             ft.Text("应用设置", size=23, weight=ft.FontWeight.BOLD),
-                            ft.Text("TodoApp Flet · 3 种外观风格", size=12, color=ft.Colors.ON_SURFACE_VARIANT),
+                            ft.Text("f"TodoApp Flet · {len(PALETTES)} 种外观风格"", size=12, color=ft.Colors.ON_SURFACE_VARIANT),
                         ], expand=True, spacing=3),
                     ]),
                 ),

@@ -102,7 +102,7 @@ def main(page: ft.Page) -> None:
 
     def message(text: str) -> None:
         # 避免 Paper & Ink 等浅色主题出现默认的深灰色整宽提示条。
-        foreground = "#24251F" if settings.get("theme") == "paper" else "#F2F1F7"
+        foreground = "#25282B" if colors["mode"] == ft.ThemeMode.LIGHT else "#F2F1F7"
         page.show_dialog(ft.SnackBar(
             content=ft.Text(text, color=foreground),
             bgcolor=appearance(settings.get("theme"))["surface"],
