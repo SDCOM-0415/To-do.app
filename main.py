@@ -101,7 +101,13 @@ def main(page: ft.Page) -> None:
 
 
     def message(text: str) -> None:
-        page.show_dialog(ft.SnackBar(content=ft.Text(text)))
+        # 避免 Paper & Ink 等浅色主题出现默认的深灰色整宽提示条。
+        foreground = "#24251F" if settings.get("theme") == "paper" else "#F2F1F7"
+        page.show_dialog(ft.SnackBar(
+            content=ft.Text(text, color=foreground),
+            bgcolor=appearance(settings.get("theme"))["surface"],
+            behavior=ft.SnackBarBehavior.FLOATING,
+        ))
 
     def save(force: bool = False) -> bool:
         nonlocal dirty
