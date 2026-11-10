@@ -29,7 +29,7 @@ class SettingsValidationTests(unittest.TestCase):
         self.assertIn("sort", validated)
 
     def test_all_appearance_presets_are_preserved(self):
-        self.assertEqual(len(PALETTES), 8)
+        self.assertEqual(len(PALETTES), 10)
         for name in PALETTES:
             with self.subTest(name=name):
                 validated = settings_ui.validate_settings({"theme": name})

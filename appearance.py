@@ -85,6 +85,28 @@ PALETTES = {
         "selected": "#F0D9B8",
         "divider": "#DFD1BB",
     },
+    "lavender": {
+        "label": "Lavender Mist",
+        "description": "雾紫浅色与雅致的薰衣草紫",
+        "mode": ft.ThemeMode.LIGHT,
+        "accent": "#7956A0",
+        "canvas": "#F6F2FA",
+        "sidebar": "#EBE4F2",
+        "surface": "#FEFBFF",
+        "selected": "#DDD0EE",
+        "divider": "#D9CCE6",
+    },
+    "copper": {
+        "label": "Copper Dusk",
+        "description": "暖灰深色与内敛的赤铜色",
+        "mode": ft.ThemeMode.DARK,
+        "accent": "#D9A078",
+        "canvas": "#1C1A1A",
+        "sidebar": "#282221",
+        "surface": "#302927",
+        "selected": "#4B352D",
+        "divider": "#443935",
+    },
     "midnight": {
         "label": "Midnight OLED",
         "description": "近黑色界面与清透薄荷青",
@@ -111,6 +133,8 @@ ALIASES = {
     "rose": "rose",
     "solar": "solar",
     "midnight": "midnight",
+    "lavender": "lavender",
+    "copper": "copper",
 }
 
 
