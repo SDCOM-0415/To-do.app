@@ -16,7 +16,7 @@ from models import Task
 import storage
 from settings_ui import show_settings
 from appearance import appearance, normalize_theme
-from window_chrome import configure_window, with_titlebar
+from window_chrome import configure_window, with_titlebar, update_titlebar_theme, SIDEBAR_WIDTH
 
 
 def main(page: ft.Page) -> None:
@@ -41,6 +41,7 @@ def main(page: ft.Page) -> None:
         return
 
     theme_surfaces: list[tuple[ft.Container, str]] = []
+    title_surface: ft.Container | None = None
     colors = appearance(settings.get("theme"))
 
     def apply_theme() -> None:
@@ -53,6 +54,8 @@ def main(page: ft.Page) -> None:
         page.window.bgcolor = colors["sidebar"]
         for surface, token in theme_surfaces:
             surface.bgcolor = colors[token]
+        if title_surface is not None:
+            update_titlebar_theme(title_surface, settings["theme"])
         try:
             width_value, height_value = settings.get("window_size", "900x700").split("x", 1)
             page.window.width = int(width_value)
@@ -473,7 +476,7 @@ def main(page: ft.Page) -> None:
     )
 
     sidebar = ft.Container(
-        width=208,
+        width=SIDEBAR_WIDTH,
         padding=ft.Padding.symmetric(horizontal=14, vertical=24),
         bgcolor=colors["sidebar"],
         border=ft.Border(right=ft.BorderSide(1, colors["divider"])),
@@ -595,8 +598,6 @@ def main(page: ft.Page) -> None:
             ),
     )
     app_layout, title_surface = with_titlebar(workspace, settings.get("theme"))
-    if title_surface is not None:
-        theme_surfaces.append((title_surface, "sidebar"))
     page.add(app_layout)
 
     refresh()
