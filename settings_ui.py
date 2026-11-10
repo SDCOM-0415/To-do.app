@@ -17,7 +17,7 @@ import flet as ft
 
 import storage
 from appearance import PALETTES, appearance, normalize_theme
-from window_chrome import with_titlebar
+from window_chrome import with_titlebar, update_titlebar_theme
 
 DEFAULT_COLORS = storage.DEFAULT_SETTINGS["priority_colors"]
 BACKUP_DIR = storage.APP_DIR / "backups"
@@ -170,7 +170,7 @@ def show_settings(
         settings.update(candidate)
         on_changed()
         if title_surface is not None:
-            title_surface.bgcolor = appearance(settings["theme"])["sidebar"]
+            update_titlebar_theme(title_surface, settings["theme"])
             page.update()
         if close:
             close_view()
