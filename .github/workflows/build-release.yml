@@ -1,8 +1,13 @@
 name: Build and Release (Tk + Flet)
 
-# 双版本联合构建与发布仅通过 Actions 页面手动运行。
-# 仅手动触发，避免自动运行八个平台的构建。
+# 除用户明确授权的 main 一次性发布触发文件外，其余操作必须手动执行。
+# 独立 Flet 工作流不受此例外影响，始终仅支持 workflow_dispatch。
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".release-trigger/0.3.2-prerelease"
   workflow_dispatch:
     inputs:
       version:
@@ -22,7 +27,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: todo-dual-release-${{ inputs.version }}
+  group: todo-dual-release-${{ github.event_name == 'push' && 'v0.3.2' || inputs.version }}
   cancel-in-progress: true
 
 jobs:
@@ -39,8 +44,8 @@ jobs:
         id: refs
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION_INPUT: ${{ inputs.version }}
-          IS_PRERELEASE: ${{ inputs.prerelease }}
+          VERSION_INPUT: ${{ github.event_name == 'push' && 'v0.3.2' || inputs.version }}
+          IS_PRERELEASE: ${{ github.event_name == 'push' && 'true' || inputs.prerelease }}
         shell: bash
         run: |
           set -euo pipefail
@@ -286,7 +291,7 @@ jobs:
 
   release:
     name: Publish one combined GitHub Release
-    if: ${{ inputs.publish }}
+    if: ${{ inputs.publish || github.event_name == 'push' }}
     needs: [prepare, build]
     runs-on: ubuntu-latest
     permissions:
@@ -354,7 +359,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
           TK_SHA: ${{ needs.prepare.outputs.tk_sha }}
-          PRERELEASE: ${{ inputs.prerelease }}
+          PRERELEASE: ${{ github.event_name == 'push' && 'true' || inputs.prerelease }}
         run: |
           set -euo pipefail
           args=()
