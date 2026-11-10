@@ -170,7 +170,7 @@ def show_settings(
         settings.update(candidate)
         on_changed()
         if title_surface is not None:
-            update_titlebar_theme(title_surface, settings["theme"])
+            update_titlebar_theme(title_surface, settings["theme"], settings_view=True)
             page.update()
         if close:
             close_view()
@@ -422,7 +422,7 @@ def show_settings(
         ),
     )
 
-    layout, title_surface = with_titlebar(screen, settings.get("theme"))
+    layout, title_surface = with_titlebar(screen, settings.get("theme"), settings_view=True)
     page.controls.clear()
     page.add(layout)
     # Controls need to be mounted before update() can be used.
