@@ -20,7 +20,13 @@ class WindowChromeTests(unittest.TestCase):
             content, surface = window_chrome.with_titlebar(ft.Text("Tasks"), "graphite")
             self.assertIsInstance(content, ft.Column)
             self.assertIsNotNone(surface)
-            self.assertEqual(surface.height, 44)
+            self.assertEqual(surface.height, window_chrome.TITLEBAR_HEIGHT)
+            left, right = surface.content.controls
+            self.assertEqual(left.width, window_chrome.SIDEBAR_WIDTH)
+            self.assertTrue(right.expand)
+            self.assertEqual(left.border.right.color, "#33353F")
+            self.assertEqual(left.bgcolor, "#1C1D23")
+            self.assertEqual(right.bgcolor, "#141519")
 
     def test_non_mac_keeps_native_titlebar(self):
         with patch.object(window_chrome.sys, "platform", "win32"):
@@ -31,7 +37,19 @@ class WindowChromeTests(unittest.TestCase):
     def test_titlebar_matches_appearance(self):
         with patch.object(window_chrome.sys, "platform", "darwin"):
             _, surface = window_chrome.with_titlebar(ft.Text("Tasks"), "blue")
-            self.assertEqual(surface.bgcolor, "#152436")
+            left, right = surface.content.controls
+            self.assertEqual(left.bgcolor, "#152436")
+            self.assertEqual(right.bgcolor, "#101A27")
+            self.assertEqual(left.border.right.color, "#304A5E")
+
+    def test_theme_switch_updates_both_titlebar_sections(self):
+        with patch.object(window_chrome.sys, "platform", "darwin"):
+            _, surface = window_chrome.with_titlebar(ft.Text("Tasks"), "graphite")
+            window_chrome.update_titlebar_theme(surface, "paper")
+            left, right = surface.content.controls
+            self.assertEqual(left.bgcolor, "#EBE5DA")
+            self.assertEqual(right.bgcolor, "#F5F1E9")
+            self.assertEqual(left.border.right.color, "#DCD4C9")
 
 
 if __name__ == "__main__":
