@@ -1,5 +1,7 @@
-# macOS Intel 单平台测试触发标记
+# macOS x86_64 单平台测试触发
 
-用途：由用户明确授权触发 Flet 0.3.2 的 macOS x86_64 测试构建。
-限制：只运行 macos-26 单个 Runner，不创建 Release，也不触发其他平台构建。
-原因：验证 macOS 原生红绿灯标题栏与侧栏分割线对齐效果。
+测试目标：修复 macOS 红绿灯原生区域与 Flet 标题栏的色块割裂。
+版本：0.3.2
+范围：仅 macos-26 单 Runner，目标 --arch x86_64。
+方式：测试构建并上传 Actions Artifact，不创建 Release。
+本次触发标识：macos-titlebar-unified-paper-ink-20261110-1
