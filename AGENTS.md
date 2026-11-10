@@ -22,6 +22,7 @@
 ## GitHub Actions 执行策略
 
 - Flet 独立构建只能通过 `workflow_dispatch` 手动启动，禁止添加自动 Push 触发器。
+- Tk macOS Intel 独立测试工作流为 `.github/workflows/tk-macos-intel-test.yml`。仅用户明确要求时，允许通过 `main` 的 `.test-trigger/tk-macos-intel-0.3.2` 专用标记文件触发；只使用一个 Intel Mac Runner、只上传测试 Artifact，不创建 Release 或启动其他构建。
 - `main` 联合发布默认仅手动触发；**用户明确授权发布时**，允许通过创建一次性 `.release-trigger/0.3.2-prerelease` 文件触发限定为 `main` 和该路径的 Push 工作流。
 - 不得扩大成对普通代码、文档提交或 PR 的自动构建；禁止加入 `schedule` 等无关触发器。
 - 每次新的联合发布均须有用户明确要求，且应检查已有标签、版本编号以及发布产物，不得覆盖旧 Release。

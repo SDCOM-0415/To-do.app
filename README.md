@@ -72,6 +72,8 @@ platformdirs.user_data_path("TodoApp", "SDCOM")/
 - **[flet-version](https://github.com/SDCOM-0415/To-do.app/tree/flet-version)**：基于 Flet 的独立版本，源码直接位于该分支根目录。
 - **[old-version](https://github.com/SDCOM-0415/To-do.app/tree/old-version)**：历史 Qt 版和 v0.2 归档。
 
+仅需验证 Tk 版 Intel Mac 时，可通过 [Tk macOS Intel 独立测试工作流](https://github.com/SDCOM-0415/To-do.app/actions/workflows/tk-macos-intel-test.yml) 单独构建：仅使用一个 `macos-26-intel` Runner，执行语法与单元测试、PyInstaller 打包和 x86_64 架构检查，生成 Actions Artifact `TodoApp-Tk-macOS-x64-test`，不创建 Release。该工作流只能手动执行，或在明确要求测试时通过提交 `.test-trigger/tk-macos-intel-0.3.2` 标记文件触发；普通代码提交不会自动构建。
+
 两个现行版本由 [联合发布工作流](https://github.com/SDCOM-0415/To-do.app/actions/workflows/build-release.yml) 分别构建，再上传到同一个 GitHub Release。发布方式、命名和预发布编号见 [DUAL_RELEASE.md](DUAL_RELEASE.md)。
 
 ## 参与开发
