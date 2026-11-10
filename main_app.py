@@ -307,7 +307,10 @@ class TodoApp(ctk.CTk):
         
         # 创建任务项
         for task in tasks:
-            if not self.show_completed_var.get() and task.completed:
+            # “已完成”专用视图不受全局显示开关影响。
+            completed_view = (getattr(self, "ui_layout", "classic") == "modern"
+                              and getattr(self, "current_view", "") == "已完成")
+            if not completed_view and not self.show_completed_var.get() and task.completed:
                 continue
             
             task_item = TaskItem(
