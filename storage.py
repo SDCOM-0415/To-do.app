@@ -19,7 +19,7 @@ DEFAULT_SETTINGS: dict[str, Any] = {
 }
 
 def _legacy_directories() -> list[Path]:
-    root = Path(__file__).resolve().parent.parent
+    root = Path(__file__).resolve().parent
     candidates = [root]
     if getattr(sys, "frozen", False):
         executable = Path(sys.executable).resolve()

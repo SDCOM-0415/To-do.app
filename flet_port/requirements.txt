@@ -1,3 +1,0 @@
-# Tested API target: Flet 1.1.x (November 2026)
-flet[desktop]>=1.1.2,<1.2
-platformdirs>=4.0,<6

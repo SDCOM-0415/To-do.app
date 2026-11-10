@@ -19,4 +19,4 @@ build_number = 2
 [tool.flet.app]
 path = "."
 module = "main"
-exclude = ["test_storage.py", "test_settings_ui.py", "__pycache__"]
+exclude = ["test_storage.py", "test_settings_ui.py", "test_window_chrome.py", "__pycache__"]
