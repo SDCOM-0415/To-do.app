@@ -10,6 +10,32 @@ from models import Task
 
 
 class StorageTests(unittest.TestCase):
+    def test_appearance_persists_after_reload(self):
+        # 模拟重启：每种主题保存到磁盘后，使用全新的读取调用验证。
+        for theme in ("graphite", "paper", "blue"):
+            with self.subTest(theme=theme), tempfile.TemporaryDirectory() as folder:
+                path = Path(folder) / "flet-settings.json"
+                with patch.object(storage, "SETTINGS_FILE", path):
+                    with patch.object(storage, "migrate_legacy_data", return_value=None):
+                        storage.save_settings({"theme": theme})
+                        saved = json.loads(path.read_text(encoding="utf-8"))
+                        self.assertEqual(saved["theme"], theme)
+                        reloaded = storage.load_settings()
+                        self.assertEqual(reloaded["theme"], theme)
+
+    def test_old_theme_values_are_migrated_without_overwriting_file(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "flet-settings.json"
+            original = '{"theme": "light", "auto_save": false}'
+            path.write_text(original, encoding="utf-8")
+            with patch.object(storage, "SETTINGS_FILE", path):
+                with patch.object(storage, "migrate_legacy_data", return_value=None):
+                    self.assertEqual(storage.load_settings()["theme"], "paper")
+                    self.assertFalse(storage.load_settings()["auto_save"])
+                    self.assertEqual(path.read_text(encoding="utf-8"), original)
+                    storage.save_settings({"theme": "system"})
+                    self.assertEqual(storage.load_settings()["theme"], "graphite")
+
     def test_json_round_trip(self):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / "tasks.json"
