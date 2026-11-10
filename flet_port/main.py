@@ -593,7 +593,6 @@ def main(page: ft.Page) -> None:
                     ),
                 ],
             ),
-        )
     )
     app_layout, title_surface = with_titlebar(workspace, settings.get("theme"))
     if title_surface is not None:
