@@ -1,0 +1,7 @@
+联合发布触发标记
+
+本文件仅用于用户明确授权的 main 分支双版本预发布。
+基础版本：v0.3.2
+发布类型：预发布（Prerelease）
+目标分支：main（Tk）与 flet-version（Flet）
+文件提交本身触发一次 GitHub Actions；不得因普通代码更新自动发布。
