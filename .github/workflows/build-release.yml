@@ -1,13 +1,8 @@
 name: Build and Release (Tk + Flet)
 
-# Unified release is deliberately manual. Normal pushes to either product
-# branch never publish a Release.
+# 双版本联合构建与发布仅通过 Actions 页面手动运行。
+# 仅手动触发，避免自动运行八个平台的构建。
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - ".release-trigger/0.3.2-prerelease"
   workflow_dispatch:
     inputs:
       version:
@@ -44,8 +39,8 @@ jobs:
         id: refs
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION_INPUT: ${{ github.event_name == 'push' && 'v0.3.2' || inputs.version }}
-          IS_PRERELEASE: ${{ github.event_name == 'push' && 'true' || inputs.prerelease }}
+          VERSION_INPUT: ${{ inputs.version }}
+          IS_PRERELEASE: ${{ inputs.prerelease }}
         shell: bash
         run: |
           set -euo pipefail
@@ -96,35 +91,6 @@ jobs:
           echo "flet_sha=$flet_sha" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
-      - name: Normalize previous pre-release title
-        if: ${{ github.event_name == 'push' && steps.refs.outputs.version != '' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_VERSION: ${{ steps.refs.outputs.version }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          sequence="${RELEASE_VERSION##*-}"
-          if [[ "$sequence" =~ ^[1-9][0-9]*$ ]] && (( sequence > 1 )); then
-            previous="${RELEASE_VERSION%-*}-$((sequence - 1))"
-            legacy_date="${RELEASE_VERSION#v}"
-            legacy_date="${legacy_date#*-}"
-            legacy_date="${legacy_date%-*}"
-            if [[ "$legacy_date" =~ ^[0-9]{8}$ ]]; then
-              legacy_date="${legacy_date:0:4}-${legacy_date:4:2}-${legacy_date:6:2}"
-              legacy_previous="v${RELEASE_VERSION#v}"
-              legacy_previous="${legacy_previous%%-*}-${legacy_date}-$((sequence - 1))"
-            else
-              legacy_previous=""
-            fi
-            if gh release view "$previous" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-              gh release edit "$previous" --repo "$GITHUB_REPOSITORY" --title "$previous"
-              echo "Normalized previous release title: $previous"
-            elif [[ -n "$legacy_previous" ]] && gh release view "$legacy_previous" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-              gh release edit "$legacy_previous" --repo "$GITHUB_REPOSITORY" --title "$legacy_previous"
-              echo "Normalized legacy release title: $legacy_previous"
-            fi
-          fi
 
   build:
     needs: prepare
@@ -320,7 +286,7 @@ jobs:
 
   release:
     name: Publish one combined GitHub Release
-    if: ${{ inputs.publish || github.event_name == 'push' }}
+    if: ${{ inputs.publish }}
     needs: [prepare, build]
     runs-on: ubuntu-latest
     permissions:
@@ -388,7 +354,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
           TK_SHA: ${{ needs.prepare.outputs.tk_sha }}
-          PRERELEASE: ${{ github.event_name == 'push' && 'true' || inputs.prerelease }}
+          PRERELEASE: ${{ inputs.prerelease }}
         run: |
           set -euo pipefail
           args=()

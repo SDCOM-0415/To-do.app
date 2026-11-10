@@ -73,7 +73,7 @@ platformdirs.user_data_path("TodoApp", "SDCOM")/
 
 ## 参与开发
 
-请先阅读 [AGENT.md](AGENT.md)。新增 Git 提交信息及 README 统一使用简体中文，代码标识、命令及标准技术术语保留原文。欢迎通过 [Issues](https://github.com/SDCOM-0415/To-do.app/issues) 反馈问题，或提交 Pull Request。
+请先阅读 [AGENTS.md](AGENTS.md)。新增 Git 提交信息及 README 统一使用简体中文，代码标识、命令及标准技术术语保留原文。欢迎通过 [Issues](https://github.com/SDCOM-0415/To-do.app/issues) 反馈问题，或提交 Pull Request。
 
 ## 许可证
 
