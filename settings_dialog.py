@@ -321,8 +321,8 @@ class SettingsDialog(ctk.CTkToplevel):
             
             color_btn = ctk.CTkButton(
                 color_frame,
-                text="",
-                width=40,
+                text="选取",
+                width=68,
                 height=30,
                 fg_color=self.priority_colors[priority],
                 command=lambda p=priority: self.choose_priority_color(p)
