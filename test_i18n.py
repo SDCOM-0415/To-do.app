@@ -75,6 +75,23 @@ class LanguageTests(unittest.TestCase):
         self.assertIn("Completed 1", tr(stats, "en"))
         self.assertIn("總計 3 項", tr(stats, "zh-tw"))
 
+    def test_user_task_caption_is_not_translated(self):
+        class CTkLabel:
+            _i18n_skip = True
+
+            def __init__(self):
+                self.text = "设置"
+
+            def cget(self, option):
+                raise AssertionError("User text must not be inspected")
+
+            def winfo_children(self):
+                return []
+
+        label = CTkLabel()
+        localize_tk(label, "en")
+        self.assertEqual(label.text, "设置")
+
     def test_tk_radio_caption_fallback(self):
         from localize_tk import localize_tk
         from tkinter import TclError
