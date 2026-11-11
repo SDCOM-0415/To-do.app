@@ -95,3 +95,14 @@ def apply_tk_font(root, mode="harmony"):
     ctk.ThemeManager.theme["CTkFont"]["family"] = family
     root.option_add("*Font", (family, 12))
     return family
+
+def ui_font_size(base: int, configured: int | None = None) -> int:
+    """Scale a control's original font size from the 14px baseline."""
+    if configured is None:
+        from config import app_config
+        configured = app_config.get("font_size", 14)
+    try:
+        size = max(10, min(20, int(configured)))
+    except (TypeError, ValueError):
+        size = 14
+    return max(8, round(base * size / 14))
