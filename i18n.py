@@ -221,7 +221,7 @@ def tr(value: str, language: str | None = None) -> str:
     # Counts are generated after each refresh; translate their label fragments.
     if language != "zh-cn":
         stats = re.fullmatch(
-            r"总计 (\\d+) 项  ·  已完成 (\\d+)  ·  进行中 (\\d+)  ·  逾期 (\\d+)",
+            r"总计 (\d+) 项  ·  已完成 (\d+)  ·  进行中 (\d+)  ·  逾期 (\d+)",
             canonical,
         )
         if stats:
@@ -239,7 +239,7 @@ def tr(value: str, language: str | None = None) -> str:
             "完成率": ("Completion", "完成率"),
         }
         for prefix, variants in count_labels.items():
-            if re.fullmatch(re.escape(prefix) + r":\\s*[0-9]+%?", canonical):
+            if re.fullmatch(re.escape(prefix) + r":\s*[0-9]+%?", canonical):
                 return variants[0 if language == "en" else 1] + canonical[len(prefix):]
     variants = STRINGS.get(canonical)
     if variants is None or language == "zh-cn":
