@@ -207,9 +207,9 @@ def show_settings(
             title=ft.Text(label(f"选择{key}优先级颜色")),
             content=ft.Container(width=365, content=ft.Column(
                 tight=True, spacing=12, controls=[
-                    ft.Text(label("拖动红、绿、蓝滑块调整颜色"),
+                    ft.Text(label("拖动红、绿、蓝滑块调整颜色")),
                     preview, chosen,
-                    ft.Text(label("点击色块直接选择颜色"),
+                    ft.Text(label("点击色块直接选择颜色")),
                     swatches,
                     *[ft.Row([ft.Text(channel, width=20), slider], spacing=8)
                       for channel, slider in zip(("R", "G", "B"), sliders)],
@@ -429,7 +429,7 @@ def show_settings(
         heading("字体大小", "任务标题和部分界面文字的字号。"),
         ft.Row([font, size_value]),
         heading("默认窗口大小", "下次启动时按照保存的尺寸打开。"),
-        ft.Row([width, ft.Text(label("×"), height], spacing=12),
+        ft.Row([width, ft.Text(label("×")), height], spacing=12),
     ])
     behaviors = scroll_tab([
         heading("任务与显示"),
@@ -471,13 +471,13 @@ def show_settings(
     ])
     about = scroll_tab([
         heading("TodoApp Flet 0.3.2"),
-        ft.Text(label("现代化跨平台待办事项管理器"),
-        ft.Text(label("开发者：SDCOM"),
+        ft.Text(label("现代化跨平台待办事项管理器")),
+        ft.Text(label("开发者：SDCOM")),
         ft.Text(label(f"版权所有 © {datetime.now().year} SDCOM")),
-        ft.Text(label("技术栈：Python · Flet · Flutter"),
+        ft.Text(label("技术栈：Python · Flet · Flutter")),
         heading("功能"),
-        ft.Text(label("任务创建与编辑 · 优先级 · 截止日期 · 标签"),
-        ft.Text(label("搜索与过滤 · 统计信息 · 多主题 · JSON 导入导出"),
+        ft.Text(label("任务创建与编辑 · 优先级 · 截止日期 · 标签")),
+        ft.Text(label("搜索与过滤 · 统计信息 · 多主题 · JSON 导入导出")),
         heading("系统信息"),
         ft.Text(label(f"操作系统：{platform.platform()}"), selectable=True),
         ft.Text(label(f"Python 版本：{sys.version.split()[0]}"), selectable=True),
