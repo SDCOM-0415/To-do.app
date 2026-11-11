@@ -89,7 +89,7 @@ def show_settings(
         return tr(text, ui_language)
     title_surface: ft.Container | None = None
     draft = validate_settings(settings)
-    error_text = ft.Text("", color=ft.Colors.RED_400, size=scaled_font_size(12, settings.get("font_size", 14)))
+    error_text = ft.Text(label(""), color=ft.Colors.RED_400, size=scaled_font_size(12, settings.get("font_size", 14)))
 
     def option(key: str, caption: str, choices: list[tuple[str, str]], width: int | None = None):
         return ft.Dropdown(
@@ -204,12 +204,12 @@ def show_settings(
 
         dialog = ft.AlertDialog(
             modal=True,
-            title=ft.Text(f"选择{key}优先级颜色"),
+            title=ft.Text(label(f"选择{key}优先级颜色")),
             content=ft.Container(width=365, content=ft.Column(
                 tight=True, spacing=12, controls=[
-                    ft.Text("拖动红、绿、蓝滑块调整颜色"),
+                    ft.Text(label("拖动红、绿、蓝滑块调整颜色"),
                     preview, chosen,
-                    ft.Text("点击色块直接选择颜色"),
+                    ft.Text(label("点击色块直接选择颜色"),
                     swatches,
                     *[ft.Row([ft.Text(channel, width=20), slider], spacing=8)
                       for channel, slider in zip(("R", "G", "B"), sliders)],
@@ -320,15 +320,15 @@ def show_settings(
         page.update()
 
     switches: dict[str, ft.Switch] = {}
-    def switch_row(key: str, label: str, subtitle: str) -> ft.Control:
+    def switch_row(key: str, caption: str, subtitle: str) -> ft.Control:
         switch = ft.Switch(
             value=draft[key], on_change=lambda e: draft.update({key: bool(e.control.value)}),
         )
         switches[key] = switch
         return ft.Row([
             ft.Column([
-                ft.Text(label, weight=ft.FontWeight.W_500, size=scaled_font_size(14, settings.get("font_size", 14))),
-                ft.Text(subtitle, size=scaled_font_size(11, settings.get("font_size", 14)), color=ft.Colors.ON_SURFACE_VARIANT),
+                ft.Text(label(caption), weight=ft.FontWeight.W_500, size=scaled_font_size(14, settings.get("font_size", 14))),
+                ft.Text(label(subtitle), size=scaled_font_size(11, settings.get("font_size", 14)), color=ft.Colors.ON_SURFACE_VARIANT),
             ], expand=True, spacing=3),
             switch,
         ], vertical_alignment=ft.CrossAxisAlignment.CENTER)
@@ -342,7 +342,7 @@ def show_settings(
                 "settings": candidate,
             }, ensure_ascii=False, indent=2).encode("utf-8")
             path = await picker.save_file(
-                dialog_title="导出设置", file_name="todo-settings.json",
+                dialog_title=label("导出设置"), file_name="todo-settings.json",
                 file_type=ft.FilePickerFileType.CUSTOM,
                 allowed_extensions=["json"], src_bytes=payload,
             )
@@ -354,7 +354,7 @@ def show_settings(
     async def import_settings(e) -> None:
         try:
             selected = await picker.pick_files(
-                dialog_title="导入设置", allow_multiple=False,
+                dialog_title=label("导入设置"), allow_multiple=False,
                 file_type=ft.FilePickerFileType.CUSTOM,
                 allowed_extensions=["json"], with_data=True,
             )
@@ -375,7 +375,7 @@ def show_settings(
         except Exception as exc:
             status(f"备份失败：{exc}", True)
 
-    backup_selector = ft.Dropdown(label="选择备份", width=300, options=[])
+    backup_selector = ft.Dropdown(label=label("选择备份"), width=300, options=[])
     def refresh_backups() -> None:
         BACKUP_DIR.mkdir(parents=True, exist_ok=True)
         backup_selector.options = [
@@ -424,12 +424,12 @@ def show_settings(
         ],
         heading("界面字体", "鸿蒙字体默认内置；系统字体会按 Windows / macOS / Linux 自动选择。"),
         font_mode_control,
-        ft.Text("字体授权：HarmonyOS Sans © Huawei Device Co., Ltd.，详见 assets/fonts/LICENSE.txt", size=scaled_font_size(11, settings.get("font_size", 14)),
+        ft.Text(label("字体授权：HarmonyOS Sans © Huawei Device Co., Ltd.，详见 assets/fonts/LICENSE.txt"), size=scaled_font_size(11, settings.get("font_size", 14)),
                 color=ft.Colors.ON_SURFACE_VARIANT),
         heading("字体大小", "任务标题和部分界面文字的字号。"),
         ft.Row([font, size_value]),
         heading("默认窗口大小", "下次启动时按照保存的尺寸打开。"),
-        ft.Row([width, ft.Text("×"), height], spacing=12),
+        ft.Row([width, ft.Text(label("×"), height], spacing=12),
     ])
     behaviors = scroll_tab([
         heading("任务与显示"),
@@ -440,7 +440,7 @@ def show_settings(
         heading("偏好设置"),
         sort,
         language,
-        ft.Text("选择语言后点击应用或确定，界面会立即更新。",
+        ft.Text(label("选择语言后点击应用或确定，界面会立即更新。"),
                 color=ft.Colors.ON_SURFACE_VARIANT, size=scaled_font_size(11, settings.get("font_size", 14))),
     ])
     colors = scroll_tab([
@@ -463,26 +463,26 @@ def show_settings(
             ft.TextButton(label("删除所选备份"), on_click=delete_backup),
         ], wrap=True),
         heading("调试与数据目录"),
-        ft.Text(f"Flet 配置文件：{storage.SETTINGS_FILE}", selectable=True, size=scaled_font_size(12, settings.get("font_size", 14))),
-        ft.Text(f"Tk 配置文件：{storage.TK_SETTINGS_FILE}", selectable=True, size=scaled_font_size(12, settings.get("font_size", 14))),
-        ft.Text(f"共享任务文件：{storage.TASKS_FILE}", selectable=True, size=scaled_font_size(12, settings.get("font_size", 14))),
-        ft.Text("两个版本共享任务，但设置互相独立。不要同时编辑相同任务。",
+        ft.Text(label(f"Flet 配置文件：{storage.SETTINGS_FILE}"), selectable=True, size=scaled_font_size(12, settings.get("font_size", 14))),
+        ft.Text(label(f"Tk 配置文件：{storage.TK_SETTINGS_FILE}"), selectable=True, size=scaled_font_size(12, settings.get("font_size", 14))),
+        ft.Text(label(f"共享任务文件：{storage.TASKS_FILE}"), selectable=True, size=scaled_font_size(12, settings.get("font_size", 14))),
+        ft.Text(label("两个版本共享任务，但设置互相独立。不要同时编辑相同任务。"),
                 color=ft.Colors.ON_SURFACE_VARIANT, size=scaled_font_size(11, settings.get("font_size", 14))),
     ])
     about = scroll_tab([
         heading("TodoApp Flet 0.3.2"),
-        ft.Text("现代化跨平台待办事项管理器"),
-        ft.Text("开发者：SDCOM"),
-        ft.Text(f"版权所有 © {datetime.now().year} SDCOM"),
-        ft.Text("技术栈：Python · Flet · Flutter"),
+        ft.Text(label("现代化跨平台待办事项管理器"),
+        ft.Text(label("开发者：SDCOM"),
+        ft.Text(label(f"版权所有 © {datetime.now().year} SDCOM")),
+        ft.Text(label("技术栈：Python · Flet · Flutter"),
         heading("功能"),
-        ft.Text("任务创建与编辑 · 优先级 · 截止日期 · 标签"),
-        ft.Text("搜索与过滤 · 统计信息 · 多主题 · JSON 导入导出"),
+        ft.Text(label("任务创建与编辑 · 优先级 · 截止日期 · 标签"),
+        ft.Text(label("搜索与过滤 · 统计信息 · 多主题 · JSON 导入导出"),
         heading("系统信息"),
         ft.Text(label(f"操作系统：{platform.platform()}"), selectable=True),
         ft.Text(label(f"Python 版本：{sys.version.split()[0]}"), selectable=True),
         ft.Text(label(f"架构：{platform.machine()}"), selectable=True),
-        ft.Text("项目地址：github.com/SDCOM-0415/To-do.app", selectable=True),
+        ft.Text(label("项目地址：github.com/SDCOM-0415/To-do.app"), selectable=True),
     ])
 
     tabs = ft.Tabs(
