@@ -400,7 +400,7 @@ def tr(value: str, language: str | None = None) -> str:
         return (f"Copyright © {match.group(1)} SDCOM" if language == "en"
                 else f"版權所有 © {match.group(1)} SDCOM" if language == "zh-tw"
                 else canonical)
-    match = re.fullmatch(r"版本\\s+([0-9]+(?:\.[0-9]+)*)", canonical)
+    match = re.fullmatch(r"版本\s+([0-9]+(?:\.[0-9]+)*)", canonical)
     if match:
         return (f"Version {match.group(1)}" if language == "en"
                 else f"版本 {match.group(1)}")
