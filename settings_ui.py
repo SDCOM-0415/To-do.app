@@ -91,9 +91,9 @@ def show_settings(
     draft = validate_settings(settings)
     error_text = ft.Text("", color=ft.Colors.RED_400, size=scaled_font_size(12, settings.get("font_size", 14)))
 
-    def option(key: str, label: str, choices: list[tuple[str, str]], width: int | None = None):
+    def option(key: str, caption: str, choices: list[tuple[str, str]], width: int | None = None):
         return ft.Dropdown(
-            label=tr(label, ui_language), width=width, value=draft[key],
+            label=label(caption), width=width, value=draft[key],
             options=[ft.DropdownOption(key=value, text=label(name)) for name, value in choices],
             on_select=lambda e: draft.update({key: e.control.value}),
         )
