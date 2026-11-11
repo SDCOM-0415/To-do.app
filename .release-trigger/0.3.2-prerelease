@@ -16,3 +16,6 @@
 本次触发：20261111-harmony-font-prerelease-4
 目的：发布 Tk 与 Flet 默认内嵌 HarmonyOS Sans SC、支持切换系统字体的 0.3.2 预发布。
 要求：构建并验证八平台产物，成功后发布新的 Prerelease，不覆盖旧版本。
+
+本次重试：20261111-harmony-font-prerelease-windows-encoding-fix-2
+原因：修复 Windows Runner 控制台 GBK 编码无法打印中文日志导致字体准备失败。
