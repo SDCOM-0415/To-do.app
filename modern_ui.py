@@ -5,7 +5,7 @@ import customtkinter as ctk
 
 from config import app_config
 from ui_components import TaskItem, StatisticsFrame
-from font_preferences import current_font_family
+from font_preferences import current_font_family, ui_font_size
 
 VIEWS = ("全部任务", "进行中", "已完成")
 LAYOUTS = ("classic", "modern")
@@ -42,18 +42,18 @@ def create_modern_widgets(app):
     sidebar.pack_propagate(False)
 
     ctk.CTkLabel(sidebar, text="TODOAPP", text_color=c["text"],
-                 font=ctk.CTkFont(family=current_font_family(app_config.get("font_mode", "harmony")), size=19, weight="bold")).pack(anchor="w", padx=26, pady=(34, 4))
+                 font=ctk.CTkFont(family=current_font_family(app_config.get("font_mode", "harmony")), size=ui_font_size(19), weight="bold")).pack(anchor="w", padx=26, pady=(34, 4))
     ctk.CTkLabel(sidebar, text="你的个人工作空间", text_color=c["muted"],
-                 font=ctk.CTkFont(family=current_font_family(app_config.get("font_mode", "harmony")), size=11)).pack(anchor="w", padx=26, pady=(0, 37))
+                 font=ctk.CTkFont(family=current_font_family(app_config.get("font_mode", "harmony")), size=ui_font_size(11))).pack(anchor="w", padx=26, pady=(0, 37))
 
     ctk.CTkLabel(sidebar, text="工作空间", text_color=c["muted"],
-                 font=ctk.CTkFont(family=current_font_family(app_config.get("font_mode", "harmony")), size=11, weight="bold")).pack(anchor="w", padx=26, pady=(0, 14))
+                 font=ctk.CTkFont(family=current_font_family(app_config.get("font_mode", "harmony")), size=ui_font_size(11), weight="bold")).pack(anchor="w", padx=26, pady=(0, 14))
 
     for label in VIEWS:
         button = ctk.CTkButton(
             sidebar, text=label, anchor="w", height=39, corner_radius=8,
             fg_color="transparent", hover_color=c["selected"], text_color=c["text"],
-            font=ctk.CTkFont(family=current_font_family(app_config.get("font_mode", "harmony")), size=13),
+            font=ctk.CTkFont(family=current_font_family(app_config.get("font_mode", "harmony")), size=ui_font_size(13)),
             command=lambda name=label: switch_view(app, name),
         )
         button.pack(fill="x", padx=15, pady=3)
@@ -66,7 +66,7 @@ def create_modern_widgets(app):
                   text_color=c["text"], command=app.show_settings).pack(
                       fill="x", padx=15, pady=3)
     ctk.CTkLabel(sidebar, text="TodoApp · Tk 0.3.2", text_color=c["muted"],
-                 font=ctk.CTkFont(family=current_font_family(app_config.get("font_mode", "harmony")), size=10)).pack(side="bottom", anchor="w",
+                 font=ctk.CTkFont(family=current_font_family(app_config.get("font_mode", "harmony")), size=ui_font_size(10))).pack(side="bottom", anchor="w",
                                                  padx=26, pady=23)
 
     workspace = ctk.CTkFrame(main, fg_color=c["canvas"], corner_radius=0)
@@ -75,12 +75,12 @@ def create_modern_widgets(app):
     header = ctk.CTkFrame(workspace, fg_color="transparent")
     header.pack(fill="x", pady=(0, 26))
     ctk.CTkLabel(header, text="我的工作空间", text_color=c["accent"],
-                 font=ctk.CTkFont(family=current_font_family(app_config.get("font_mode", "harmony")), size=12, weight="bold")).pack(anchor="w")
+                 font=ctk.CTkFont(family=current_font_family(app_config.get("font_mode", "harmony")), size=ui_font_size(12), weight="bold")).pack(anchor="w")
     app.view_title = ctk.CTkLabel(header, text="全部任务", text_color=c["text"],
-                                  font=ctk.CTkFont(family=current_font_family(app_config.get("font_mode", "harmony")), size=28, weight="bold"))
+                                  font=ctk.CTkFont(family=current_font_family(app_config.get("font_mode", "harmony")), size=ui_font_size(28), weight="bold"))
     app.view_title.pack(anchor="w", pady=(5, 3))
     ctk.CTkLabel(header, text="整理任务，专注当下。", text_color=c["muted"],
-                 font=ctk.CTkFont(family=current_font_family(app_config.get("font_mode", "harmony")), size=12)).pack(anchor="w")
+                 font=ctk.CTkFont(family=current_font_family(app_config.get("font_mode", "harmony")), size=ui_font_size(12))).pack(anchor="w")
 
     # 搜索、排序、快速新建与经典模式使用同样的事件处理方法。
     tools = ctk.CTkFrame(workspace, fg_color="transparent")
@@ -119,7 +119,7 @@ def create_modern_widgets(app):
     left = ctk.CTkFrame(body, fg_color=c["surface"], corner_radius=12)
     left.pack(side="left", fill="both", expand=True, padx=(0, 15))
     ctk.CTkLabel(left, text="任务清单", text_color=c["text"],
-                 font=ctk.CTkFont(family=current_font_family(app_config.get("font_mode", "harmony")), size=15, weight="bold")).pack(
+                 font=ctk.CTkFont(family=current_font_family(app_config.get("font_mode", "harmony")), size=ui_font_size(15), weight="bold")).pack(
                      anchor="w", padx=20, pady=(19, 9))
     app.task_list_frame = ctk.CTkScrollableFrame(left, fg_color="transparent")
     app.task_list_frame.pack(fill="both", expand=True, padx=12, pady=(0, 13))
@@ -135,7 +135,7 @@ def create_modern_widgets(app):
     actions = ctk.CTkFrame(right, fg_color=c["surface"], corner_radius=12)
     actions.pack(fill="x")
     ctk.CTkLabel(actions, text="快捷操作", text_color=c["text"],
-                 font=ctk.CTkFont(family=current_font_family(app_config.get("font_mode", "harmony")), size=15, weight="bold")).pack(
+                 font=ctk.CTkFont(family=current_font_family(app_config.get("font_mode", "harmony")), size=ui_font_size(15), weight="bold")).pack(
                      anchor="w", padx=16, pady=(17, 12))
     for text, action in (
         ("导出任务", app.export_tasks),
@@ -150,7 +150,7 @@ def create_modern_widgets(app):
 
     app.status_label = ctk.CTkLabel(
         workspace, text="任务存储在本地 · 与 Flet 版共享数据",
-        text_color=c["muted"], font=ctk.CTkFont(family=current_font_family(app_config.get("font_mode", "harmony")), size=11))
+        text_color=c["muted"], font=ctk.CTkFont(family=current_font_family(app_config.get("font_mode", "harmony")), size=ui_font_size(11)))
     app.status_label.pack(anchor="w", pady=(15, 0))
     switch_view(app, "全部任务", refresh=False)
 
