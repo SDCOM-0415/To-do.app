@@ -156,7 +156,8 @@ class TaskEditDialog(ctk.CTkToplevel):
             selected = None
         current = selected or date.today()
         popup = ctk.CTkToplevel(self)
-        popup.title("选择截止日期")
+        locale = app_config.get("language", "zh-cn")
+        popup.title(tr("选择截止日期", locale))
         popup.geometry("330x350")
         popup.resizable(False, False)
         popup.transient(self)
@@ -190,10 +191,15 @@ class TaskEditDialog(ctk.CTkToplevel):
             side="left", fill="x", expand=True)
         ctk.CTkButton(header, text="›", width=40, command=lambda: move_month(1)).pack(side="right")
         def render():
-            display.set(f"{current.year} 年 {current.month} 月")
+            if locale == "en":
+                display.set(f"{calendar.month_name[current.month]} {current.year}")
+            else:
+                display.set(f"{current.year} 年 {current.month} 月" if locale == "zh-cn"
+                            else f"{current.year} 年 {current.month} 月")
             for widget in grid.winfo_children():
                 widget.destroy()
-            for col, weekday in enumerate(("一", "二", "三", "四", "五", "六", "日")):
+            weekdays = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun") if locale == "en" else ("一", "二", "三", "四", "五", "六", "日")
+            for col, weekday in enumerate(weekdays):
                 ctk.CTkLabel(grid, text=weekday, font=(family, 12)).grid(
                     row=0, column=col, padx=2, pady=4)
             today = date.today()
@@ -228,13 +234,13 @@ class TaskEditDialog(ctk.CTkToplevel):
         """验证输入数据"""
         title = self.title_entry.get().strip()
         if not title:
-            messagebox.showerror("错误", "请输入任务标题")
+            messagebox.showerror(tr("错误", app_config.get("language")), tr("请输入任务标题", app_config.get("language")))
             return False
         
         try:
             parse_date_input(self.due_date_entry.get())
         except ValueError:
-            messagebox.showerror("日期无效", "请使用 YYYY/MM/DD 格式输入有效日期", parent=self)
+            messagebox.showerror(tr("日期无效", app_config.get("language")), tr("请使用 YYYY/MM/DD 格式输入有效日期", app_config.get("language")), parent=self)
             return False
         
         return True
