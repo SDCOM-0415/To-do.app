@@ -4,6 +4,7 @@ from __future__ import annotations
 import customtkinter as ctk
 
 from config import app_config
+from i18n import tr
 from ui_components import TaskItem, StatisticsFrame
 from font_preferences import current_font_family, ui_font_size
 
@@ -160,6 +161,6 @@ def switch_view(app, view, refresh=True):
     c = palette()
     for name, button in app.nav_buttons.items():
         button.configure(fg_color=c["selected"] if name == app.current_view else "transparent")
-    app.view_title.configure(text=app.current_view)
+    app.view_title.configure(text=tr(app.current_view, app_config.get("language", "zh-cn")))
     if refresh:
         app.refresh_tasks()
