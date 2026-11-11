@@ -1,0 +1,45 @@
+name: 语言与颜色设置单 Runner 验证
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".test-trigger/i18n-color-check"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout Tk main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: tk-src
+      - name: Checkout Flet edition
+        uses: actions/checkout@v4
+        with:
+          ref: flet-version
+          path: flet-src
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install customtkinter platformdirs "flet>=1.1.2,<1.2"
+      - name: Compile and test Tk
+        working-directory: tk-src
+        run: |
+          python -m compileall -q app.py config.py main_app.py modern_ui.py settings_dialog.py ui_components.py font_preferences.py i18n.py localize_tk.py date_input.py
+          python -m unittest -v test_i18n test_date_input test_font_preferences
+      - name: Compile and test Flet
+        working-directory: flet-src
+        run: |
+          python -m compileall -q main.py settings_ui.py font_preferences.py i18n.py localize_flet.py date_input.py task_operations.py
+          python -m unittest -v test_i18n test_date_input test_font_preferences test_settings_ui test_storage test_task_operations
