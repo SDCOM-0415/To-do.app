@@ -30,6 +30,19 @@ class LanguageTests(unittest.TestCase):
                          "TodoApp Flet · 10 appearance presets")
 
 
+    def test_user_flet_text_is_not_translated(self):
+        from localize_flet import localize_flet
+
+        class Text:
+            _i18n_skip = True
+
+            def __init__(self):
+                self.value = "设置"
+
+        control = Text()
+        localize_flet(control, "en")
+        self.assertEqual(control.value, "设置")
+
     def test_settings_labels_and_palette_descriptions(self):
         examples = {
             "自动保存": "Auto-save",
