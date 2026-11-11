@@ -21,6 +21,10 @@ from i18n import tr
 class TodoApp(ctk.CTk):
     """主应用程序类"""
     
+    def localized_messagebox(self, kind: str, title: str, message: str, **options):
+        language = app_config.get("language", "zh-cn")
+        return getattr(messagebox, kind)(tr(title, language), tr(message, language), **options)
+
     def __init__(self):
         super().__init__()
         
@@ -267,7 +271,7 @@ class TodoApp(ctk.CTk):
             self.refresh_tasks()
             self.show_status_message(f"已添加任务: {title}")
         else:
-            messagebox.showerror("错误", "添加任务失败")
+            self.localized_messagebox("showerror", "错误", "添加任务失败")
     
     def show_add_dialog(self):
         """显示详细添加对话框"""
@@ -279,7 +283,7 @@ class TodoApp(ctk.CTk):
             self.refresh_tasks()
             self.show_status_message(f"已添加任务: {task.title}")
         else:
-            messagebox.showerror("错误", "添加任务失败")
+            self.localized_messagebox("showerror", "错误", "添加任务失败")
     
     def on_task_toggle(self, task: Task):
         """任务状态切换回调"""
@@ -298,16 +302,16 @@ class TodoApp(ctk.CTk):
             self.refresh_tasks()
             self.show_status_message(f"已更新任务: {task.title}")
         else:
-            messagebox.showerror("错误", "更新任务失败")
+            self.localized_messagebox("showerror", "错误", "更新任务失败")
     
     def on_task_delete(self, task: Task):
         """删除任务"""
-        if messagebox.askyesno("确认删除", f"确定要删除任务 '{task.title}' 吗？"):
+        if self.localized_messagebox("askyesno", "确认删除", f"确定要删除任务 '{task.title}' 吗？"):
             if task_db.delete_task(task.id):
                 self.refresh_tasks()
                 self.show_status_message(f"已删除任务: {task.title}")
             else:
-                messagebox.showerror("错误", "删除任务失败")
+                self.localized_messagebox("showerror", "错误", "删除任务失败")
     
     def refresh_tasks(self):
         """刷新任务列表"""
@@ -337,6 +341,11 @@ class TodoApp(ctk.CTk):
         
         # 更新统计信息
         self.update_statistics()
+        # Newly created task cards and refreshed counters also need the
+        # current locale, not only the initial settings callback.
+        localize_tk(self.task_list_frame, app_config.get("language", "zh-cn"))
+        if hasattr(self, "stats_frame"):
+            localize_tk(self.stats_frame, app_config.get("language", "zh-cn"))
 
     def get_filtered_and_sorted_tasks(self) -> List[Task]:
         """获取过滤和排序后的任务列表"""
@@ -363,7 +372,7 @@ class TodoApp(ctk.CTk):
             "标题": "title",
             "完成状态": "completed"
         }
-        sort_key = sort_mapping.get(self.sort_var.get(), "created_at")
+        sort_key = sort_mapping.get(tr(self.sort_var.get(), "zh-cn"), "created_at")
         
         if sort_key == "priority":
             tasks = sorted(tasks, key=lambda x: (x.completed, -x.get_priority_weight()))
@@ -449,21 +458,21 @@ class TodoApp(ctk.CTk):
     
     def clear_completed_tasks(self):
         """清除已完成的任务"""
-        if messagebox.askyesno("确认清除", "确定要清除所有已完成的任务吗？"):
+        if self.localized_messagebox("askyesno", "确认清除", "确定要清除所有已完成的任务吗？"):
             if task_db.clear_completed_tasks():
                 self.refresh_tasks()
                 self.show_status_message("已清除所有已完成任务")
             else:
-                messagebox.showerror("错误", "清除任务失败")
+                self.localized_messagebox("showerror", "错误", "清除任务失败")
     
     def clear_all_tasks(self):
         """清除所有任务"""
-        if messagebox.askyesno("确认清除", "确定要清除所有任务吗？此操作不可恢复！"):
+        if self.localized_messagebox("askyesno", "确认清除", "确定要清除所有任务吗？此操作不可恢复！"):
             if task_db.clear_all_tasks():
                 self.refresh_tasks()
                 self.show_status_message("已清除所有任务")
             else:
-                messagebox.showerror("错误", "清除任务失败")
+                self.localized_messagebox("showerror", "错误", "清除任务失败")
     
     def export_tasks(self):
         """导出任务"""
@@ -490,14 +499,15 @@ class TodoApp(ctk.CTk):
                 
                 self.show_status_message(f"任务已导出到: {filename}")
         except Exception as e:
-            messagebox.showerror("导出失败", f"导出任务时发生错误: {str(e)}")
+            self.localized_messagebox("showerror", "导出失败", f"导出任务时发生错误: {str(e)}")
     
     def show_status_message(self, message: str, duration: int = 3000):
         """显示状态消息"""
+        message = tr(message, app_config.get("language", "zh-cn"))
         if getattr(self, "ui_layout", "classic") == "modern" and hasattr(self, "status_label"):
             self.status_label.configure(text=message)
             self.after(duration, lambda: self.status_label.winfo_exists() and
-                       self.status_label.configure(text="任务存储在本地 · 与 Flet 版共享数据"))
+                       self.status_label.configure(text=tr("任务存储在本地 · 与 Flet 版共享数据", app_config.get("language", "zh-cn"))))
         else:
             print(f"状态: {message}")
     
