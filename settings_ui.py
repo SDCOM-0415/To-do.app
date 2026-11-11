@@ -277,7 +277,7 @@ def show_settings(
             page.update()
         if close:
             close_view()
-            notify(label("设置已保存"))
+            notify(tr("设置已保存", candidate["language"]))
         else:
             if candidate["language"] != ui_language:
                 # Rebuild settings controls in the new language. This also
