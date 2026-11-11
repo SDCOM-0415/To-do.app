@@ -26,6 +26,10 @@ def main(page: ft.Page) -> None:
     page.title = "TodoApp Flet 0.3.2"
     page.padding = 0
     page.spacing = 0
+    page.locale_configuration = ft.LocaleConfiguration(
+        current_locale=ft.Locale("zh", "Hans"),
+        supported_locales=[ft.Locale("zh", "Hans"), ft.Locale("en", "US")],
+    )
     picker = ft.FilePicker()
     page.services.append(picker)
     page.window.width = 1100
@@ -242,7 +246,14 @@ def main(page: ft.Page) -> None:
 
         date_picker = ft.DatePicker(
             on_change=set_due_from_calendar,
+            locale=ft.Locale("zh", "Hans"),
             help_text="选择截止日期",
+            confirm_text="确定",
+            cancel_text="取消",
+            field_label_text="截止日期",
+            field_hint_text="年/月/日",
+            error_format_text="日期格式不正确",
+            error_invalid_text="日期超出允许范围",
             first_date=datetime(1900, 1, 1),
             last_date=datetime(2100, 12, 31),
         )
@@ -467,6 +478,8 @@ def main(page: ft.Page) -> None:
                 ),
             ),
         ]
+        # 更新 Flet 的原生控件树，否则要等切换页面后才看到新任务。
+        page.update()
 
     async def export_tasks(e) -> None:
         payload = json.dumps([t.to_dict() for t in tasks], ensure_ascii=False, indent=2).encode("utf-8")
