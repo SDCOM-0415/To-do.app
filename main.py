@@ -18,7 +18,7 @@ from date_input import format_date_input, parse_date_input
 import storage
 from settings_ui import show_settings
 from appearance import appearance, normalize_theme
-from font_preferences import font_family, register_flet_fonts
+from font_preferences import font_family, register_flet_fonts, scaled_font_size
 from window_chrome import configure_window, with_titlebar, update_titlebar_theme, SIDEBAR_WIDTH
 
 
@@ -58,9 +58,30 @@ def main(page: ft.Page) -> None:
         settings["theme"] = normalize_theme(settings.get("theme"))
         colors = appearance(settings["theme"])
         page.theme_mode = colors["mode"]
+        # 两套主题必须同步设置字体：深色模式优先使用 dark_theme。
+        # 否则在暗色预设下切换字体实际上不会影响 Flutter 控件。
+        family = font_family(settings.get("font_mode"))
+        preferred_size = int(settings.get("font_size", 14))
+        text_theme = ft.TextTheme(
+            body_small=ft.TextStyle(size=scaled_font_size(12, preferred_size)),
+            body_medium=ft.TextStyle(size=scaled_font_size(14, preferred_size)),
+            body_large=ft.TextStyle(size=scaled_font_size(16, preferred_size)),
+            label_small=ft.TextStyle(size=scaled_font_size(11, preferred_size)),
+            label_medium=ft.TextStyle(size=scaled_font_size(12, preferred_size)),
+            label_large=ft.TextStyle(size=scaled_font_size(14, preferred_size)),
+            title_small=ft.TextStyle(size=scaled_font_size(14, preferred_size)),
+            title_medium=ft.TextStyle(size=scaled_font_size(16, preferred_size)),
+            title_large=ft.TextStyle(size=scaled_font_size(22, preferred_size)),
+        )
         page.theme = ft.Theme(
             color_scheme_seed=colors["accent"],
-            font_family=font_family(settings.get("font_mode")),
+            font_family=family,
+            text_theme=text_theme,
+        )
+        page.dark_theme = ft.Theme(
+            color_scheme_seed=colors["accent"],
+            font_family=family,
+            text_theme=text_theme,
         )
         page.bgcolor = colors["canvas"]
         page.window.bgcolor = colors["sidebar"]
@@ -105,10 +126,10 @@ def main(page: ft.Page) -> None:
         ],
         on_select=lambda e: change_setting("sort", e.control.value),
     )
-    stats = ft.Text(size=12, color=ft.Colors.ON_SURFACE_VARIANT)
+    stats = ft.Text(size=scaled_font_size(12, settings.get("font_size", 14)), color=ft.Colors.ON_SURFACE_VARIANT)
     task_list = ft.ListView(expand=True, spacing=0)
     view_mode = "all"
-    view_title = ft.Text("全部任务", size=27, weight=ft.FontWeight.BOLD)
+    view_title = ft.Text("全部任务", size=scaled_font_size(27, settings.get("font_size", 14)), weight=ft.FontWeight.BOLD)
     nav_widgets: dict[str, ft.Container] = {}
 
 
@@ -283,7 +304,7 @@ def main(page: ft.Page) -> None:
             label="标签（逗号分隔）",
             value=", ".join(task.tags or []) if task else "",
         )
-        error = ft.Text("", color=ft.Colors.RED_400, size=12)
+        error = ft.Text("", color=ft.Colors.RED_400, size=scaled_font_size(12, settings.get("font_size", 14)))
 
         def submit(e) -> None:
             name = (title.value or "").strip()
@@ -374,7 +395,7 @@ def main(page: ft.Page) -> None:
                         controls=[
                             ft.Text(
                                 task.title,
-                                size=settings.get("font_size", 14),
+                                size=scaled_font_size(14, settings.get("font_size", 14)),
                                 weight=ft.FontWeight.W_600,
                                 color=(ft.Colors.ON_SURFACE_VARIANT if task.completed
                                        else ft.Colors.ON_SURFACE),
@@ -383,12 +404,12 @@ def main(page: ft.Page) -> None:
                                 spacing=10,
                                 wrap=True,
                                 controls=[
-                                    ft.Text(f"● {meta[0]}", color=tint, size=11),
-                                    *[ft.Text(text, size=11, color=ft.Colors.ON_SURFACE_VARIANT)
+                                    ft.Text(f"● {meta[0]}", color=tint, size=scaled_font_size(11, settings.get("font_size", 14))),
+                                    *[ft.Text(text, size=scaled_font_size(11, settings.get("font_size", 14)), color=ft.Colors.ON_SURFACE_VARIANT)
                                       for text in meta[1:]],
                                 ],
                             ),
-                            *([ft.Text(task.description, size=12,
+                            *([ft.Text(task.description, size=scaled_font_size(12, settings.get("font_size", 14)),
                                        color=ft.Colors.ON_SURFACE_VARIANT)]
                               if task.description else []),
                         ],
@@ -424,8 +445,8 @@ def main(page: ft.Page) -> None:
             on_click=lambda e: change_view(target),
             ink=True,
             content=ft.Row([
-                ft.Icon(icon, size=19),
-                ft.Text(title, size=13, weight=ft.FontWeight.W_500),
+                ft.Icon(icon, size=scaled_font_size(19, settings.get("font_size", 14))),
+                ft.Text(title, size=scaled_font_size(13, settings.get("font_size", 14)), weight=ft.FontWeight.W_500),
             ], spacing=11),
         )
         nav_widgets[target] = button
@@ -471,8 +492,8 @@ def main(page: ft.Page) -> None:
                 content=ft.Column(
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                     controls=[
-                        ft.Icon(ft.Icons.CHECK_CIRCLE_OUTLINE, size=42, color=ft.Colors.INDIGO_300),
-                        ft.Text("这里暂时没有任务", size=17),
+                        ft.Icon(ft.Icons.CHECK_CIRCLE_OUTLINE, size=scaled_font_size(42, settings.get("font_size", 14)), color=ft.Colors.INDIGO_300),
+                        ft.Text("这里暂时没有任务", size=scaled_font_size(17, settings.get("font_size", 14))),
                         ft.Text("添加一条待办，或调整筛选条件", color=ft.Colors.ON_SURFACE_VARIANT),
                     ],
                 ),
@@ -568,13 +589,13 @@ def main(page: ft.Page) -> None:
                         bgcolor=ft.Colors.PRIMARY,
                         border_radius=9,
                         padding=8,
-                        content=ft.Icon(ft.Icons.DONE, size=19,
+                        content=ft.Icon(ft.Icons.DONE, size=scaled_font_size(19, settings.get("font_size", 14)),
                                         color=ft.Colors.ON_PRIMARY),
                     ),
-                    ft.Text("TodoApp Flet", weight=ft.FontWeight.BOLD, size=17),
+                    ft.Text("TodoApp Flet", weight=ft.FontWeight.BOLD, size=scaled_font_size(17, settings.get("font_size", 14))),
                 ], spacing=10),
                 ft.Container(height=22),
-                ft.Text("工作空间", size=11, weight=ft.FontWeight.BOLD,
+                ft.Text("工作空间", size=scaled_font_size(11, settings.get("font_size", 14)), weight=ft.FontWeight.BOLD,
                         color=ft.Colors.ON_SURFACE_VARIANT),
                 nav_button("全部任务", ft.Icons.LIST_ALT, "all"),
                 nav_button("进行中", ft.Icons.ACCESS_TIME, "active"),
@@ -592,7 +613,7 @@ def main(page: ft.Page) -> None:
                     on_click=lambda e: show_settings(
                         page, settings, on_settings_changed, picker, message),
                 ),
-                ft.Text("TODOAPP FLET · 0.3.2", size=10,
+                ft.Text("TODOAPP FLET · 0.3.2", size=scaled_font_size(10, settings.get("font_size", 14)),
                         color=ft.Colors.ON_SURFACE_VARIANT),
             ],
         ),
@@ -624,13 +645,13 @@ def main(page: ft.Page) -> None:
                                         controls=[
                                             ft.Row([
                                                 ft.Column([
-                                                    ft.Text("我的工作空间", size=11,
+                                                    ft.Text("我的工作空间", size=scaled_font_size(11, settings.get("font_size", 14)),
                                                             color=ft.Colors.PRIMARY,
                                                             weight=ft.FontWeight.BOLD),
                                                     view_title,
                                                     ft.Text("整理任务，专注当下。",
                                                             color=ft.Colors.ON_SURFACE_VARIANT,
-                                                            size=12),
+                                                            size=scaled_font_size(12, settings.get("font_size", 14))),
                                                 ], spacing=5, expand=True),
                                                 ft.Button(
                                                     "新建任务",
@@ -664,7 +685,7 @@ def main(page: ft.Page) -> None:
                                         horizontal=32, vertical=11),
                                     content=ft.Row([
                                         ft.Text("任务保存在本地 · 与 Tk 版共享",
-                                                size=11, expand=True,
+                                                size=scaled_font_size(11, settings.get("font_size", 14)), expand=True,
                                                 color=ft.Colors.ON_SURFACE_VARIANT),
                                         ft.TextButton("保存更改", icon=ft.Icons.SAVE_OUTLINED,
                                                       on_click=manual_save),
