@@ -213,6 +213,56 @@ MORE_STRINGS.update({
     "恢复默认颜色": ("Restore default colors", "還原預設顏色"),
     "设置已应用": ("Settings applied", "設定已套用"),
 })
+MORE_STRINGS.update({
+    "现代化跨平台待办事项管理器\n支持 Windows、Linux、macOS 和深色模式": ("Modern cross-platform task manager\nSupports Windows, Linux, macOS and dark mode", "現代跨平台待辦事項管理器\n支援 Windows、Linux、macOS 與深色模式"),
+    "✅ 任务创建、编辑和删除": ("✅ Create, edit and delete tasks", "✅ 建立、編輯與刪除任務"),
+    "✅ 优先级设置（高、中、低）": ("✅ Priority levels (high, medium, low)", "✅ 優先級設定（高、中、低）"),
+    "✅ 截止日期管理": ("✅ Due date management", "✅ 截止日期管理"),
+    "✅ 任务分类和标签": ("✅ Task categories and tags", "✅ 任務分類與標籤"),
+    "✅ 搜索和过滤功能": ("✅ Search and filtering", "✅ 搜尋與篩選"),
+    "✅ 统计信息面板": ("✅ Task statistics", "✅ 統計資訊面板"),
+    "✅ 深色/浅色主题切换": ("✅ Dark/light themes", "✅ 深色／淺色主題切換"),
+    "✅ 自动保存功能": ("✅ Automatic saving", "✅ 自動儲存"),
+    "✅ 数据导入导出": ("✅ Data import/export", "✅ 資料匯入匯出"),
+    "✅ 跨平台支持": ("✅ Cross-platform support", "✅ 跨平台支援"),
+    "配置文件": ("Config file", "設定檔"),
+    "任务文件": ("Task file", "任務檔案"),
+    "邮箱": ("Email", "電子郵件"),
+    "个人网站": ("Website", "個人網站"),
+    "错误": ("Error", "錯誤"),
+    "导出成功": ("Export successful", "匯出成功"),
+    "导入成功": ("Import successful", "匯入成功"),
+    "保存失败": ("Save failed", "儲存失敗"),
+    "颜色格式无效": ("Invalid color format", "顏色格式無效"),
+    "设置已导出": ("Settings exported", "設定已匯出"),
+    "设置已载入；点击应用或确定保存": ("Settings loaded; click Apply or OK to save", "已載入設定；按「套用」或「確定」儲存"),
+    "备份已载入；点击应用或确定保存": ("Backup loaded; click Apply or OK to save", "已載入備份；按「套用」或「確定」儲存"),
+    "请先选择备份": ("Select a backup first", "請先選擇備份"),
+    "备份已删除": ("Backup deleted", "備份已刪除"),
+    "已恢复默认值；点击应用或确定保存": ("Defaults restored; click Apply or OK to save", "已還原預設值；按「套用」或「確定」儲存"),
+    "选择备份": ("Select backup", "選擇備份"),
+    "截止日期（YYYY/MM/DD，可留空）": ("Due date (YYYY/MM/DD, optional)", "截止日期（YYYY/MM/DD，可留空）"),
+    "例如 2026/11/11，输入数字自动补 /": ("e.g. 2026/11/11; slashes are inserted automatically", "例如 2026/11/11，輸入數字會自動補 /"),
+    "标签（逗号分隔）": ("Tags (comma-separated)", "標籤（以逗號分隔）"),
+    "请填写任务名称": ("Enter a task name", "請輸入任務名稱"),
+    "请输入有效日期（YYYY/MM/DD）": ("Enter a valid date (YYYY/MM/DD)", "請輸入有效日期（YYYY/MM/DD）"),
+    "导出待办任务": ("Export tasks", "匯出待辦任務"),
+    "导入待办任务": ("Import tasks", "匯入待辦任務"),
+    "暂无已完成任务": ("No completed tasks", "暫無已完成任務"),
+    "数据目录": ("Data directory", "資料目錄"),
+    "文件": ("File", "檔案"),
+    "设置已应用": ("Settings applied", "設定已套用"),
+    "导出失败": ("Export failed", "匯出失敗"),
+    "导入失败": ("Import failed", "匯入失敗"),
+    "应用失败": ("Apply failed", "套用失敗"),
+    "重置完成": ("Reset complete", "重設完成"),
+    "重置失败": ("Reset failed", "重設失敗"),
+    "确认重置": ("Confirm reset", "確認重設"),
+    "操作失败": ("Operation failed", "操作失敗"),
+    "日期无效": ("Invalid date", "日期無效"),
+    "请输入任务标题": ("Enter a task title", "請輸入任務標題"),
+    "请使用 YYYY/MM/DD 格式输入有效日期": ("Enter a valid date in YYYY/MM/DD format", "請以 YYYY/MM/DD 格式輸入有效日期"),
+})
 STRINGS.update(MORE_STRINGS)
 
 # Longer keys first to avoid translating a short label within a longer string.
@@ -269,6 +319,45 @@ def tr(value: str, language: str | None = None) -> str:
             if match:
                 translated_prefix = prefix if language == "zh-cn" else labels[0 if language == "en" else 1]
                 return translated_prefix + match.group(1) + match.group(2)
+    # Translate fixed UI prefixes while preserving filenames, platform data,
+    # task titles, user-controlled content and numeric values unchanged.
+    for prefix in ("配置文件", "任务文件", "邮箱", "个人网站", "数据目录",
+                   "Flet 配置文件", "Tk 配置文件", "共享任务文件"):
+        labels = STRINGS.get(prefix)
+        if labels:
+            for source_label in (prefix, *labels):
+                match = re.fullmatch(re.escape(source_label) + r"([：:]\\s*)(.+)", canonical)
+                if match:
+                    target = prefix if language == "zh-cn" else labels[0 if language == "en" else 1]
+                    return target + match.group(1) + match.group(2)
+    for priority in ("高", "中", "低"):
+        pattern = re.fullmatch(re.escape(priority) + r"(优先级[:：]?)", canonical)
+        if pattern:
+            item = "优先级:" if pattern.group(1).endswith((":", "：")) else "优先级"
+            name = tr(priority, language)
+            if language == "en":
+                return name + (" priority:" if item.endswith(":") else " priority")
+            if language == "zh-tw":
+                return name + ("優先級：" if item.endswith(":") else "優先級")
+    for source, translations in (
+        ("已过期", ("Overdue", "已逾期")),
+        ("天后到期", ("days until due", "天後到期")),
+    ):
+        match = re.fullmatch(re.escape(source) + r"\\s+(\\d+)\\s+天", canonical)
+        if match:
+            return (translations[0] if language == "en" else translations[1]) + " " + match.group(1)
+    # Dynamic prefix + numeric suffix, generated after every task refresh.
+    for prefix in ("总任务", "已完成", "待完成", "已过期", "完成率"):
+        choices = STRINGS.get(prefix)
+        if choices:
+            match = re.fullmatch(re.escape(prefix) + r"([:：]\\s*)([0-9]+(?:\\.[0-9]+)?%?)", canonical)
+            if match:
+                value = match.group(2)
+                if language == "en":
+                    return choices[0] + ": " + value
+                if language == "zh-tw":
+                    return choices[1] + "：" + value
+                return prefix + ": " + value
     # Preserve runtime numbers while translating the settings subtitle.
     style_count = re.fullmatch(r"TodoApp Flet · (\d+) 种外观风格", canonical)
     if style_count:
