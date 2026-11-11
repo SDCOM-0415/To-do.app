@@ -17,7 +17,7 @@ import flet as ft
 
 import storage
 from appearance import PALETTES, appearance, normalize_theme
-from font_preferences import normalize_font_mode
+from font_preferences import normalize_font_mode, scaled_font_size
 from window_chrome import with_titlebar, update_titlebar_theme
 
 DEFAULT_COLORS = storage.DEFAULT_SETTINGS["priority_colors"]
@@ -83,7 +83,7 @@ def show_settings(
     original_controls = list(page.controls)
     title_surface: ft.Container | None = None
     draft = validate_settings(settings)
-    error_text = ft.Text("", color=ft.Colors.RED_400, size=12)
+    error_text = ft.Text("", color=ft.Colors.RED_400, size=scaled_font_size(12, settings.get("font_size", 14)))
 
     def option(key: str, label: str, choices: list[tuple[str, str]], width: int | None = None):
         return ft.Dropdown(
@@ -95,8 +95,8 @@ def show_settings(
     def heading(name: str, detail: str = "") -> ft.Control:
         return ft.Column(
             controls=[
-                ft.Text(name, size=18, weight=ft.FontWeight.BOLD),
-                *([ft.Text(detail, size=12, color=ft.Colors.ON_SURFACE_VARIANT)] if detail else []),
+                ft.Text(name, size=scaled_font_size(18, settings.get("font_size", 14)), weight=ft.FontWeight.BOLD),
+                *([ft.Text(detail, size=scaled_font_size(12, settings.get("font_size", 14)), color=ft.Colors.ON_SURFACE_VARIANT)] if detail else []),
                 ft.Divider(height=12, color=ft.Colors.OUTLINE_VARIANT),
             ], spacing=4,
         )
@@ -224,8 +224,8 @@ def show_settings(
         switches[key] = switch
         return ft.Row([
             ft.Column([
-                ft.Text(label, weight=ft.FontWeight.W_500, size=14),
-                ft.Text(subtitle, size=11, color=ft.Colors.ON_SURFACE_VARIANT),
+                ft.Text(label, weight=ft.FontWeight.W_500, size=scaled_font_size(14, settings.get("font_size", 14))),
+                ft.Text(subtitle, size=scaled_font_size(11, settings.get("font_size", 14)), color=ft.Colors.ON_SURFACE_VARIANT),
             ], expand=True, spacing=3),
             switch,
         ], vertical_alignment=ft.CrossAxisAlignment.CENTER)
@@ -314,14 +314,14 @@ def show_settings(
         *[
             ft.Text(
                 f'{preset["label"]} · {preset["description"]}',
-                size=12,
+                size=scaled_font_size(12, settings.get("font_size", 14)),
                 color=ft.Colors.ON_SURFACE_VARIANT,
             )
             for preset in PALETTES.values()
         ],
         heading("界面字体", "鸿蒙字体默认内置；系统字体会按 Windows / macOS / Linux 自动选择。"),
         font_mode_control,
-        ft.Text("字体授权：HarmonyOS Sans © Huawei Device Co., Ltd.，详见 assets/fonts/LICENSE.txt", size=11,
+        ft.Text("字体授权：HarmonyOS Sans © Huawei Device Co., Ltd.，详见 assets/fonts/LICENSE.txt", size=scaled_font_size(11, settings.get("font_size", 14)),
                 color=ft.Colors.ON_SURFACE_VARIANT),
         heading("字体大小", "任务标题和部分界面文字的字号。"),
         ft.Row([font, size_value]),
@@ -338,7 +338,7 @@ def show_settings(
         sort,
         language,
         ft.Text("目前语言选项沿用 Tk 版配置；Flet 界面完整本地化仍需单独实现。",
-                color=ft.Colors.ON_SURFACE_VARIANT, size=11),
+                color=ft.Colors.ON_SURFACE_VARIANT, size=scaled_font_size(11, settings.get("font_size", 14))),
     ])
     colors = scroll_tab([
         heading("优先级颜色", "输入十六进制色值，例如 #ff4444。保存后同步更新任务列表。"),
@@ -360,11 +360,11 @@ def show_settings(
             ft.TextButton("删除所选备份", on_click=delete_backup),
         ], wrap=True),
         heading("调试与数据目录"),
-        ft.Text(f"Flet 配置文件：{storage.SETTINGS_FILE}", selectable=True, size=12),
-        ft.Text(f"Tk 配置文件：{storage.TK_SETTINGS_FILE}", selectable=True, size=12),
-        ft.Text(f"共享任务文件：{storage.TASKS_FILE}", selectable=True, size=12),
+        ft.Text(f"Flet 配置文件：{storage.SETTINGS_FILE}", selectable=True, size=scaled_font_size(12, settings.get("font_size", 14))),
+        ft.Text(f"Tk 配置文件：{storage.TK_SETTINGS_FILE}", selectable=True, size=scaled_font_size(12, settings.get("font_size", 14))),
+        ft.Text(f"共享任务文件：{storage.TASKS_FILE}", selectable=True, size=scaled_font_size(12, settings.get("font_size", 14))),
         ft.Text("两个版本共享任务，但设置互相独立。不要同时编辑相同任务。",
-                color=ft.Colors.ON_SURFACE_VARIANT, size=11),
+                color=ft.Colors.ON_SURFACE_VARIANT, size=scaled_font_size(11, settings.get("font_size", 14))),
     ])
     about = scroll_tab([
         heading("TodoApp Flet 0.3.2"),
@@ -415,8 +415,8 @@ def show_settings(
                     content=ft.Row([
                         ft.IconButton(ft.Icons.ARROW_BACK, tooltip="返回任务列表", on_click=close_view),
                         ft.Column([
-                            ft.Text("应用设置", size=23, weight=ft.FontWeight.BOLD),
-                            ft.Text(f"TodoApp Flet · {len(PALETTES)} 种外观风格", size=12, color=ft.Colors.ON_SURFACE_VARIANT),
+                            ft.Text("应用设置", size=scaled_font_size(23, settings.get("font_size", 14)), weight=ft.FontWeight.BOLD),
+                            ft.Text(f"TodoApp Flet · {len(PALETTES)} 种外观风格", size=scaled_font_size(12, settings.get("font_size", 14)), color=ft.Colors.ON_SURFACE_VARIANT),
                         ], expand=True, spacing=3),
                     ]),
                 ),
