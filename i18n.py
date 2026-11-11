@@ -259,11 +259,13 @@ def tr(value: str, language: str | None = None) -> str:
     # System metadata and path labels contain a localized prefix plus runtime data.
     # Only match known label prefixes, never rewrite arbitrary user content.
     for prefix in ("操作系统", "Python 版本", "系统架构", "架构", "版本"):
-        match = re.fullmatch(re.escape(prefix) + r"([：:]\\s*)(.+)", canonical)
-        if match:
-            label = STRINGS.get(prefix)
-            if label:
-                translated_prefix = prefix if language == "zh-cn" else label[0 if language == "en" else 1]
+        labels = STRINGS.get(prefix)
+        if not labels:
+            continue
+        for source_label in (prefix, *labels):
+            match = re.fullmatch(re.escape(source_label) + r"([：:]\\s*)(.+)", canonical)
+            if match:
+                translated_prefix = prefix if language == "zh-cn" else labels[0 if language == "en" else 1]
                 return translated_prefix + match.group(1) + match.group(2)
     variants = STRINGS.get(canonical)
     if variants is None or language == "zh-cn":
