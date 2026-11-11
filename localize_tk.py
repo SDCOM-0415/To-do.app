@@ -1,6 +1,8 @@
 """Translate existing CustomTkinter controls after language settings change."""
 from __future__ import annotations
 
+from tkinter import TclError
+
 from i18n import tr, normalize_language
 
 
@@ -31,17 +33,17 @@ def localize_tk(root, language: str) -> None:
                         except (ValueError, KeyError, AttributeError):
                             pass
                 widget._i18n_tab_language = language
-        if cls not in ("CTkEntry", "CTkTextbox", "CTkOptionMenu", "CTkComboBox"):
+        if cls in ("CTkLabel", "CTkButton", "CTkCheckBox", "CTkRadioButton", "CTkSwitch", "CTkSegmentedButton"):
             try:
                 value = widget.cget("text")
-            except (ValueError, AttributeError, KeyError):
+            except (TclError, ValueError, AttributeError, KeyError):
                 value = None
             if isinstance(value, str):
                 updated = tr(value, language)
                 if updated != value:
                     try:
                         widget.configure(text=updated)
-                    except (ValueError, AttributeError):
+                    except (TclError, ValueError, AttributeError):
                         pass
         if cls == "CTkEntry":
             try:
@@ -73,11 +75,11 @@ def localize_tk(root, language: str) -> None:
                         widget.configure(values=translated)
                         if index >= 0:
                             widget.set(translated[index])
-            except (ValueError, AttributeError, RuntimeError):
+            except (TclError, ValueError, AttributeError, RuntimeError):
                 pass
         try:
             children = widget.winfo_children()
-        except (AttributeError, RuntimeError):
+        except (TclError, AttributeError, RuntimeError):
             return
         for child in children:
             visit(child)
