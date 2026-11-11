@@ -331,12 +331,13 @@ def main(page: ft.Page) -> None:
         def submit(e) -> None:
             name = (title.value or "").strip()
             if not name:
-                error.value = "请填写任务名称"
+                error.value = tr("请填写任务名称", settings.get("language"))
+                error.update()
                 return
             try:
                 parsed_due = parse_date_input(due.value or "")
             except ValueError:
-                error.value = "请输入有效日期（YYYY/MM/DD）"
+                error.value = tr("请输入有效日期（YYYY/MM/DD）", settings.get("language"))
                 error.update()
                 return
             due_value = parsed_due.isoformat() if parsed_due else None
