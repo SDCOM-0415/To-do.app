@@ -81,6 +81,7 @@ def show_settings(
     on_changed: Callable[[], None],
     picker: ft.FilePicker,
     notify: Callable[[str], None],
+    applied: bool = False,
 ) -> None:
     """Show a five-tab settings view in place of the task workspace."""
     original_controls = list(page.controls)
@@ -283,7 +284,7 @@ def show_settings(
                 # localizes buttons and dropdowns the widget walker cannot see.
                 page.controls.clear()
                 page.controls.extend(original_controls)
-                show_settings(page, settings, on_changed, picker, notify)
+                show_settings(page, settings, on_changed, picker, notify, applied=True)
             else:
                 status("更改已应用")
         return True
@@ -542,6 +543,8 @@ def show_settings(
     layout, title_surface = with_titlebar(screen, settings.get("theme"), settings_view=True)
     page.controls.clear()
     page.add(layout)
+    if applied:
+        error_text.value = label("更改已应用")
     localize_flet(page.controls, settings.get("language", "zh-cn"))
     page.update()
     # Controls need to be mounted before update() can be used.
