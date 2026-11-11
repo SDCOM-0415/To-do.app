@@ -135,8 +135,8 @@ def show_settings(
 
     font = ft.Slider(min=10, max=20, divisions=10, value=draft["font_size"], expand=True, on_change=update_size)
     window_parts = str(draft["window_size"]).split("x")
-    width = ft.TextField(label="宽度", width=140, value=window_parts[0], keyboard_type=ft.KeyboardType.NUMBER)
-    height = ft.TextField(label="高度", width=140, value=window_parts[1], keyboard_type=ft.KeyboardType.NUMBER)
+    width = ft.TextField(label=label("宽度"), width=140, value=window_parts[0], keyboard_type=ft.KeyboardType.NUMBER)
+    height = ft.TextField(label=label("高度"), width=140, value=window_parts[1], keyboard_type=ft.KeyboardType.NUMBER)
     language = option("language", "界面语言", [
         ("简体中文", "zh-cn"), ("English", "en"), ("繁體中文", "zh-tw"),
     ], 280)
@@ -220,11 +220,11 @@ def show_settings(
                 ft.Button(label("确定"), on_click=commit_color),
             ],
         )
-        localize_flet(dialog, settings.get("language", "zh-cn"))
+        localize_flet(dialog, ui_language)
         page.show_dialog(dialog)
 
     for key in ("高", "中", "低"):
-        field = ft.TextField(label=f"{key}优先级", value=draft["priority_colors"][key],
+        field = ft.TextField(label=label(f"{key}优先级"), value=draft["priority_colors"][key],
                              width=180, on_change=lambda e, k=key: sync_color_preview(k))
         color_fields[key] = field
         preview = ft.Container(width=30, height=30, border_radius=6,
@@ -276,7 +276,7 @@ def show_settings(
             page.update()
         if close:
             close_view()
-            notify("设置已保存")
+            notify(label("设置已保存"))
         else:
             if candidate["language"] != ui_language:
                 # Rebuild settings controls in the new language. This also
@@ -516,7 +516,7 @@ def show_settings(
                 ft.Container(
                     padding=ft.Padding.symmetric(horizontal=26, vertical=17),
                     content=ft.Row([
-                        ft.IconButton(ft.Icons.ARROW_BACK, tooltip="返回任务列表", on_click=close_view),
+                        ft.IconButton(ft.Icons.ARROW_BACK, tooltip=label("返回任务列表"), on_click=close_view),
                         ft.Column([
                             ft.Text(label("应用设置"), size=scaled_font_size(23, settings.get("font_size", 14)), weight=ft.FontWeight.BOLD),
                             ft.Text(label(f"TodoApp Flet · {len(PALETTES)} 种外观风格"), size=scaled_font_size(12, settings.get("font_size", 14)), color=ft.Colors.ON_SURFACE_VARIANT),
