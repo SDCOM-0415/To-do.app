@@ -56,7 +56,6 @@ class TaskEditDialog(ctk.CTkToplevel):
         main_frame = ctk.CTkFrame(self)
         main_frame.pack(fill="both", expand=True, padx=16, pady=16)
         form = ctk.CTkScrollableFrame(main_frame, fg_color="transparent")
-        form.pack(side="top", fill="both", expand=True, padx=8, pady=(8, 4))
         
         # 标题输入
         ctk.CTkLabel(form, text="任务标题:", font=(current_font_family(app_config.get("font_mode", "harmony")), 14)).pack(anchor="w", pady=(10, 5))
@@ -123,6 +122,8 @@ class TaskEditDialog(ctk.CTkToplevel):
             font=(current_font_family(app_config.get("font_mode", "harmony")), 12)
         )
         confirm_btn.pack(side="right")
+        # 先分配固定底栏空间，再让表单占用剩余空间。
+        form.pack(side="top", fill="both", expand=True, padx=8, pady=(8, 4))
         
         # 焦点设置
         self.title_entry.focus()
@@ -153,7 +154,6 @@ class TaskEditDialog(ctk.CTkToplevel):
         popup.resizable(False, False)
         popup.transient(self)
         self.grab_release()
-        popup.grab_set()
         family = current_font_family(app_config.get("font_mode", "harmony"))
         outer = ctk.CTkFrame(popup)
         outer.pack(fill="both", expand=True, padx=12, pady=12)
@@ -202,6 +202,8 @@ class TaskEditDialog(ctk.CTkToplevel):
                         ).grid(row=row, column=col, padx=2, pady=2)
         render()
         popup.lift()
+        popup.wait_visibility()
+        popup.grab_set()
 
     def load_task_data(self):
         """加载任务数据到表单"""
