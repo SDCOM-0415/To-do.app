@@ -63,7 +63,7 @@ class TodoApp(ctk.CTk):
     
     def setup_window(self):
         """设置窗口属性"""
-        self.title(f"{app_config.app_name} - 现代化待办事项管理器")
+        self.title(f"{app_config.app_name} - {tr('现代化待办事项管理器', app_config.get('language', 'zh-cn'))}")
         
         # 设置窗口大小和位置
         window_size = app_config.get("window_size", "900x700")
@@ -428,6 +428,7 @@ class TodoApp(ctk.CTk):
             self.current_font_mode = new_font_mode
             self.current_font_size = new_font_size
             self.current_language = new_language
+            self.title(f"{app_config.app_name} - {tr('现代化待办事项管理器', new_language)}")
             self.refresh_tasks()
             localize_tk(self, new_language)
 
