@@ -265,12 +265,12 @@ def tr(value: str, language: str | None = None) -> str:
         if not labels:
             continue
         for source_label in (prefix, *labels):
-            match = re.fullmatch(re.escape(source_label) + r"([：:]\\s*)(.+)", canonical)
+            match = re.fullmatch(re.escape(source_label) + r"([：:]\s*)(.+)", canonical)
             if match:
                 translated_prefix = prefix if language == "zh-cn" else labels[0 if language == "en" else 1]
                 return translated_prefix + match.group(1) + match.group(2)
     # Preserve runtime numbers while translating the settings subtitle.
-    style_count = re.fullmatch(r"TodoApp Flet · (\\d+) 种外观风格", canonical)
+    style_count = re.fullmatch(r"TodoApp Flet · (\d+) 种外观风格", canonical)
     if style_count:
         count = style_count.group(1)
         if language == "en":
