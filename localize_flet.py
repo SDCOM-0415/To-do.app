@@ -18,7 +18,7 @@ def localize_flet(root, language: str) -> None:
         visited.add(id(control))
         control_type = type(control).__name__
         for prop in ("text", "label", "tooltip", "hint_text", "help_text", "confirm_text",
-                     "cancel_text", "field_label_text", "field_hint_text", "title"):
+                     "cancel_text", "field_label_text", "field_hint_text", "title") + (("content",) if control_type in ("Button", "OutlinedButton", "TextButton", "FilledButton", "ElevatedButton") else ()):
             value = getattr(control, prop, None)
             if isinstance(value, str):
                 sources = getattr(control, "_i18n_original_labels", None)
@@ -29,6 +29,9 @@ def localize_flet(root, language: str) -> None:
                 translated = tr(original, language)
                 if translated != value:
                     setattr(control, prop, translated)
+        # Buttons can store their visible caption as a plain content string.
+        # Only these button types may have content translated; task/editor
+        # input controls and arbitrary containers must remain untouched.
         # DropdownOption.text is a static label, never the option key.
         # Flet Text displays value; TextField.value is actual user input.
         if control_type == "Text":
