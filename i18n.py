@@ -319,6 +319,25 @@ MORE_STRINGS.update({
     "天后到期": ("days until due", "天後到期"),
     "今天到期": ("Due today", "今天到期"),
 })
+MORE_STRINGS.update({
+    "📧 邮箱: ": ("📧 Email: ", "📧 電子郵件："),
+    "🌐 个人网站: ": ("🌐 Website: ", "🌐 個人網站："),
+    "打开链接失败": ("Failed to open link", "開啟連結失敗"),
+    "启动错误": ("Startup error", "啟動錯誤"),
+    "日期格式不正确": ("Invalid date format", "日期格式不正確"),
+    "日期超出允许范围": ("Date out of range", "日期超出允許範圍"),
+    "应用导入的设置时发生错误:\n": ("Error applying imported settings:\n", "套用匯入設定時發生錯誤：\n"),
+    "邮箱地址已复制": ("Email address copied", "電子郵件地址已複製"),
+    "保存设置时发生错误": ("Error saving settings", "儲存設定時發生錯誤"),
+    "程序启动失败": ("Application failed to start", "應用程式啟動失敗"),
+    "无法读取任务数据": ("Cannot read task data", "無法讀取任務資料"),
+    "任务已导出到": ("Tasks exported to", "任務已匯出至"),
+    "导出任务时发生错误": ("Error exporting tasks", "匯出任務時發生錯誤"),
+    "无法打开链接": ("Unable to open link", "無法開啟連結"),
+    "错误": ("Error", "錯誤"),
+    "截止": ("Due", "截止"),
+    "已导出": ("Exported", "已匯出"),
+})
 STRINGS.update(MORE_STRINGS)
 
 # Longer keys first to avoid translating a short label within a longer string.
@@ -375,6 +394,16 @@ def tr(value: str, language: str | None = None) -> str:
             if match:
                 translated_prefix = prefix if language == "zh-cn" else labels[0 if language == "en" else 1]
                 return translated_prefix + match.group(1) + match.group(2)
+    # About/status text with a runtime year or version.
+    match = re.fullmatch(r"版权所有 © (\d{4}) SDCOM", canonical)
+    if match:
+        return (f"Copyright © {match.group(1)} SDCOM" if language == "en"
+                else f"版權所有 © {match.group(1)} SDCOM" if language == "zh-tw"
+                else canonical)
+    match = re.fullmatch(r"版本\\s+([0-9]+(?:\.[0-9]+)*)", canonical)
+    if match:
+        return (f"Version {match.group(1)}" if language == "en"
+                else f"版本 {match.group(1)}")
     # Interpolate UI templates without translating user task names or data.
     patterns = (
         (r"确定删除「(.+)」吗？", "Delete “{0}”?", "確定刪除「{0}」嗎？"),
@@ -428,7 +457,9 @@ def tr(value: str, language: str | None = None) -> str:
         if match:
             return (translations[0] if language == "en" else translations[1]) + " " + match.group(1)
     # Runtime status messages: preserve filenames and error details verbatim.
-    for prefix in ("备份失败", "恢复失败", "删除备份失败",
+    for prefix in ("保存设置时发生错误", "程序启动失败", "无法读取任务数据",
+                   "任务已导出到", "导出任务时发生错误",
+                   "备份失败", "恢复失败", "删除备份失败",
                    "导出失败", "导入失败", "已创建备份",
                    "已导出", "已删除任务", "已添加任务",
                    "已更新任务", "保存失败", "无法保存设置"):
