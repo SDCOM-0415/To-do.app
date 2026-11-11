@@ -51,6 +51,10 @@ jobs:
           cache-dependency-path: requirements.txt
 
 
+      - name: 从华为官方获取并校验鸿蒙字体
+        shell: bash
+        run: python prepare_fonts.py --edition flet
+
       - name: Install only required Linux desktop build packages
         if: matrix.platform == 'linux'
         shell: bash
