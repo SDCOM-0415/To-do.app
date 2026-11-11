@@ -28,6 +28,11 @@ def system_font_family(platform=None):
 def font_path():
     roots = [Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent)),
              Path(__file__).resolve().parent]
+    if sys.platform == "darwin" and getattr(sys, "frozen", False):
+        # PyInstaller macOS .app 把数据放入 Contents/Resources。
+        # sys._MEIPASS 可能指向 Contents/Frameworks，而非 Resources。
+        contents = Path(sys.executable).resolve().parent.parent
+        roots.insert(0, contents / "Resources")
     for root in roots:
         path = root / "res" / "fonts" / FONT_FILENAME
         if path.is_file():
