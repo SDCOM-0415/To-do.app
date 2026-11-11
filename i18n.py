@@ -438,6 +438,22 @@ def tr(value: str, language: str | None = None) -> str:
         return (f"{match.group(1)} must be a boolean" if language == "en"
                 else f"{match.group(1)} 必須為布林值" if language == "zh-tw"
                 else canonical)
+    # User-visible Tk dialogs that interpolate paths, email or error details.
+    match = re.fullmatch(r"邮箱地址 (.+) 已复制到剪贴板", canonical)
+    if match:
+        return (f"Email address {match.group(1)} copied to clipboard" if language == "en"
+                else f"電子郵件地址 {match.group(1)} 已複製到剪貼簿" if language == "zh-tw"
+                else canonical)
+    match = re.fullmatch(r"无法打开链接[:：] (.+)\\n错误[:：] (.+)", canonical)
+    if match:
+        return (f"Unable to open link: {match.group(1)}\\nError: {match.group(2)}" if language == "en"
+                else f"無法開啟連結：{match.group(1)}\\n錯誤：{match.group(2)}" if language == "zh-tw"
+                else canonical)
+    match = re.fullmatch(r"无法打开邮箱客户端或复制地址\\n错误[:：] (.+)", canonical)
+    if match:
+        return (f"Unable to open email client or copy address\\nError: {match.group(1)}" if language == "en"
+                else f"無法開啟郵件程式或複製地址\\n錯誤：{match.group(1)}" if language == "zh-tw"
+                else canonical)
     # Interpolate UI templates without translating user task names or data.
     patterns = (
         (r"确定删除「(.+)」吗？", "Delete “{0}”?", "確定刪除「{0}」嗎？"),
