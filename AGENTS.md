@@ -46,3 +46,15 @@ python -m unittest discover -s . -p "test_*.py" -v
 ```
 
 应使用 Python 3.12 与本分支的 `requirements.txt`；需在对应平台通过 `flet build` 验证安装包。macOS 自定义标题栏必须保留系统原生窗口按钮，且主题切换不能破坏已有设置。
+
+## 联合预发布与 Actions 触发说明（2026-11-11）
+
+- 本分支的 `.github/workflows/flet-build.yml` **只允许手动 `workflow_dispatch`**，四平台构建只产生 Actions 工件，不会创建 GitHub Release。普通源码 Push 不能自动触发它。
+- `.github/workflows/flet-windows-macos-test.yml` 支持手动运行，或修改本分支 `.test-trigger/flet-windows-macos-0.3.2` 后经精确路径 Push 运行一次双 Runner 测试；该工作流只上传测试文件，不发布。
+- `.github/workflows/flet-macos-intel-test.yml` 仅支持手动或修改本分支专用的 `.test-trigger/macos-intel-0.3.2` 触发，仍不创建 Release。
+- **Tk + Flet 的 0.3.2 预发布只能由 `main` 分支的 `.github/workflows/build-release.yml` 统一负责**。明确授权时，选择手动 `workflow_dispatch`，设置 `version=v0.3.2`、`publish=true`、`prerelease=true`；或更新 `main` 已存在的 `.release-trigger/0.3.2-prerelease` 内容后 Push，触发路径限定的预发布。
+- 联合发布在 `prepare` 阶段冻结本分支和 `main` 的当前 SHA，构建 Tk/Flet 各四平台共八份产物。只有全部构建成功并验证八份文件后才创建带 SHA256 校验文件的单个 Release。
+- 每次运行按北京时间自动查找已有日期序号，创建新的 `v0.3.2-YYYYMMDD-N` 标签，不应覆盖历史标签。2026-11-11 已有 `v0.3.2-20261111-1`、`v0.3.2-20261111-2`，实际序号以触发时 GitHub 标签为准。
+- 联合发布的 `cancel-in-progress: true` 会取消同版本的在途构建；先检查是否有运行中的相同工作流。失败后先分析日志，不要未经用户再次授权就重试。
+- 在仅能通过 GitHub 仓库文件写入、不能调用 Actions 分发 API 的连接环境，应优先采用已审核的专用 Push 标记方式，且最后单独提交标记文件；只有观察到新工作流记录才可说“成功触发”，只有 Release 页面出现新标签和八份资产才可说“发布成功”。
+
