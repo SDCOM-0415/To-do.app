@@ -388,6 +388,12 @@ def main(page: ft.Page) -> None:
             task.completed = previous
         refresh()
 
+    def user_text(value: str, **kwargs) -> ft.Text:
+        """Never translate user-created task titles, notes or tags."""
+        control = ft.Text(value, **kwargs)
+        control._i18n_skip = True
+        return control
+
     def card(task: Task) -> ft.Control:
         tint = {
             "高": ft.Colors.RED_400,
@@ -395,9 +401,10 @@ def main(page: ft.Page) -> None:
             "低": ft.Colors.GREEN_500,
         }.get(task.priority, ft.Colors.BLUE_400)
         tint = settings.get("priority_colors", {}).get(task.priority, tint)
-        meta = [f"{task.priority}优先级"]
+        lang = settings.get("language", "zh-cn")
+        meta = [tr(f"{task.priority}优先级", lang)]
         if task.due_date:
-            meta.append(f"截止 {task.due_date}")
+            meta.append(f"{tr('截止', lang)} {task.due_date}")
         if task.tags:
             meta.extend(task.tags)
         return ft.Container(
@@ -415,7 +422,7 @@ def main(page: ft.Page) -> None:
                         expand=True,
                         spacing=6,
                         controls=[
-                            ft.Text(
+                            user_text(
                                 task.title,
                                 size=scaled_font_size(14, settings.get("font_size", 14)),
                                 weight=ft.FontWeight.W_600,
@@ -427,11 +434,11 @@ def main(page: ft.Page) -> None:
                                 wrap=True,
                                 controls=[
                                     ft.Text(f"● {meta[0]}", color=tint, size=scaled_font_size(11, settings.get("font_size", 14))),
-                                    *[ft.Text(text, size=scaled_font_size(11, settings.get("font_size", 14)), color=ft.Colors.ON_SURFACE_VARIANT)
+                                    *[user_text(text, size=scaled_font_size(11, settings.get("font_size", 14)), color=ft.Colors.ON_SURFACE_VARIANT)
                                       for text in meta[1:]],
                                 ],
                             ),
-                            *([ft.Text(task.description, size=scaled_font_size(12, settings.get("font_size", 14)),
+                            *([user_text(task.description, size=scaled_font_size(12, settings.get("font_size", 14)),
                                        color=ft.Colors.ON_SURFACE_VARIANT)]
                               if task.description else []),
                         ],
