@@ -29,6 +29,44 @@ class LanguageTests(unittest.TestCase):
         self.assertEqual(tr("TodoApp Flet · 10 种外观风格", "en"),
                          "TodoApp Flet · 10 appearance presets")
 
+
+    def test_settings_labels_and_palette_descriptions(self):
+        examples = {
+            "自动保存": "Auto-save",
+            "深色石墨与淡紫色强调": "Dark graphite with soft lavender accents",
+            "暖白纸张与低饱和绿色": "Warm white paper with muted green",
+            "📧 邮箱: ": "📧 Email: ",
+            "今天到期": "Due today",
+        }
+        for chinese, english in examples.items():
+            with self.subTest(label=chinese):
+                self.assertEqual(tr(chinese, "en"), english)
+
+    def test_dynamic_dialogs_keep_user_data(self):
+        self.assertEqual(
+            tr("确定删除「学习 Python」吗？", "en"),
+            "Delete “学习 Python”?",
+        )
+        self.assertEqual(
+            tr("导入 3 条任务将替换当前全部 12 条任务。确定吗？", "en"),
+            "Import 3 tasks and replace all 12 existing tasks?",
+        )
+        self.assertEqual(tr("已导入 3 条任务", "en"), "Imported 3 tasks")
+        self.assertEqual(
+            tr("已创建备份：personal-settings.json", "en"),
+            "Backup created：personal-settings.json",
+        )
+        self.assertEqual(tr("版权所有 © 2026 SDCOM", "en"),
+                         "Copyright © 2026 SDCOM")
+        self.assertEqual(tr("版本 0.3.2", "en"), "Version 0.3.2")
+
+    def test_dynamic_statistics_and_statuses(self):
+        self.assertEqual(tr("总任务: 2", "en"), "Total tasks: 2")
+        self.assertEqual(tr("完成率: 50.0%", "en"), "Completion: 50.0%")
+        self.assertEqual(tr("已过期 4 天", "en"), "Overdue by 4 days")
+        self.assertEqual(tr("截止: 2026/11/11", "en"), "Due: 2026/11/11")
+        self.assertEqual(tr("任务已标记为完成", "en"), "Task marked completed")
+
     def test_dynamic_stats_are_localized(self):
         stats = "总计 3 项  ·  已完成 1  ·  进行中 2  ·  逾期 0"
         self.assertIn("Completed 1", tr(stats, "en"))
