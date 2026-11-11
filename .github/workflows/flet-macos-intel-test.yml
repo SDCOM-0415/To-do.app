@@ -33,6 +33,10 @@ jobs:
           cache: pip
           cache-dependency-path: requirements.txt
 
+      - name: 从华为官方获取并校验鸿蒙字体
+        shell: bash
+        run: python prepare_fonts.py --edition flet
+
       - name: 安装 Flet 和项目依赖
         shell: bash
         run: |
