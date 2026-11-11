@@ -36,6 +36,14 @@ try:
 except ImportError:
     print("Warning: CustomTkinter not found")
 
+# 为打包版本保留未经修改的鸿蒙字体和授权协议。
+font_assets = current_dir + "/res/fonts"
+if os.path.isdir(font_assets):
+    for name in ("HarmonyOS_Sans_SC_Regular.ttf", "LICENSE.txt"):
+        source = os.path.join(font_assets, name)
+        if os.path.isfile(source):
+            datas.append((source, "res/fonts"))
+
 # Tkinter 模块和库文件处理
 try:
     import tkinter

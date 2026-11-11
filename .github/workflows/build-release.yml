@@ -178,7 +178,7 @@ jobs:
         shell: bash
         run: |
           pyinstaller --noconfirm --clean --onefile --windowed --name TodoApp \
-            --collect-all customtkinter app.py
+            --collect-all customtkinter --add-data "res/fonts:res/fonts" app.py
           test -f dist/TodoApp
 
       - name: Build Tk macOS
@@ -186,7 +186,7 @@ jobs:
         shell: bash
         run: |
           pyinstaller --noconfirm --clean --windowed --onedir --name TodoApp \
-            --collect-all customtkinter app.py
+            --collect-all customtkinter --add-data "res/fonts:res/fonts" app.py
           test -d dist/TodoApp.app
 
       - name: Cache Dart Pub packages

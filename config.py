@@ -24,6 +24,7 @@ class Config:
         self.default_config = {
             "theme": "system",
             "ui_layout": "classic",
+            "font_mode": "harmony",
             "window_size": "900x700",
             "window_position": "center",
             "auto_save": True,

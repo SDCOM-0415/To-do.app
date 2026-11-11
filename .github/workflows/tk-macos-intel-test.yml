@@ -50,7 +50,7 @@ jobs:
         run: |
           set -euo pipefail
           pyinstaller --noconfirm --clean --windowed --onedir --name TodoApp \
-            --collect-all customtkinter app.py
+            --collect-all customtkinter --add-data "res/fonts:res/fonts" app.py
           test -d dist/TodoApp.app
 
       - name: 验证 x86_64 架构及生成 ZIP

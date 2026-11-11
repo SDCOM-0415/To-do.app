@@ -16,6 +16,7 @@ class SettingsManager:
         self.validators = {
             "theme": self._validate_theme,
             "ui_layout": self._validate_ui_layout,
+            "font_mode": self._validate_font_mode,
             "window_size": self._validate_window_size,
             "font_size": self._validate_font_size,
             "language": self._validate_language,
@@ -145,6 +146,11 @@ class SettingsManager:
                 "choices": ["dark", "light", "system"],
                 "default": "dark"
             },
+            "font_mode": {
+                "name": "界面字体", "type": "choice",
+                "description": "内置 HarmonyOS Sans 或系统字体",
+                "choices": ["harmony", "system"], "default": "harmony"
+            },
             "ui_layout": {
                 "name": "主界面布局",
                 "description": "选择原版经典 UI 或现代工作空间 UI",
@@ -214,6 +220,9 @@ class SettingsManager:
         })
     
     # 验证器方法
+    def _validate_font_mode(self, value: Any) -> Tuple[bool, str]:
+        return (True, "") if value in ("harmony", "system") else (False, "界面字体无效")
+
     def _validate_ui_layout(self, value: Any) -> Tuple[bool, str]:
         if value not in ("classic", "modern"):
             return False, "界面布局只能是 classic 或 modern"
