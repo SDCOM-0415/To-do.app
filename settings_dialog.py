@@ -792,6 +792,15 @@ class SettingsDialog(ctk.CTkToplevel):
     def apply_settings(self):
         """应用设置"""
         try:
+            # Validate all manual colors before modifying any persisted setting.
+            entered_colors = {}
+            for key, entry in self.color_entries.items():
+                value = entry.get().strip()
+                if not re.fullmatch(r"#[0-9a-fA-F]{6}", value):
+                    messagebox.showerror("颜色格式无效",
+                        f"{key}优先级颜色应为 #RRGGBB，例如 #FF4444", parent=self)
+                    return False
+                entered_colors[key] = value.upper()
             # 保存主题设置及主界面布局选择。
             app_config.set("theme", self.theme_var.get())
             app_config.set("ui_layout", self.layout_var.get())
@@ -822,15 +831,6 @@ class SettingsDialog(ctk.CTkToplevel):
             selected_lang = self.language_var.get()
             app_config.set("language", lang_mapping.get(selected_lang, "zh-cn"))
             
-            # Reject invalid manually entered hex values.
-            entered_colors = {}
-            for key, entry in self.color_entries.items():
-                value = entry.get().strip()
-                if not re.fullmatch(r"#[0-9a-fA-F]{6}", value):
-                    messagebox.showerror("颜色格式无效",
-                        f"{key}优先级颜色应为 #RRGGBB，例如 #FF4444", parent=self)
-                    return False
-                entered_colors[key] = value.upper()
             app_config.set("priority_colors", entered_colors)
             
             # 通知父窗口设置已更改
