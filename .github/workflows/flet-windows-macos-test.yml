@@ -1,0 +1,111 @@
+name: Flet Windows + macOS Intel 双平台测试
+
+# 一次触发、一个工作流、两个 Runner；只上传测试工件，不发布 Release。
+on:
+  push:
+    branches: [flet-version]
+    paths:
+      - ".test-trigger/flet-windows-macos-0.3.2"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: flet-windows-macos-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-and-build:
+    name: Flet / ${{ matrix.label }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 55
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {label: Windows-x64, runner: windows-latest, platform: windows, arch: ""}
+          - {label: macOS-Intel-x64, runner: macos-26, platform: macos, arch: "--arch x86_64"}
+
+    steps:
+      - name: Checkout Flet source
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Prepare verified HarmonyOS Sans font
+        shell: bash
+        run: python prepare_fonts.py --edition flet
+
+      - name: Install Flet dependencies
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "flet-cli>=1.1.2,<1.2" -r requirements.txt
+
+      - name: Check Python syntax and run all regression tests
+        shell: bash
+        run: |
+          python -m compileall -q main.py models.py storage.py settings_ui.py appearance.py window_chrome.py date_input.py task_operations.py
+          python -m unittest discover -s . -p "test_*.py" -v
+
+      - name: Cache Dart dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: flet-pub-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pyproject.toml', 'requirements.txt') }}
+          restore-keys: |
+            flet-pub-v1-${{ runner.os }}-${{ runner.arch }}-
+
+      - name: Build Flet desktop app
+        id: flet
+        uses: flet-dev/flet-build-action@v1
+        with:
+          target: ${{ matrix.platform }}
+          working-directory: .
+          runner-python-version: "3.12"
+          bundled-python-version: "3.12"
+          cache: true
+          archive-output: false
+          extra-args: ${{ matrix.arch }}
+
+      - name: Verify macOS Intel binary
+        if: matrix.platform == 'macos'
+        shell: bash
+        env:
+          FLET_OUTPUT_PATH: ${{ steps.flet.outputs.output-path }}
+        run: |
+          set -euo pipefail
+          app="$(find "$FLET_OUTPUT_PATH" -maxdepth 2 -type d -name '*.app' -print -quit)"
+          test -n "$app"
+          exe="$(/usr/libexec/PlistBuddy -c 'Print CFBundleExecutable' "$app/Contents/Info.plist")"
+          lipo -archs "$app/Contents/MacOS/$exe" | tr ' ' '\n' | grep -Fxq x86_64
+
+      - name: Package test installers
+        shell: bash
+        env:
+          FLET_OUTPUT_PATH: ${{ steps.flet.outputs.output-path }}
+        run: |
+          set -euo pipefail
+          mkdir -p test-output
+          if [[ "${{ matrix.platform }}" == "macos" ]]; then
+            app="$(find "$FLET_OUTPUT_PATH" -maxdepth 2 -type d -name '*.app' -print -quit)"
+            test -n "$app"
+            ditto -c -k --sequesterRsrc --keepParent "$app" "test-output/TodoApp-Flet-0.3.2-macOS-Intel-test.zip"
+          else
+            python -c "import pathlib, shutil, os; p=pathlib.Path(os.environ['FLET_OUTPUT_PATH']); shutil.make_archive('test-output/TodoApp-Flet-0.3.2-Windows-x64-test', 'zip', root_dir=p)"
+          fi
+          python -c "import hashlib, pathlib; p=next(pathlib.Path('test-output').glob('*.zip')); (p.parent/'SHA256SUMS.txt').write_text(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+p.name+'\n')"
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: TodoApp-Flet-${{ matrix.label }}-test
+          path: test-output/*
+          if-no-files-found: error
+          retention-days: 7
