@@ -15,6 +15,7 @@ from ui_components import TaskEditDialog, TaskItem, StatisticsFrame
 from settings_dialog import SettingsDialog
 from modern_ui import create_modern_widgets, normalize_layout
 from font_preferences import apply_tk_font, current_font_family, ui_font_size
+from localize_tk import localize_tk
 
 class TodoApp(ctk.CTk):
     """主应用程序类"""
@@ -27,6 +28,7 @@ class TodoApp(ctk.CTk):
         self.current_theme = app_config.get("theme", "system")
         self.current_font_mode = app_config.get("font_mode", "harmony")
         self.current_font_size = int(app_config.get("font_size", 14))
+        self.current_language = app_config.get("language", "zh-cn")
         
         # 设置窗口属性
         self.setup_window()
@@ -397,17 +399,21 @@ class TodoApp(ctk.CTk):
             new_theme = app_config.get("theme", "system")
             new_font_mode = app_config.get("font_mode", "harmony")
             new_font_size = int(app_config.get("font_size", 14))
+            new_language = app_config.get("language", "zh-cn")
             if new_layout != getattr(self, "ui_layout", "classic") or (
                 (new_layout == "modern" and new_theme != self.current_theme)
                 or new_font_mode != self.current_font_mode
                 or new_font_size != self.current_font_size
+                or new_language != self.current_language
             ):
                 self.main_container.destroy()
                 self.create_widgets()
             self.current_theme = new_theme
             self.current_font_mode = new_font_mode
             self.current_font_size = new_font_size
+            self.current_language = new_language
             self.refresh_tasks()
+            localize_tk(self, new_language)
 
             # 更新窗口大小（如果需要）
             window_size = app_config.get("window_size", "900x700")
