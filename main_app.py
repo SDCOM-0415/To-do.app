@@ -41,6 +41,9 @@ class TodoApp(ctk.CTk):
         # 创建界面
         self.create_widgets()
         
+        # 首次启动也必须应用已保存的语言，而不只在保存设置后翻译。
+        localize_tk(self, self.current_language)
+
         # 加载任务
         self.refresh_tasks()
         
