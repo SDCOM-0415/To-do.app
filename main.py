@@ -167,7 +167,8 @@ def main(page: ft.Page) -> None:
             if removed_entry is None:
                 return
             index, removed = removed_entry
-            page.pop_dialog()
+            if e is not None:
+                page.pop_dialog()
             if not save():
                 tasks.insert(index, removed)
             refresh()
