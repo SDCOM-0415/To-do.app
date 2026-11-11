@@ -23,10 +23,42 @@ class LanguageTests(unittest.TestCase):
             for language in ("en", "zh-tw", "zh-cn"):
                 self.assertEqual(tr(value, language), value)
 
+    def test_settings_runtime_labels_are_localized(self):
+        self.assertEqual(tr("操作系统：macOS-15.8.1-x86_64", "en"),
+                         "Operating system：macOS-15.8.1-x86_64")
+        self.assertEqual(tr("Python 版本：3.12.16", "en"),
+                         "Python version：3.12.16")
+        self.assertEqual(tr("架构：x86_64", "en"), "Architecture：x86_64")
+        self.assertEqual(tr("TodoApp Flet · 10 种外观风格", "en"),
+                         "TodoApp Flet · 10 appearance presets")
+
     def test_dynamic_stats_are_localized(self):
         stats = "总计 3 项  ·  已完成 1  ·  进行中 2  ·  逾期 0"
         self.assertIn("Completed 1", tr(stats, "en"))
         self.assertIn("總計 3 項", tr(stats, "zh-tw"))
+
+    def test_tk_radio_caption_fallback(self):
+        from localize_tk import localize_tk
+        from tkinter import TclError
+
+        class CTkRadioButton:
+            def __init__(self):
+                self._text = "跟随系统"
+
+            def cget(self, key):
+                raise TclError('unknown option "-text"')
+
+            def configure(self, **kwargs):
+                self._text = kwargs["text"]
+
+            def winfo_children(self):
+                return []
+
+        radio = CTkRadioButton()
+        localize_tk(radio, "en")
+        self.assertEqual(radio._text, "Follow system")
+        localize_tk(radio, "zh-cn")
+        self.assertEqual(radio._text, "跟随系统")
 
     def test_tk_localization_ignores_containers_without_text_option(self):
         """容器没有 -text 时，切换语言不能阻断设置保存回调。"""
