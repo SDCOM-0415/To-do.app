@@ -31,3 +31,11 @@ def register_flet_fonts(page) -> None:
     # Flutter 的内置 assets 在 .app/.exe 中不一定映射为 Python 文件路径。
     # 因此始终注册逻辑资源路径，不依赖打包后的 Path.exists()。
     page.fonts = {**(page.fonts or {}), HARMONY_FAMILY: "/" + FONT_ASSET}
+
+def scaled_font_size(base: int, configured: int | None = None) -> int:
+    """Scale a UI size relative to the original 14px layout."""
+    try:
+        size = 14 if configured is None else max(10, min(20, int(configured)))
+    except (ValueError, TypeError):
+        size = 14
+    return max(8, round(base * size / 14))
