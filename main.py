@@ -13,6 +13,7 @@ from pathlib import Path
 import flet as ft
 
 from models import Task
+from task_operations import pop_task_by_id
 import storage
 from settings_ui import show_settings
 from appearance import appearance, normalize_theme
@@ -162,11 +163,11 @@ def main(page: ft.Page) -> None:
         def do_delete(e) -> None:
             # 重复确认、旧界面事件以及导入/清空后的过期回调都可能触发这里。
             # 删除应当是幂等操作，不得因对象不在列表中而崩溃。
-            index = next((i for i, item in enumerate(tasks) if item.id == task_id), None)
-            if index is None:
+            removed_entry = pop_task_by_id(tasks, task_id)
+            if removed_entry is None:
                 return
+            index, removed = removed_entry
             page.pop_dialog()
-            removed = tasks.pop(index)
             if not save():
                 tasks.insert(index, removed)
             refresh()
