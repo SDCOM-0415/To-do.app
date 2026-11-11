@@ -49,8 +49,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          font_args=()
+          if [[ -f res/fonts/HarmonyOS_Sans_SC_Regular.ttf ]]; then
+            font_args+=(--add-data "res/fonts:res/fonts")
+          fi
           pyinstaller --noconfirm --clean --windowed --onedir --name TodoApp \
-            --collect-all customtkinter --add-data "res/fonts:res/fonts" app.py
+            --collect-all customtkinter "${font_args[@]}" app.py
           test -d dist/TodoApp.app
 
       - name: 验证 x86_64 架构及生成 ZIP
