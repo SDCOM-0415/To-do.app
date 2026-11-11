@@ -39,7 +39,7 @@ python -m unittest discover -s . -p "test_*.py" -v
 
 应使用 Python 3.12 与本分支的 `requirements.txt`；需在对应平台通过 `flet build` 验证安装包。macOS 自定义标题栏必须保留系统原生窗口按钮，且主题切换不能破坏已有设置。
 
-## GitHub Actions 执行策略与六条流水线触发速查
+## GitHub Actions 执行策略与七条流水线触发速查
 
 > **强制规则：专用标记文件 Push 是仅在执行环境没有可用且已认证的 GitHub CLI（`gh`）时才考虑的后备方案。存在可用的 `gh` 时必须优先使用 `gh workflow run`，不得为了省事修改标记文件。** 如果 `gh` 不可用但 GitHub Actions 网页手动操作可用，可直接选择 Run workflow；并非必须制造一次 Push。所有触发均须用户本次明确授权。**不得自行创建任何新的流水线配置文件或触发文件。** 不要改变工作流的 `on:` 条件来绕过限制。
 
@@ -61,8 +61,13 @@ python -m unittest discover -s . -p "test_*.py" -v
 | 4 | `flet-build.yml` | `flet-version` | `gh workflow run flet-build.yml --ref flet-version` | **无标记文件入口；仅 `workflow_dispatch`** | Flet Windows x64、Linux x64、macOS x64、macOS arm64 四平台构建；仅 Actions Artifacts，不发布 |
 | 5 | `flet-macos-intel-test.yml` | `flet-version` | `gh workflow run flet-macos-intel-test.yml --ref flet-version` | **`flet-version`**：`.test-trigger/macos-intel-0.3.2` | Flet macOS Intel x64 单平台测试包；不发布 |
 | 6 | `flet-windows-macos-test.yml` | `flet-version` | `gh workflow run flet-windows-macos-test.yml --ref flet-version` | **`flet-version`**：`.test-trigger/flet-windows-macos-0.3.2` | 同一次运行使用 Windows x64、macOS Intel x64 两个 Runner；不发布 |
+| 7 | `tk-flet-macos-intel-test.yml` | `main` | `gh workflow run tk-flet-macos-intel-test.yml --ref main` | **`main`**：`.test-trigger/tk-flet-macos-intel-0.3.2` | 同一工作流并行构建 Tk 与 Flet 两份 macOS Intel x86_64 应用，两个独立 Job、两份 ZIP 及 SHA256 校验文件；不发布 |
 
 `gh workflow run` 使用 GitHub CLI 的 Actions API，需要 CLI 已安装、身份认证成功且具有目标仓库 Actions 写入权限。部分仅存在于非默认分支的工作流，可能受 GitHub 对 `workflow_dispatch` 工作流注册、可见性和默认分支的限制；如果返回找不到工作流或无法分发，应检查实际 GitHub Actions 页面和权限，不得宣称已触发，也不得擅自修改 `on:`。
+
+### 2026-11-11 双 Intel Mac 测试的特批记录
+
+用户明确授权：只有当缺少现成的 Tk + Flet 双 Intel Mac 构建配置时，才允许新增一条专用 workflow 和一个触发文件。因此新增了 `main/.github/workflows/tk-flet-macos-intel-test.yml` 与 `main/.test-trigger/tk-flet-macos-intel-0.3.2`。本次授权**只针对这一次配置新增**，不构成以后增建任何 CI YAML 或专用标记的持续授权。之后需要同类测试应复用上述工作流，优先用已认证的 `gh workflow run`，不得继续创建新工作流文件。
 
 ### 仅在无可用 gh CLI 时：标记文件后备流程
 
