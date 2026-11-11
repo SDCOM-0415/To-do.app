@@ -23,3 +23,10 @@
 本次发布：20261111-task-editor-date-zh-ui-prerelease-2
 内容：Tk 任务编辑弹窗完整布局、日期输入自动补 / 与中文日历；Flet 即时刷新、中文日期选择器、任务删除修复。
 要求：Tk + Flet 八个平台全部构建成功后创建新的 v0.3.2 预发布版本，不覆盖此前 Release。
+
+
+本次发布触发：20261111-language-color-fixes-and-actions-documentation-1
+用户授权：修复 Tk/Flet 界面语言与颜色选择功能后，触发 0.3.2 预发布联合构建。
+Tk AGENTS.md：记录 Actions 触发和 Release 发布细节。
+Flet AGENTS.md：记录 Flet 独立测试与主分支联合预发布边界。
+要求：从 main / flet-version 各自最新提交冻结 SHA；构建八平台安装包；全部成功后创建新的 v0.3.2-YYYYMMDD-N Prerelease，不覆盖已有 Release。
