@@ -836,7 +836,8 @@ class SettingsDialog(ctk.CTkToplevel):
             # 通知父窗口设置已更改
             if self.callback:
                 self.callback()
-            
+            localize_tk(self, app_config.get("language", "zh-cn"))
+
             messagebox.showinfo("设置已保存", "设置已成功保存", parent=self)
             return True
             
