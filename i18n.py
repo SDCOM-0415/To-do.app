@@ -5,6 +5,8 @@ Only UI labels and messages are translated. Unknown/user-generated strings are n
 """
 from __future__ import annotations
 
+import re
+
 LANGUAGES = ("zh-cn", "en", "zh-tw")
 
 # Canonical Simplified Chinese -> (English, Traditional Chinese)
@@ -191,6 +193,8 @@ MORE_STRINGS = {
     "打开日期选择器": ("Open date picker", "開啟日期選擇器"),
     "YYYY/MM/DD（可选）": ("YYYY/MM/DD (optional)", "YYYY/MM/DD（選填）"),
     "保存后同步更新任务列表。": ("The task list updates after saving.", "儲存後同步更新任務清單。"),
+    "输入任务，按回车创建": ("Type a task and press Enter", "輸入任務後按 Enter 建立"),
+    "添加任务或调整筛选条件": ("Add a task or adjust the filters", "新增任務或調整篩選條件"),
 }
 STRINGS.update(MORE_STRINGS)
 
@@ -214,6 +218,29 @@ def tr(value: str, language: str | None = None) -> str:
         language = "zh-cn"
     language = normalize_language(language)
     canonical = _REVERSE.get(value, value)
+    # Counts are generated after each refresh; translate their label fragments.
+    if language != "zh-cn":
+        stats = re.fullmatch(
+            r"总计 (\\d+) 项  ·  已完成 (\\d+)  ·  进行中 (\\d+)  ·  逾期 (\\d+)",
+            canonical,
+        )
+        if stats:
+            total, done, active, overdue = stats.groups()
+            return (
+                f"Total {total} · Completed {done} · Active {active} · Overdue {overdue}"
+                if language == "en" else
+                f"總計 {total} 項 · 已完成 {done} · 進行中 {active} · 逾期 {overdue}"
+            )
+        count_labels = {
+            "总任务": ("Total tasks", "總任務"),
+            "已完成": ("Completed", "已完成"),
+            "待完成": ("Remaining", "待完成"),
+            "已过期": ("Overdue", "已逾期"),
+            "完成率": ("Completion", "完成率"),
+        }
+        for prefix, variants in count_labels.items():
+            if re.fullmatch(re.escape(prefix) + r":\\s*[0-9]+%?", canonical):
+                return variants[0 if language == "en" else 1] + canonical[len(prefix):]
     variants = STRINGS.get(canonical)
     if variants is None or language == "zh-cn":
         return canonical
