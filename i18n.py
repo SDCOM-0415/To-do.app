@@ -338,6 +338,19 @@ MORE_STRINGS.update({
     "截止": ("Due", "截止"),
     "已导出": ("Exported", "已匯出"),
 })
+MORE_STRINGS.update({
+    "设置必须是 JSON 对象": ("Settings must be a JSON object", "設定必須是 JSON 物件"),
+    "语言设置无效": ("Invalid language setting", "語言設定無效"),
+    "排序设置无效": ("Invalid sort setting", "排序設定無效"),
+    "字体大小应为 10–20": ("Font size must be 10–20", "字體大小必須為 10–20"),
+    "窗口大小必须使用 宽度x高度 格式": ("Window size must use width x height", "視窗大小必須使用 寬度x高度 格式"),
+    "窗口大小应介于 800×600 与 3840×2160 之间": ("Window size must be between 800×600 and 3840×2160", "視窗尺寸必須介於 800×600 與 3840×2160 之間"),
+    "优先级颜色数据无效": ("Invalid priority color data", "優先級顏色資料無效"),
+    "设置文件必须是 JSON 对象": ("Settings file must be a JSON object", "設定檔必須是 JSON 物件"),
+    "任务数据必须是 JSON 数组": ("Task data must be a JSON array", "任務資料必須是 JSON 陣列"),
+    "手动备份": ("Manual backup", "手動備份"),
+    "保存失败": ("Save failed", "儲存失敗"),
+})
 STRINGS.update(MORE_STRINGS)
 
 # Longer keys first to avoid translating a short label within a longer string.
@@ -404,6 +417,27 @@ def tr(value: str, language: str | None = None) -> str:
     if match:
         return (f"Version {match.group(1)}" if language == "en"
                 else f"版本 {match.group(1)}")
+    # User-facing dialog and validation templates, never touch task data.
+    match = re.fullmatch(r"确定要删除任务 '(.+)' 吗？", canonical)
+    if match:
+        return (f"Delete task '{match.group(1)}'?" if language == "en"
+                else f"確定刪除任務「{match.group(1)}」嗎？" if language == "zh-tw"
+                else canonical)
+    match = re.fullmatch(r"(高|中|低)优先级颜色必须使用 #RRGGBB 格式", canonical)
+    if match:
+        return (f"{tr(match.group(1), language)} priority color must be #RRGGBB" if language == "en"
+                else f"{match.group(1)}優先級顏色必須使用 #RRGGBB 格式" if language == "zh-tw"
+                else canonical)
+    match = re.fullmatch(r"(高|中|低)优先级颜色应为 #RRGGBB，例如 #FF4444", canonical)
+    if match:
+        return (f"{tr(match.group(1), language)} priority color must be #RRGGBB, e.g. #FF4444" if language == "en"
+                else f"{match.group(1)}優先級顏色應為 #RRGGBB，例如 #FF4444" if language == "zh-tw"
+                else canonical)
+    match = re.fullmatch(r"(.+) 必须为布尔值", canonical)
+    if match:
+        return (f"{match.group(1)} must be a boolean" if language == "en"
+                else f"{match.group(1)} 必須為布林值" if language == "zh-tw"
+                else canonical)
     # Interpolate UI templates without translating user task names or data.
     patterns = (
         (r"确定删除「(.+)」吗？", "Delete “{0}”?", "確定刪除「{0}」嗎？"),
