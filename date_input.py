@@ -30,7 +30,7 @@ def parse_date_input(value: str) -> date | None:
         return None
     if re.fullmatch(r"\d{8}", value):
         value = f"{value[:4]}-{value[4:6]}-{value[6:]}"
-    elif re.fullmatch(r"\d{4}[/\-]\d{2}[/\-]\d{2}", value):
+    elif re.fullmatch(r"\d{4}/\d{2}/\d{2}|\d{4}-\d{2}-\d{2}", value):
         value = value.replace("/", "-")
     else:
         raise ValueError("日期格式应为 YYYY/MM/DD")
