@@ -4,7 +4,7 @@ import unittest
 
 from config import app_config
 from font_preferences import (
-    FONT_FILENAME, normalize_font_mode, system_font_family, font_path
+    FONT_FILENAME, normalize_font_mode, system_font_family, font_path, ui_font_size
 )
 from settings_manager import settings_manager
 
@@ -18,6 +18,15 @@ class FontPreferenceTests(unittest.TestCase):
             self.assertEqual(normalize_font_mode(mode), mode)
         self.assertEqual(normalize_font_mode(None), "harmony")
         self.assertFalse(settings_manager.validate_setting("font_mode", "unknown")[0])
+
+    def test_ui_font_size_scales_from_14_px_baseline(self):
+        size = ui_font_size
+        self.assertEqual(size(14, 14), 14)
+        self.assertEqual(size(14, 10), 10)
+        self.assertEqual(size(14, 20), 20)
+        self.assertEqual(size(28, 20), 40)
+        self.assertEqual(size(12, "invalid"), 12)
+        self.assertEqual(size(14, 99), 20)
 
     def test_system_font_platforms(self):
         self.assertEqual(system_font_family("win32"), "Microsoft YaHei UI")
