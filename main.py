@@ -280,14 +280,22 @@ def main(page: ft.Page) -> None:
 
         date_picker = ft.DatePicker(
             on_change=set_due_from_calendar,
-            locale=ft.Locale("zh", "Hans"),
-            help_text="选择截止日期",
-            confirm_text="确定",
-            cancel_text="取消",
-            field_label_text="截止日期",
-            field_hint_text="年/月/日",
-            error_format_text="日期格式不正确",
-            error_invalid_text="日期超出允许范围",
+            locale=ft.Locale("en", "US") if settings.get("language") == "en"
+                else ft.Locale("zh", "TW") if settings.get("language") == "zh-tw"
+                else ft.Locale("zh", "CN"),
+            help_text=tr("选择截止日期", settings.get("language")),
+            confirm_text=tr("确定", settings.get("language")),
+            cancel_text=tr("取消", settings.get("language")),
+            field_label_text=tr("截止日期", settings.get("language")),
+            field_hint_text="YYYY/MM/DD",
+            error_format_text={
+                "en": "Invalid date format",
+                "zh-tw": "日期格式不正確",
+            }.get(settings.get("language"), "日期格式不正确"),
+            error_invalid_text={
+                "en": "Date outside the allowed range",
+                "zh-tw": "日期超出允許範圍",
+            }.get(settings.get("language"), "日期超出允许范围"),
             first_date=datetime(1900, 1, 1),
             last_date=datetime(2100, 12, 31),
         )
