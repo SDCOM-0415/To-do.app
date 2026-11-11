@@ -16,6 +16,7 @@ from models import Task
 import storage
 from settings_ui import show_settings
 from appearance import appearance, normalize_theme
+from font_preferences import font_family, register_flet_fonts
 from window_chrome import configure_window, with_titlebar, update_titlebar_theme, SIDEBAR_WIDTH
 
 
@@ -40,6 +41,8 @@ def main(page: ft.Page) -> None:
         page.add(ft.Text(f"数据目录：{storage.APP_DIR}"))
         return
 
+    register_flet_fonts(page)
+
     theme_surfaces: list[tuple[ft.Container, str]] = []
     title_surface: ft.Container | None = None
     colors = appearance(settings.get("theme"))
@@ -49,7 +52,10 @@ def main(page: ft.Page) -> None:
         settings["theme"] = normalize_theme(settings.get("theme"))
         colors = appearance(settings["theme"])
         page.theme_mode = colors["mode"]
-        page.theme = ft.Theme(color_scheme_seed=colors["accent"])
+        page.theme = ft.Theme(
+            color_scheme_seed=colors["accent"],
+            font_family=font_family(settings.get("font_mode")),
+        )
         page.bgcolor = colors["canvas"]
         page.window.bgcolor = colors["sidebar"]
         for surface, token in theme_surfaces:
@@ -611,4 +617,4 @@ def main(page: ft.Page) -> None:
 
 
 if __name__ == "__main__":
-    ft.run(main)
+    ft.run(main, assets_dir="assets")

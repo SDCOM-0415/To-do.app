@@ -6,13 +6,14 @@ from typing import Any
 from platformdirs import user_data_path
 from models import Task
 from appearance import normalize_theme
+from font_preferences import normalize_font_mode
 
 APP_DIR = Path(user_data_path("TodoApp", "SDCOM", ensure_exists=True))
 TASKS_FILE = APP_DIR / "tasks.json"
 TK_SETTINGS_FILE = APP_DIR / "tk-config.json"
 SETTINGS_FILE = APP_DIR / "flet-settings.json"
 DEFAULT_SETTINGS: dict[str, Any] = {
-    "theme": "graphite", "window_size": "900x700", "window_position": "center",
+    "theme": "graphite", "font_mode": "harmony", "window_size": "900x700", "window_position": "center",
     "auto_save": True, "show_completed": True, "show_statistics": True,
     "confirm_delete": True, "font_size": 14, "language": "zh-cn",
     "priority_colors": {"高": "#ff4444", "中": "#ffaa00", "低": "#44ff44"},
@@ -107,9 +108,11 @@ def load_settings() -> dict[str, Any]:
             pass
     # 兼容历史的 dark/light/system，同时保留三套新主题的选择。
     settings["theme"] = normalize_theme(settings.get("theme"))
+    settings["font_mode"] = normalize_font_mode(settings.get("font_mode"))
     return settings
 
 def save_settings(settings: dict[str, Any]) -> None:
     data = {key: settings.get(key, default) for key, default in DEFAULT_SETTINGS.items()}
     data["theme"] = normalize_theme(data.get("theme"))
+    data["font_mode"] = normalize_font_mode(data.get("font_mode"))
     _atomic_json_write(SETTINGS_FILE, data)

@@ -37,6 +37,17 @@ class StorageTests(unittest.TestCase):
                     storage.save_settings({"theme": "system"})
                     self.assertEqual(storage.load_settings()["theme"], "graphite")
 
+    def test_font_mode_survives_restart(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "flet-settings.json"
+            with patch.object(storage, "SETTINGS_FILE", path):
+                with patch.object(storage, "migrate_legacy_data", return_value=None):
+                    for mode in ("harmony", "system"):
+                        storage.save_settings({"font_mode": mode})
+                        self.assertEqual(storage.load_settings()["font_mode"], mode)
+                    storage.save_settings({"font_mode": "invalid"})
+                    self.assertEqual(storage.load_settings()["font_mode"], "harmony")
+
     def test_json_round_trip(self):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / "tasks.json"

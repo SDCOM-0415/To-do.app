@@ -17,6 +17,7 @@ import flet as ft
 
 import storage
 from appearance import PALETTES, appearance, normalize_theme
+from font_preferences import normalize_font_mode
 from window_chrome import with_titlebar, update_titlebar_theme
 
 DEFAULT_COLORS = storage.DEFAULT_SETTINGS["priority_colors"]
@@ -32,6 +33,7 @@ def validate_settings(values: dict[str, Any]) -> dict[str, Any]:
     candidate.update({k: v for k, v in values.items() if k in candidate})
     # Preserve explicit user choice, translating legacy theme values.
     candidate["theme"] = normalize_theme(candidate.get("theme"))
+    candidate["font_mode"] = normalize_font_mode(candidate.get("font_mode"))
     if candidate["language"] not in ("zh-cn", "en", "zh-tw"):
         raise ValueError("语言设置无效")
     if candidate["sort"] not in ("created_at", "priority", "due_date", "title", "completed"):
@@ -107,6 +109,11 @@ def show_settings(
                 controls=controls, spacing=18, scroll=ft.ScrollMode.AUTO, expand=True,
             ),
         )
+
+    font_mode_control = option("font_mode", "界面字体", [
+        ("HarmonyOS Sans SC（内置，默认）", "harmony"),
+        ("系统字体（跟随当前平台）", "system"),
+    ], 310)
 
     theme_control = option(
         "theme", "界面风格",
@@ -195,6 +202,7 @@ def show_settings(
         draft.clear()
         draft.update(candidate)
         theme_control.value = candidate["theme"]
+        font_mode_control.value = candidate["font_mode"]
         language.value = candidate["language"]
         sort.value = candidate["sort"]
         font.value = candidate["font_size"]
@@ -311,7 +319,11 @@ def show_settings(
             )
             for preset in PALETTES.values()
         ],
-        heading("字体", "任务标题和部分界面文字的字号。"),
+        heading("界面字体", "鸿蒙字体默认内置；系统字体会按 Windows / macOS / Linux 自动选择。"),
+        font_mode_control,
+        ft.Text("字体授权：HarmonyOS Sans © Huawei Device Co., Ltd.，详见 assets/fonts/LICENSE.txt", size=11,
+                color=ft.Colors.ON_SURFACE_VARIANT),
+        heading("字体大小", "任务标题和部分界面文字的字号。"),
         ft.Row([font, size_value]),
         heading("默认窗口大小", "下次启动时按照保存的尺寸打开。"),
         ft.Row([width, ft.Text("×"), height], spacing=12),

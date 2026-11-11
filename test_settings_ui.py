@@ -46,6 +46,13 @@ class SettingsValidationTests(unittest.TestCase):
                 for token in ("accent", "canvas", "sidebar", "surface", "selected", "divider"):
                     self.assertRegex(preset[token], r"^#[0-9A-Fa-f]{6}$")
 
+    def test_font_mode_selection(self):
+        from font_preferences import normalize_font_mode
+        for mode in ("harmony", "system"):
+            self.assertEqual(settings_ui.validate_settings({"font_mode": mode})["font_mode"], mode)
+        self.assertEqual(normalize_font_mode(None), "harmony")
+        self.assertEqual(normalize_font_mode("invalid"), "harmony")
+
     def test_legacy_appearance_aliases(self):
         self.assertEqual(normalize_theme("light"), "paper")
         self.assertEqual(normalize_theme("dark"), "graphite")

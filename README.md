@@ -18,6 +18,7 @@
   - **Midnight OLED**：近黑色与薄荷青色。
   - **Lavender Mist**：雾紫浅色与薰衣草紫。
   - **Copper Dusk**：暖灰深色与赤铜色。
+- 界面字体可在设置中切换：默认内置 HarmonyOS Sans SC（Regular），也可使用系统字体。Windows 使用 Microsoft YaHei UI、macOS 使用 PingFang SC、Linux 使用 Noto Sans CJK SC（未安装时回退）。字体及协议放在 `assets/fonts/`，请将未修改的字体文件随应用打包。
 - macOS 使用 Flet 的自定义标题栏方案，使原生红绿灯按钮与应用界面尽可能协调；效果需在目标 macOS 环境实际验证。
 
 ## 下载与运行
