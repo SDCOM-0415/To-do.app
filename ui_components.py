@@ -8,6 +8,7 @@ from datetime import datetime, date
 import calendar
 from date_input import format_date_input, parse_date_input
 from localize_tk import localize_tk
+from i18n import tr
 from typing import Callable, Optional
 from models import Task
 from config import app_config
@@ -76,11 +77,15 @@ class TaskEditDialog(ctk.CTkToplevel):
         ctk.CTkLabel(priority_frame, text="优先级:", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(14))).pack(side="left", padx=(10, 20))
         
         self.priority_var = ctk.StringVar(value="中")
+        language = app_config.get("language", "zh-cn")
         priority_options = ["高", "中", "低"]
+        localized_priority = {tr(value, language): value for value in priority_options}
+        self.priority_display_var = ctk.StringVar(value=tr("中", language))
         self.priority_menu = ctk.CTkOptionMenu(
-            priority_frame, 
-            values=priority_options,
-            variable=self.priority_var,
+            priority_frame,
+            values=list(localized_priority),
+            variable=self.priority_display_var,
+            command=lambda selected: self.priority_var.set(localized_priority[selected]),
             font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))
         )
         self.priority_menu.pack(side="left", padx=(0, 10))
@@ -213,6 +218,7 @@ class TaskEditDialog(ctk.CTkToplevel):
             self.title_entry.insert(0, self.task.title)
             self.description_text.insert("1.0", self.task.description)
             self.priority_var.set(self.task.priority)
+            self.priority_display_var.set(tr(self.task.priority, app_config.get('language', 'zh-cn')))
             if self.task.due_date:
                 # 只显示日期部分
                 due_date = self.task.due_date.split('T')[0] if 'T' in self.task.due_date else self.task.due_date
