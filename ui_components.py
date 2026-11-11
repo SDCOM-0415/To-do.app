@@ -341,6 +341,7 @@ class TaskItem(ctk.CTkFrame):
             font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(14), "bold"),
             anchor="w"
         )
+        self.title_label._i18n_skip = True
         self.title_label.pack(fill="x", pady=(10, 2))
         
         # 任务描述
@@ -352,6 +353,7 @@ class TaskItem(ctk.CTkFrame):
                 anchor="w",
                 text_color="gray"
             )
+            self.desc_label._i18n_skip = True
             self.desc_label.pack(fill="x", pady=(0, 2))
         
         # 截止日期和状态信息
@@ -372,7 +374,7 @@ class TaskItem(ctk.CTkFrame):
         if info_text:
             self.info_label = ctk.CTkLabel(
                 middle_frame,
-                text=" | ".join(info_text),
+                text=" | ".join(tr(text, app_config.get("language", "zh-cn")) for text in info_text),
                 font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(10)),
                 anchor="w",
                 text_color="orange" if self.task.is_overdue() else "gray"
