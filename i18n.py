@@ -326,7 +326,7 @@ def tr(value: str, language: str | None = None) -> str:
         labels = STRINGS.get(prefix)
         if labels:
             for source_label in (prefix, *labels):
-                match = re.fullmatch(re.escape(source_label) + r"([：:]\\s*)(.+)", canonical)
+                match = re.fullmatch(re.escape(source_label) + r"([：:]\s*)(.+)", canonical)
                 if match:
                     target = prefix if language == "zh-cn" else labels[0 if language == "en" else 1]
                     return target + match.group(1) + match.group(2)
@@ -343,14 +343,14 @@ def tr(value: str, language: str | None = None) -> str:
         ("已过期", ("Overdue", "已逾期")),
         ("天后到期", ("days until due", "天後到期")),
     ):
-        match = re.fullmatch(re.escape(source) + r"\\s+(\\d+)\\s+天", canonical)
+        match = re.fullmatch(re.escape(source) + r"\s+(\d+)\s+天", canonical)
         if match:
             return (translations[0] if language == "en" else translations[1]) + " " + match.group(1)
     # Dynamic prefix + numeric suffix, generated after every task refresh.
     for prefix in ("总任务", "已完成", "待完成", "已过期", "完成率"):
         choices = STRINGS.get(prefix)
         if choices:
-            match = re.fullmatch(re.escape(prefix) + r"([:：]\\s*)([0-9]+(?:\\.[0-9]+)?%?)", canonical)
+            match = re.fullmatch(re.escape(prefix) + r"([:：]\s*)([0-9]+(?:\.[0-9]+)?%?)", canonical)
             if match:
                 value = match.group(2)
                 if language == "en":
