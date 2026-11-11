@@ -16,10 +16,18 @@ from config import app_config
 from settings_manager import settings_manager
 from font_preferences import current_font_family, ui_font_size
 from localize_tk import localize_tk
+from i18n import tr
 
 class SettingsDialog(ctk.CTkToplevel):
     """设置对话框"""
     
+    @staticmethod
+    def localized_messagebox(kind, title, message, **options):
+        language = app_config.get("language", "zh-cn")
+        translated_title = tr(title, language)
+        translated_message = tr(message, language)
+        return getattr(messagebox, kind)(translated_title, translated_message, **options)
+
     def __init__(self, parent, callback=None):
         super().__init__(parent)
         
@@ -724,7 +732,7 @@ class SettingsDialog(ctk.CTkToplevel):
         self.preview_priority_color(priority)
         selected = colorchooser.askcolor(
             color=self.priority_colors[priority],
-            title=f"选择{priority}优先级颜色", parent=self)
+            title=tr(f"选择{priority}优先级颜色", app_config.get("language")), parent=self)
         if selected[1]:
             color = selected[1].upper()
             self.priority_colors[priority] = color
@@ -746,21 +754,21 @@ class SettingsDialog(ctk.CTkToplevel):
         filename = filedialog.asksaveasfilename(
             defaultextension=".json",
             filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
-            title="导出设置"
+            title=tr("导出设置", app_config.get("language"))
         )
         
         if filename:
             success, message = settings_manager.export_settings(filename)
             if success:
-                messagebox.showinfo("导出成功", message)
+                self.localized_messagebox("showinfo", "导出成功", message)
             else:
-                messagebox.showerror("导出失败", message)
+                self.localized_messagebox("showerror", "导出失败", message)
 
     def import_settings(self):
         """导入设置"""
         filename = filedialog.askopenfilename(
             filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
-            title="导入设置"
+            title=tr("导入设置", app_config.get("language"))
         )
         
         if filename:
@@ -768,26 +776,26 @@ class SettingsDialog(ctk.CTkToplevel):
             
             if success and settings_data:
                 # 确认导入
-                if messagebox.askyesno("确认导入", "导入设置将覆盖当前设置，是否继续？"):
+                if self.localized_messagebox("askyesno", "确认导入", "导入设置将覆盖当前设置，是否继续？"):
                     apply_success, apply_errors = settings_manager.apply_settings(settings_data)
                     if apply_success:
-                        messagebox.showinfo("导入成功", "设置已导入，请重启应用程序以应用所有更改")
+                        self.localized_messagebox("showinfo", "导入成功", "设置已导入，请重启应用程序以应用所有更改")
                         self.destroy()
                     else:
                         error_msg = "应用导入的设置时发生错误:\n" + "\n".join(apply_errors)
-                        messagebox.showerror("应用失败", error_msg)
+                        self.localized_messagebox("showerror", "应用失败", error_msg)
             else:
-                messagebox.showerror("导入失败", message)
+                self.localized_messagebox("showerror", "导入失败", message)
 
     def reset_all_settings(self):
         """重置所有设置"""
-        if messagebox.askyesno("确认重置", "确定要重置所有设置为默认值吗？此操作不可恢复！"):
+        if self.localized_messagebox("askyesno", "确认重置", "确定要重置所有设置为默认值吗？此操作不可恢复！"):
             success, message = settings_manager.reset_to_defaults()
             if success:
-                messagebox.showinfo("重置完成", f"{message}，请重启应用程序")
+                self.localized_messagebox("showinfo", "重置完成", f"{message}，请重启应用程序")
                 self.destroy()
             else:
-                messagebox.showerror("重置失败", message)
+                self.localized_messagebox("showerror", "重置失败", message)
     
     def apply_settings(self):
         """应用设置"""
@@ -797,7 +805,7 @@ class SettingsDialog(ctk.CTkToplevel):
             for key, entry in self.color_entries.items():
                 value = entry.get().strip()
                 if not re.fullmatch(r"#[0-9a-fA-F]{6}", value):
-                    messagebox.showerror("颜色格式无效",
+                    self.localized_messagebox("showerror", "颜色格式无效",
                         f"{key}优先级颜色应为 #RRGGBB，例如 #FF4444", parent=self)
                     return False
                 entered_colors[key] = value.upper()
@@ -838,11 +846,11 @@ class SettingsDialog(ctk.CTkToplevel):
                 self.callback()
             localize_tk(self, app_config.get("language", "zh-cn"))
 
-            messagebox.showinfo("设置已保存", "设置已成功保存", parent=self)
+            self.localized_messagebox("showinfo", "设置已保存", "设置已成功保存", parent=self)
             return True
             
         except Exception as e:
-            messagebox.showerror("保存失败", f"保存设置时发生错误: {str(e)}")
+            self.localized_messagebox("showerror", "保存失败", f"保存设置时发生错误: {str(e)}")
             return False
     
     def ok(self):
@@ -862,7 +870,7 @@ class SettingsDialog(ctk.CTkToplevel):
         try:
             webbrowser.open(url)
         except Exception as e:
-            messagebox.showerror("打开链接失败", f"无法打开链接: {url}\n错误: {str(e)}")
+            self.localized_messagebox("showerror", "打开链接失败", f"无法打开链接: {url}\n错误: {str(e)}")
     
     def open_email(self, email):
         """打开邮箱客户端"""
@@ -884,6 +892,6 @@ class SettingsDialog(ctk.CTkToplevel):
                 root.clipboard_append(email)
                 root.update()  # 确保剪贴板更新
                 root.destroy()
-                messagebox.showinfo("邮箱地址已复制", f"邮箱地址 {email} 已复制到剪贴板")
+                self.localized_messagebox("showinfo", "邮箱地址已复制", f"邮箱地址 {email} 已复制到剪贴板")
             except Exception as e:
-                messagebox.showerror("操作失败", f"无法打开邮箱客户端或复制地址\n错误: {str(e)}")
+                self.localized_messagebox("showerror", "操作失败", f"无法打开邮箱客户端或复制地址\n错误: {str(e)}")
