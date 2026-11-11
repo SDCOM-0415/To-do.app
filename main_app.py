@@ -14,7 +14,7 @@ from config import app_config
 from ui_components import TaskEditDialog, TaskItem, StatisticsFrame
 from settings_dialog import SettingsDialog
 from modern_ui import create_modern_widgets, normalize_layout
-from font_preferences import apply_tk_font, current_font_family
+from font_preferences import apply_tk_font, current_font_family, ui_font_size
 
 class TodoApp(ctk.CTk):
     """主应用程序类"""
@@ -26,6 +26,7 @@ class TodoApp(ctk.CTk):
         self.setup_theme()
         self.current_theme = app_config.get("theme", "system")
         self.current_font_mode = app_config.get("font_mode", "harmony")
+        self.current_font_size = int(app_config.get("font_size", 14))
         
         # 设置窗口属性
         self.setup_window()
@@ -106,7 +107,7 @@ class TodoApp(ctk.CTk):
         title_label = ctk.CTkLabel(
             toolbar,
             text=f"📝 Todo App v{app_config.version}",
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 20, "bold")
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(20), "bold")
         )
         title_label.pack(side="left", padx=20, pady=15)
         
@@ -122,7 +123,7 @@ class TodoApp(ctk.CTk):
             width=40,
             height=40,
             command=self.show_settings,
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 16)
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(16))
         )
         settings_btn.pack(side="right")
     
@@ -141,7 +142,7 @@ class TodoApp(ctk.CTk):
             input_frame,
             placeholder_text="输入新任务，按回车快速添加...",
             height=40,
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 14)
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(14))
         )
         self.task_entry.pack(side="left", fill="x", expand=True, padx=(10, 5), pady=10)
         self.task_entry.bind("<Return>", self.quick_add_task)
@@ -153,7 +154,7 @@ class TodoApp(ctk.CTk):
             width=100,
             height=40,
             command=self.show_add_dialog,
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 12)
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))
         )
         add_btn.pack(side="right", padx=(5, 10), pady=10)
         
@@ -168,12 +169,12 @@ class TodoApp(ctk.CTk):
             text="显示已完成",
             variable=self.show_completed_var,
             command=self.refresh_tasks,
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 12)
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))
         )
         show_completed_cb.pack(side="left", padx=10, pady=10)
         
         # 排序选项
-        ctk.CTkLabel(filter_frame, text="排序:", font=(current_font_family(app_config.get("font_mode", "harmony")), 12)).pack(side="left", padx=(20, 5), pady=10)
+        ctk.CTkLabel(filter_frame, text="排序:", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))).pack(side="left", padx=(20, 5), pady=10)
         
         self.sort_var = ctk.StringVar(value="created_at")
         sort_menu = ctk.CTkOptionMenu(
@@ -181,7 +182,7 @@ class TodoApp(ctk.CTk):
             values=["创建时间", "优先级", "截止日期", "标题", "完成状态"],
             variable=self.sort_var,
             command=self.on_sort_changed,
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 12)
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))
         )
         sort_menu.pack(side="left", padx=5, pady=10)
         
@@ -190,7 +191,7 @@ class TodoApp(ctk.CTk):
             filter_frame,
             placeholder_text="搜索任务...",
             width=150,
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 12)
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))
         )
         self.search_entry.pack(side="right", padx=10, pady=10)
         self.search_entry.bind("<KeyRelease>", self.on_search_changed)
@@ -214,14 +215,14 @@ class TodoApp(ctk.CTk):
         actions_frame = ctk.CTkFrame(right_frame)
         actions_frame.pack(fill="x", padx=10, pady=(0, 10))
         
-        ctk.CTkLabel(actions_frame, text="快捷操作", font=(current_font_family(app_config.get("font_mode", "harmony")), 16, "bold")).pack(pady=(10, 15))
+        ctk.CTkLabel(actions_frame, text="快捷操作", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(16), "bold")).pack(pady=(10, 15))
         
         # 清除已完成任务
         clear_completed_btn = ctk.CTkButton(
             actions_frame,
             text="清除已完成任务",
             command=self.clear_completed_tasks,
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 12)
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))
         )
         clear_completed_btn.pack(fill="x", padx=10, pady=5)
         
@@ -232,7 +233,7 @@ class TodoApp(ctk.CTk):
             command=self.clear_all_tasks,
             fg_color="red",
             hover_color="darkred",
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 12)
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))
         )
         clear_all_btn.pack(fill="x", padx=10, pady=5)
         
@@ -241,7 +242,7 @@ class TodoApp(ctk.CTk):
             actions_frame,
             text="导出任务",
             command=self.export_tasks,
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 12)
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))
         )
         export_btn.pack(fill="x", padx=10, pady=(5, 15))
     
@@ -395,14 +396,17 @@ class TodoApp(ctk.CTk):
             new_layout = normalize_layout(app_config.get("ui_layout", "classic"))
             new_theme = app_config.get("theme", "system")
             new_font_mode = app_config.get("font_mode", "harmony")
+            new_font_size = int(app_config.get("font_size", 14))
             if new_layout != getattr(self, "ui_layout", "classic") or (
                 (new_layout == "modern" and new_theme != self.current_theme)
                 or new_font_mode != self.current_font_mode
+                or new_font_size != self.current_font_size
             ):
                 self.main_container.destroy()
                 self.create_widgets()
             self.current_theme = new_theme
             self.current_font_mode = new_font_mode
+            self.current_font_size = new_font_size
             self.refresh_tasks()
 
             # 更新窗口大小（如果需要）
