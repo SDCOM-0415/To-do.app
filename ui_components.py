@@ -5,6 +5,8 @@ UI 组件 - Todo App v0.3.2
 import customtkinter as ctk
 from tkinter import messagebox
 from datetime import datetime, date
+import calendar
+from date_input import format_date_input, parse_date_input
 from typing import Callable, Optional
 from models import Task
 from config import app_config
@@ -22,8 +24,9 @@ class TaskEditDialog(ctk.CTkToplevel):
         
         # 设置窗口属性
         self.title("编辑任务" if task else "新建任务")
-        self.geometry("500x400")
-        self.resizable(False, False)
+        self.geometry("560x540")
+        self.minsize(500, 480)
+        self.resizable(True, True)
         
         # 设置为模态窗口
         self.transient(parent)
@@ -42,28 +45,31 @@ class TaskEditDialog(ctk.CTkToplevel):
     def center_window(self):
         """窗口居中显示"""
         self.update_idletasks()
-        x = (self.winfo_screenwidth() // 2) - (500 // 2)
-        y = (self.winfo_screenheight() // 2) - (400 // 2)
-        self.geometry(f"500x400+{x}+{y}")
+        width, height = 560, 540
+        x = max(0, (self.winfo_screenwidth() - width) // 2)
+        y = max(0, (self.winfo_screenheight() - height) // 2)
+        self.geometry(f"{width}x{height}+{x}+{y}")
     
     def create_widgets(self):
         """创建界面组件"""
         # 主框架
         main_frame = ctk.CTkFrame(self)
-        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        main_frame.pack(fill="both", expand=True, padx=16, pady=16)
+        form = ctk.CTkScrollableFrame(main_frame, fg_color="transparent")
+        form.pack(side="top", fill="both", expand=True, padx=8, pady=(8, 4))
         
         # 标题输入
-        ctk.CTkLabel(main_frame, text="任务标题:", font=(current_font_family(app_config.get("font_mode", "harmony")), 14)).pack(anchor="w", pady=(10, 5))
-        self.title_entry = ctk.CTkEntry(main_frame, height=35, font=(current_font_family(app_config.get("font_mode", "harmony")), 12))
+        ctk.CTkLabel(form, text="任务标题:", font=(current_font_family(app_config.get("font_mode", "harmony")), 14)).pack(anchor="w", pady=(10, 5))
+        self.title_entry = ctk.CTkEntry(form, height=35, font=(current_font_family(app_config.get("font_mode", "harmony")), 12))
         self.title_entry.pack(fill="x", pady=(0, 15))
         
         # 描述输入
-        ctk.CTkLabel(main_frame, text="任务描述:", font=(current_font_family(app_config.get("font_mode", "harmony")), 14)).pack(anchor="w", pady=(0, 5))
-        self.description_text = ctk.CTkTextbox(main_frame, height=100, font=(current_font_family(app_config.get("font_mode", "harmony")), 12))
+        ctk.CTkLabel(form, text="任务描述:", font=(current_font_family(app_config.get("font_mode", "harmony")), 14)).pack(anchor="w", pady=(0, 5))
+        self.description_text = ctk.CTkTextbox(form, height=100, font=(current_font_family(app_config.get("font_mode", "harmony")), 12))
         self.description_text.pack(fill="x", pady=(0, 15))
         
         # 优先级选择
-        priority_frame = ctk.CTkFrame(main_frame)
+        priority_frame = ctk.CTkFrame(form)
         priority_frame.pack(fill="x", pady=(0, 15))
         
         ctk.CTkLabel(priority_frame, text="优先级:", font=(current_font_family(app_config.get("font_mode", "harmony")), 14)).pack(side="left", padx=(10, 20))
@@ -79,17 +85,24 @@ class TaskEditDialog(ctk.CTkToplevel):
         self.priority_menu.pack(side="left", padx=(0, 10))
         
         # 截止日期
-        date_frame = ctk.CTkFrame(main_frame)
+        date_frame = ctk.CTkFrame(form)
         date_frame.pack(fill="x", pady=(0, 15))
         
         ctk.CTkLabel(date_frame, text="截止日期:", font=(current_font_family(app_config.get("font_mode", "harmony")), 14)).pack(side="left", padx=(10, 20))
         
-        self.due_date_entry = ctk.CTkEntry(date_frame, placeholder_text="YYYY-MM-DD (可选)", font=(current_font_family(app_config.get("font_mode", "harmony")), 12))
-        self.due_date_entry.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        self.due_date_var = ctk.StringVar()
+        self.due_date_entry = ctk.CTkEntry(
+            date_frame, textvariable=self.due_date_var,
+            placeholder_text="YYYY/MM/DD（可选）",
+            font=(current_font_family(app_config.get("font_mode", "harmony")), 12))
+        self.due_date_entry.pack(side="left", fill="x", expand=True, padx=(0, 6))
+        self.due_date_var.trace_add("write", self.on_date_input)
+        ctk.CTkButton(date_frame, text="日历", width=64,
+                      command=self.show_date_picker).pack(side="right", padx=(0, 8))
         
         # 按钮框架
         button_frame = ctk.CTkFrame(main_frame)
-        button_frame.pack(fill="x", pady=(20, 10))
+        button_frame.pack(side="bottom", fill="x", padx=8, pady=(6, 8))
         
         # 取消按钮
         cancel_btn = ctk.CTkButton(
@@ -114,6 +127,82 @@ class TaskEditDialog(ctk.CTkToplevel):
         # 焦点设置
         self.title_entry.focus()
     
+    def on_date_input(self, *_):
+        if getattr(self, "_formatting_date", False):
+            return
+        raw = self.due_date_var.get()
+        formatted = format_date_input(raw)
+        if formatted != raw:
+            self._formatting_date = True
+            try:
+                self.due_date_var.set(formatted)
+                self.due_date_entry.icursor("end")
+            finally:
+                self._formatting_date = False
+
+    def show_date_picker(self):
+        """中文原生日历，不依赖额外第三方包。"""
+        try:
+            selected = parse_date_input(self.due_date_var.get())
+        except ValueError:
+            selected = None
+        current = selected or date.today()
+        popup = ctk.CTkToplevel(self)
+        popup.title("选择截止日期")
+        popup.geometry("330x350")
+        popup.resizable(False, False)
+        popup.transient(self)
+        self.grab_release()
+        popup.grab_set()
+        family = current_font_family(app_config.get("font_mode", "harmony"))
+        outer = ctk.CTkFrame(popup)
+        outer.pack(fill="both", expand=True, padx=12, pady=12)
+        header = ctk.CTkFrame(outer, fg_color="transparent")
+        header.pack(fill="x", padx=6, pady=(6, 10))
+        grid = ctk.CTkFrame(outer, fg_color="transparent")
+        grid.pack(fill="both", expand=True, padx=6)
+        display = ctk.StringVar()
+        def close_picker():
+            popup.grab_release()
+            popup.destroy()
+            if self.winfo_exists():
+                self.grab_set()
+                self.due_date_entry.focus_set()
+        popup.protocol("WM_DELETE_WINDOW", close_picker)
+        def move_month(offset):
+            nonlocal current
+            year = current.year + (current.month - 1 + offset) // 12
+            month = (current.month - 1 + offset) % 12 + 1
+            current = date(year, month, 1)
+            render()
+        def pick(day):
+            self.due_date_var.set(f"{current.year:04d}/{current.month:02d}/{day:02d}")
+            close_picker()
+        ctk.CTkButton(header, text="‹", width=40, command=lambda: move_month(-1)).pack(side="left")
+        ctk.CTkLabel(header, textvariable=display, font=(family, 15, "bold")).pack(
+            side="left", fill="x", expand=True)
+        ctk.CTkButton(header, text="›", width=40, command=lambda: move_month(1)).pack(side="right")
+        def render():
+            display.set(f"{current.year} 年 {current.month} 月")
+            for widget in grid.winfo_children():
+                widget.destroy()
+            for col, weekday in enumerate(("一", "二", "三", "四", "五", "六", "日")):
+                ctk.CTkLabel(grid, text=weekday, font=(family, 12)).grid(
+                    row=0, column=col, padx=2, pady=4)
+            today = date.today()
+            for row, week in enumerate(calendar.monthcalendar(current.year, current.month), start=1):
+                for col, day in enumerate(week):
+                    if day:
+                        ctk.CTkButton(
+                            grid, text=str(day), width=35, height=32,
+                            fg_color=None if (day == today.day and current.year == today.year
+                            and current.month == today.month) else "transparent",
+                            text_color=("gray10", "gray90"),
+                            command=lambda day=day: pick(day),
+                        ).grid(row=row, column=col, padx=2, pady=2)
+        render()
+        popup.lift()
+
     def load_task_data(self):
         """加载任务数据到表单"""
         if self.task:
@@ -123,7 +212,7 @@ class TaskEditDialog(ctk.CTkToplevel):
             if self.task.due_date:
                 # 只显示日期部分
                 due_date = self.task.due_date.split('T')[0] if 'T' in self.task.due_date else self.task.due_date
-                self.due_date_entry.insert(0, due_date)
+                self.due_date_var.set(format_date_input(due_date))
     
     def validate_input(self) -> bool:
         """验证输入数据"""
@@ -132,13 +221,11 @@ class TaskEditDialog(ctk.CTkToplevel):
             messagebox.showerror("错误", "请输入任务标题")
             return False
         
-        due_date = self.due_date_entry.get().strip()
-        if due_date:
-            try:
-                datetime.strptime(due_date, "%Y-%m-%d")
-            except ValueError:
-                messagebox.showerror("错误", "日期格式不正确，请使用 YYYY-MM-DD 格式")
-                return False
+        try:
+            parse_date_input(self.due_date_entry.get())
+        except ValueError:
+            messagebox.showerror("日期无效", "请使用 YYYY/MM/DD 格式输入有效日期", parent=self)
+            return False
         
         return True
     
@@ -150,13 +237,8 @@ class TaskEditDialog(ctk.CTkToplevel):
         title = self.title_entry.get().strip()
         description = self.description_text.get("1.0", "end-1c").strip()
         priority = self.priority_var.get()
-        due_date = self.due_date_entry.get().strip()
-        
-        # 处理截止日期
-        if due_date:
-            due_date = f"{due_date}T23:59:59"
-        else:
-            due_date = None
+        parsed_date = parse_date_input(self.due_date_entry.get())
+        due_date = f"{parsed_date.isoformat()}T23:59:59" if parsed_date else None
         
         if self.task:
             # 编辑模式
@@ -177,10 +259,9 @@ class TaskEditDialog(ctk.CTkToplevel):
                 due_date=due_date
             )
         
+        self.destroy()
         if self.callback:
             self.callback(self.result)
-        
-        self.destroy()
     
     def cancel(self):
         """取消操作"""
