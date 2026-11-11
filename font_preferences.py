@@ -23,10 +23,11 @@ def bundled_font_exists() -> bool:
     return (Path(__file__).resolve().parent / "assets" / FONT_ASSET).is_file()
 
 def font_family(value: str | None) -> str:
-    if normalize_font_mode(value) == "harmony" and bundled_font_exists():
+    if normalize_font_mode(value) == "harmony":
         return HARMONY_FAMILY
     return system_font_family()
 
 def register_flet_fonts(page) -> None:
-    if bundled_font_exists():
-        page.fonts = {**(page.fonts or {}), HARMONY_FAMILY: "/" + FONT_ASSET}
+    # Flutter 的内置 assets 在 .app/.exe 中不一定映射为 Python 文件路径。
+    # 因此始终注册逻辑资源路径，不依赖打包后的 Path.exists()。
+    page.fonts = {**(page.fonts or {}), HARMONY_FAMILY: "/" + FONT_ASSET}
