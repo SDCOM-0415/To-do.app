@@ -38,6 +38,10 @@ def localize_tk(root, language: str) -> None:
                 value = widget.cget("text")
             except (TclError, ValueError, AttributeError, KeyError):
                 value = None
+            # Some CustomTkinter widgets, notably radio buttons on macOS,
+            # expose their caption through _text instead of cget("text").
+            if value is None:
+                value = getattr(widget, "_text", None)
             if isinstance(value, str):
                 updated = tr(value, language)
                 if updated != value:
@@ -56,7 +60,7 @@ def localize_tk(root, language: str) -> None:
                 updated = tr(original, language)
                 if updated != value:
                     widget.configure(placeholder_text=updated)
-            except (ValueError, AttributeError, KeyError):
+            except (TclError, ValueError, AttributeError, KeyError):
                 pass
         if cls == "CTkOptionMenu":
             # Language names are stable identifiers; all other menus can be
