@@ -13,7 +13,7 @@ import webbrowser
 import subprocess
 from config import app_config
 from settings_manager import settings_manager
-from font_preferences import current_font_family
+from font_preferences import current_font_family, ui_font_size
 
 class SettingsDialog(ctk.CTkToplevel):
     """设置对话框"""
@@ -75,7 +75,7 @@ class SettingsDialog(ctk.CTkToplevel):
         title_label = ctk.CTkLabel(
             main_frame, 
             text="⚙️ 应用设置", 
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 20, "bold")
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(20), "bold")
         )
         title_label.pack(pady=(10, 20))
         
@@ -118,7 +118,7 @@ class SettingsDialog(ctk.CTkToplevel):
         theme_frame = ctk.CTkFrame(scroll_frame)
         theme_frame.pack(fill="x", padx=10, pady=10)
         
-        ctk.CTkLabel(theme_frame, text="主题模式", font=(current_font_family(app_config.get("font_mode", "harmony")), 14, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
+        ctk.CTkLabel(theme_frame, text="主题模式", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(14), "bold")).pack(anchor="w", padx=10, pady=(10, 5))
         
         self.theme_var = ctk.StringVar(value=app_config.get("theme", "system"))
         theme_options = [("跟随系统", "system"), ("深色模式", "dark"), ("浅色模式", "light")]
@@ -137,19 +137,19 @@ class SettingsDialog(ctk.CTkToplevel):
         layout_frame = ctk.CTkFrame(scroll_frame)
         layout_frame.pack(fill="x", padx=10, pady=10)
         ctk.CTkLabel(layout_frame, text="主界面布局",
-                     font=(current_font_family(app_config.get("font_mode", "harmony")), 14, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
+                     font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(14), "bold")).pack(anchor="w", padx=10, pady=(10, 5))
         self.layout_var = ctk.StringVar(value=app_config.get("ui_layout", "classic"))
         for label, value in (("经典界面（原版）", "classic"), ("现代工作空间（新版）", "modern")):
             ctk.CTkRadioButton(layout_frame, text=label,
                                variable=self.layout_var, value=value).pack(
                                    anchor="w", padx=20, pady=3)
         ctk.CTkLabel(layout_frame, text="应用后即可切换；任务与配置不会丢失。",
-                     font=(current_font_family(app_config.get("font_mode", "harmony")), 11)).pack(anchor="w", padx=20, pady=(5, 10))
+                     font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(11))).pack(anchor="w", padx=20, pady=(5, 10))
 
         font_mode_frame = ctk.CTkFrame(scroll_frame)
         font_mode_frame.pack(fill="x", padx=10, pady=10)
         ctk.CTkLabel(font_mode_frame, text="界面字体",
-                     font=(current_font_family(app_config.get("font_mode")), 14, "bold")).pack(
+                     font=(current_font_family(app_config.get("font_mode")), ui_font_size(14), "bold")).pack(
                          anchor="w", padx=10, pady=(10, 5))
         self.font_mode_var = ctk.StringVar(value=app_config.get("font_mode", "harmony"))
         for label, value in (
@@ -160,14 +160,14 @@ class SettingsDialog(ctk.CTkToplevel):
                                value=value).pack(anchor="w", padx=20, pady=3)
         ctk.CTkLabel(font_mode_frame,
                      text="内置字体版权归 Huawei Device Co., Ltd. 所有。",
-                     font=(current_font_family(app_config.get("font_mode")), 11)).pack(
+                     font=(current_font_family(app_config.get("font_mode")), ui_font_size(11))).pack(
                          anchor="w", padx=20, pady=(4, 10))
 
         # 字体大小设置
         font_frame = ctk.CTkFrame(scroll_frame)
         font_frame.pack(fill="x", padx=10, pady=10)
         
-        ctk.CTkLabel(font_frame, text="字体大小", font=(current_font_family(app_config.get("font_mode", "harmony")), 14, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
+        ctk.CTkLabel(font_frame, text="字体大小", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(14), "bold")).pack(anchor="w", padx=10, pady=(10, 5))
         
         font_size_frame = ctk.CTkFrame(font_frame, fg_color="transparent")
         font_size_frame.pack(fill="x", padx=10, pady=(0, 10))
@@ -190,7 +190,7 @@ class SettingsDialog(ctk.CTkToplevel):
         window_frame = ctk.CTkFrame(scroll_frame)
         window_frame.pack(fill="x", padx=10, pady=10)
         
-        ctk.CTkLabel(window_frame, text="窗口设置", font=(current_font_family(app_config.get("font_mode", "harmony")), 14, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
+        ctk.CTkLabel(window_frame, text="窗口设置", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(14), "bold")).pack(anchor="w", padx=10, pady=(10, 5))
         
         # 窗口大小
         size_frame = ctk.CTkFrame(window_frame, fg_color="transparent")
@@ -223,7 +223,7 @@ class SettingsDialog(ctk.CTkToplevel):
         auto_save_frame = ctk.CTkFrame(scroll_frame)
         auto_save_frame.pack(fill="x", padx=10, pady=10)
         
-        ctk.CTkLabel(auto_save_frame, text="自动保存", font=(current_font_family(app_config.get("font_mode", "harmony")), 14, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
+        ctk.CTkLabel(auto_save_frame, text="自动保存", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(14), "bold")).pack(anchor="w", padx=10, pady=(10, 5))
         
         self.auto_save_var = ctk.BooleanVar(value=app_config.get("auto_save", True))
         auto_save_cb = ctk.CTkCheckBox(
@@ -237,7 +237,7 @@ class SettingsDialog(ctk.CTkToplevel):
         display_frame = ctk.CTkFrame(scroll_frame)
         display_frame.pack(fill="x", padx=10, pady=10)
         
-        ctk.CTkLabel(display_frame, text="显示选项", font=(current_font_family(app_config.get("font_mode", "harmony")), 14, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
+        ctk.CTkLabel(display_frame, text="显示选项", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(14), "bold")).pack(anchor="w", padx=10, pady=(10, 5))
         
         self.show_completed_var = ctk.BooleanVar(value=app_config.get("show_completed", True))
         show_completed_cb = ctk.CTkCheckBox(
@@ -267,7 +267,7 @@ class SettingsDialog(ctk.CTkToplevel):
         language_frame = ctk.CTkFrame(scroll_frame)
         language_frame.pack(fill="x", padx=10, pady=10)
         
-        ctk.CTkLabel(language_frame, text="语言设置", font=(current_font_family(app_config.get("font_mode", "harmony")), 14, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
+        ctk.CTkLabel(language_frame, text="语言设置", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(14), "bold")).pack(anchor="w", padx=10, pady=(10, 5))
         
         lang_frame = ctk.CTkFrame(language_frame, fg_color="transparent")
         lang_frame.pack(fill="x", padx=10, pady=(0, 10))
@@ -294,7 +294,7 @@ class SettingsDialog(ctk.CTkToplevel):
         priority_frame = ctk.CTkFrame(scroll_frame)
         priority_frame.pack(fill="x", padx=10, pady=10)
         
-        ctk.CTkLabel(priority_frame, text="优先级颜色", font=(current_font_family(app_config.get("font_mode", "harmony")), 14, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
+        ctk.CTkLabel(priority_frame, text="优先级颜色", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(14), "bold")).pack(anchor="w", padx=10, pady=(10, 5))
         
         self.priority_colors = app_config.get("priority_colors", {
             "高": "#ff4444",
@@ -345,7 +345,7 @@ class SettingsDialog(ctk.CTkToplevel):
         data_frame = ctk.CTkFrame(scroll_frame)
         data_frame.pack(fill="x", padx=10, pady=10)
         
-        ctk.CTkLabel(data_frame, text="数据管理", font=(current_font_family(app_config.get("font_mode", "harmony")), 14, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
+        ctk.CTkLabel(data_frame, text="数据管理", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(14), "bold")).pack(anchor="w", padx=10, pady=(10, 5))
         
         # 导出设置
         export_btn = ctk.CTkButton(
@@ -380,13 +380,13 @@ class SettingsDialog(ctk.CTkToplevel):
         debug_frame = ctk.CTkFrame(scroll_frame)
         debug_frame.pack(fill="x", padx=10, pady=10)
         
-        ctk.CTkLabel(debug_frame, text="调试信息", font=(current_font_family(app_config.get("font_mode", "harmony")), 14, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
+        ctk.CTkLabel(debug_frame, text="调试信息", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(14), "bold")).pack(anchor="w", padx=10, pady=(10, 5))
         
         # 显示配置文件路径
         config_path_label = ctk.CTkLabel(
             debug_frame,
             text=f"配置文件: {app_config.config_file}",
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 10),
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(10)),
             text_color="gray"
         )
         config_path_label.pack(anchor="w", padx=20, pady=2)
@@ -395,7 +395,7 @@ class SettingsDialog(ctk.CTkToplevel):
         tasks_path_label = ctk.CTkLabel(
             debug_frame,
             text=f"任务文件: {app_config.tasks_file}",
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 10),
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(10)),
             text_color="gray"
         )
         tasks_path_label.pack(anchor="w", padx=20, pady=(2, 15))
@@ -420,7 +420,7 @@ class SettingsDialog(ctk.CTkToplevel):
         icon_label = ctk.CTkLabel(
             title_frame,
             text="📝",
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 48)
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(48))
         )
         icon_label.pack(pady=(0, 10))
         
@@ -428,7 +428,7 @@ class SettingsDialog(ctk.CTkToplevel):
         app_name_label = ctk.CTkLabel(
             title_frame,
             text=f"{app_config.app_name}",
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 24, "bold")
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(24), "bold")
         )
         app_name_label.pack()
         
@@ -436,7 +436,7 @@ class SettingsDialog(ctk.CTkToplevel):
         version_label = ctk.CTkLabel(
             title_frame,
             text=f"版本 {app_config.version}",
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 16),
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(16)),
             text_color="gray"
         )
         version_label.pack(pady=(5, 0))
@@ -445,7 +445,7 @@ class SettingsDialog(ctk.CTkToplevel):
         description_label = ctk.CTkLabel(
             title_frame,
             text="现代化跨平台待办事项管理器\n支持 Windows、Linux、macOS 和深色模式",
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 14),
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(14)),
             text_color="gray",
             justify="center"
         )
@@ -455,13 +455,13 @@ class SettingsDialog(ctk.CTkToplevel):
         dev_info_frame = ctk.CTkFrame(scroll_frame)
         dev_info_frame.pack(fill="x", padx=10, pady=10)
         
-        ctk.CTkLabel(dev_info_frame, text="开发信息", font=(current_font_family(app_config.get("font_mode", "harmony")), 16, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
+        ctk.CTkLabel(dev_info_frame, text="开发信息", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(16), "bold")).pack(anchor="w", padx=10, pady=(10, 5))
         
         # 开发者
         dev_label = ctk.CTkLabel(
             dev_info_frame,
             text="开发者: SDCOM",
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 12)
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))
         )
         dev_label.pack(anchor="w", padx=20, pady=2)
         
@@ -470,7 +470,7 @@ class SettingsDialog(ctk.CTkToplevel):
         copyright_label = ctk.CTkLabel(
             dev_info_frame,
             text=f"版权所有 © {current_year} SDCOM",
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 12)
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))
         )
         copyright_label.pack(anchor="w", padx=20, pady=2)
         
@@ -478,7 +478,7 @@ class SettingsDialog(ctk.CTkToplevel):
         tech_label = ctk.CTkLabel(
             dev_info_frame,
             text="技术栈: Python 3.12 + CustomTkinter",
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 12)
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))
         )
         tech_label.pack(anchor="w", padx=20, pady=(2, 15))
         
@@ -486,7 +486,7 @@ class SettingsDialog(ctk.CTkToplevel):
         features_frame = ctk.CTkFrame(scroll_frame)
         features_frame.pack(fill="x", padx=10, pady=10)
         
-        ctk.CTkLabel(features_frame, text="主要功能", font=(current_font_family(app_config.get("font_mode", "harmony")), 16, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
+        ctk.CTkLabel(features_frame, text="主要功能", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(16), "bold")).pack(anchor="w", padx=10, pady=(10, 5))
         
         features = [
             "✅ 任务创建、编辑和删除",
@@ -505,7 +505,7 @@ class SettingsDialog(ctk.CTkToplevel):
             feature_label = ctk.CTkLabel(
                 features_frame,
                 text=feature,
-                font=(current_font_family(app_config.get("font_mode", "harmony")), 11),
+                font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(11)),
                 anchor="w"
             )
             feature_label.pack(anchor="w", padx=20, pady=1)
@@ -517,13 +517,13 @@ class SettingsDialog(ctk.CTkToplevel):
         system_info_frame = ctk.CTkFrame(scroll_frame)
         system_info_frame.pack(fill="x", padx=10, pady=10)
         
-        ctk.CTkLabel(system_info_frame, text="系统信息", font=(current_font_family(app_config.get("font_mode", "harmony")), 16, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
+        ctk.CTkLabel(system_info_frame, text="系统信息", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(16), "bold")).pack(anchor="w", padx=10, pady=(10, 5))
         
         # Python版本
         python_version_label = ctk.CTkLabel(
             system_info_frame,
             text=f"Python 版本: {sys.version.split()[0]}",
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 11),
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(11)),
             text_color="gray"
         )
         python_version_label.pack(anchor="w", padx=20, pady=1)
@@ -574,7 +574,7 @@ class SettingsDialog(ctk.CTkToplevel):
         os_info_label = ctk.CTkLabel(
             system_info_frame,
             text=f"操作系统: {os_display}",
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 11),
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(11)),
             text_color="gray"
         )
         os_info_label.pack(anchor="w", padx=20, pady=1)
@@ -583,7 +583,7 @@ class SettingsDialog(ctk.CTkToplevel):
         arch_label = ctk.CTkLabel(
             system_info_frame,
             text=f"系统架构: {platform.machine()}",
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 11),
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(11)),
             text_color="gray"
         )
         arch_label.pack(anchor="w", padx=20, pady=(1, 15))
@@ -592,17 +592,17 @@ class SettingsDialog(ctk.CTkToplevel):
         contact_frame = ctk.CTkFrame(scroll_frame)
         contact_frame.pack(fill="x", padx=10, pady=10)
         
-        ctk.CTkLabel(contact_frame, text="联系方式", font=(current_font_family(app_config.get("font_mode", "harmony")), 16, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
+        ctk.CTkLabel(contact_frame, text="联系方式", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(16), "bold")).pack(anchor="w", padx=10, pady=(10, 5))
         
         # 邮箱
         email_frame = ctk.CTkFrame(contact_frame, fg_color="transparent")
         email_frame.pack(fill="x", padx=20, pady=2)
         
-        ctk.CTkLabel(email_frame, text="📧 邮箱: ", font=(current_font_family(app_config.get("font_mode", "harmony")), 12)).pack(side="left")
+        ctk.CTkLabel(email_frame, text="📧 邮箱: ", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))).pack(side="left")
         email_link = ctk.CTkButton(
             email_frame,
             text="sdcom@sdcom.asia",
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 12),
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12)),
             fg_color="transparent",
             text_color=("blue", "lightblue"),
             hover_color=("lightgray", "darkgray"),
@@ -616,11 +616,11 @@ class SettingsDialog(ctk.CTkToplevel):
         github_frame = ctk.CTkFrame(contact_frame, fg_color="transparent")
         github_frame.pack(fill="x", padx=20, pady=2)
         
-        ctk.CTkLabel(github_frame, text="🐙 GitHub: ", font=(current_font_family(app_config.get("font_mode", "harmony")), 12)).pack(side="left")
+        ctk.CTkLabel(github_frame, text="🐙 GitHub: ", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))).pack(side="left")
         github_link = ctk.CTkButton(
             github_frame,
             text="https://github.com/SDCOM-0415/To-do.app",
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 12),
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12)),
             fg_color="transparent",
             text_color=("blue", "lightblue"),
             hover_color=("lightgray", "darkgray"),
@@ -634,11 +634,11 @@ class SettingsDialog(ctk.CTkToplevel):
         website_frame = ctk.CTkFrame(contact_frame, fg_color="transparent")
         website_frame.pack(fill="x", padx=20, pady=(2, 15))
         
-        ctk.CTkLabel(website_frame, text="🌐 个人网站: ", font=(current_font_family(app_config.get("font_mode", "harmony")), 12)).pack(side="left")
+        ctk.CTkLabel(website_frame, text="🌐 个人网站: ", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))).pack(side="left")
         website_link = ctk.CTkButton(
             website_frame,
             text="www.sdcom.top",
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 12),
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12)),
             fg_color="transparent",
             text_color=("blue", "lightblue"),
             hover_color=("lightgray", "darkgray"),
