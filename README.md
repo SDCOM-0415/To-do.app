@@ -26,6 +26,31 @@ TodoApp 是使用 Python 与 **CustomTkinter** 开发的桌面待办事项工具
 
 示例文件名对应一次预发布；请以 Release 页面实际提供的最新版本为准。macOS 安装包为包含 `.app` 的 ZIP 压缩文件，而不是 DMG。若 macOS 阻止打开未经签名或公证的应用，请按系统安全提示处理。
 
+## 字体选择及随包分发
+
+在「应用设置 → 外观 → 界面字体」选择 **HarmonyOS Sans SC（默认）** 或 **系统字体**。
+Windows 的系统字体采用 `Microsoft YaHei UI`，macOS 为 `PingFang SC`，
+Linux 为 `Noto Sans CJK SC`（该字体若未安装则由系统回退）。字体模式保存在
+`tk-config.json` 中，重启后保持不变。
+
+出于安装包体积考虑，**仅使用简体中文 Regular 原始字重（8,261,128 字节）**，
+不对字体进行子集化、转换或修改。原始字体及 `LICENSE.txt` 存放于
+`res/fonts/`，版权归 Huawei Device Co., Ltd. 所有。
+字体授权允许随应用分发未经修改的原始文件，完整条款请参见随包提供的
+`LICENSE.txt`。
+
+构建工作流会调用 `prepare_fonts.py`，从
+[华为官方字体包](https://developer.huawei.com/images/download/general/HarmonyOS-Sans.zip)
+提取文件并校验 SHA-256，再一起打包；无需在 Git 仓库中存放大型二进制字体。
+在本地构建或运行源码前也可以执行：
+
+```bash
+python prepare_fonts.py --edition tk --zip /path/to/HarmonyOS-Sans.zip
+```
+
+省略 `--zip` 参数则尝试下载官方 ZIP。字体文件不存在时，Tk 会回退到系统字体；
+Flet 原生构建应先完成资源准备，以确保默认字体真正打包。
+
 ## 从源码运行
 
 建议使用 **Python 3.12**。先安装 Python、pip，并确保 tkinter/Tcl/Tk 可用。
