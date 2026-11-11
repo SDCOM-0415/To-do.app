@@ -16,6 +16,7 @@ from settings_dialog import SettingsDialog
 from modern_ui import create_modern_widgets, normalize_layout
 from font_preferences import apply_tk_font, current_font_family, ui_font_size
 from localize_tk import localize_tk
+from i18n import tr
 
 class TodoApp(ctk.CTk):
     """主应用程序类"""
@@ -178,12 +179,18 @@ class TodoApp(ctk.CTk):
         # 排序选项
         ctk.CTkLabel(filter_frame, text="排序:", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))).pack(side="left", padx=(20, 5), pady=10)
         
-        self.sort_var = ctk.StringVar(value="created_at")
+        self.sort_var = ctk.StringVar(value="创建时间")
+        language = app_config.get("language", "zh-cn")
+        sort_choices = ["创建时间", "优先级", "截止日期", "标题", "完成状态"]
+        sort_display = {tr(key, language): key for key in sort_choices}
+        self.sort_display_var = ctk.StringVar(value=tr("创建时间", language))
         sort_menu = ctk.CTkOptionMenu(
             filter_frame,
-            values=["创建时间", "优先级", "截止日期", "标题", "完成状态"],
-            variable=self.sort_var,
-            command=self.on_sort_changed,
+            values=list(sort_display),
+            variable=self.sort_display_var,
+            command=lambda selected: (
+                self.sort_var.set(sort_display[selected]), self.on_sort_changed(selected)),
+
             font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))
         )
         sort_menu.pack(side="left", padx=5, pady=10)
