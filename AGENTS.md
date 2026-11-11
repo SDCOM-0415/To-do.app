@@ -23,7 +23,7 @@
 
 - Flet 独立构建只能通过 `workflow_dispatch` 手动启动，禁止添加自动 Push 触发器。
 - Tk macOS Intel 独立测试工作流为 `.github/workflows/tk-macos-intel-test.yml`。仅用户明确要求时，允许通过 `main` 的 `.test-trigger/tk-macos-intel-0.3.2` 专用标记文件触发；只使用一个 Intel Mac Runner、只上传测试 Artifact，不创建 Release 或启动其他构建。
-- `main` 联合发布默认仅手动触发；**用户明确授权发布时**，允许通过创建一次性 `.release-trigger/0.3.2-prerelease` 文件触发限定为 `main` 和该路径的 Push 工作流。
+- `main` 联合发布默认仅手动触发；**用户明确授权发布时**，仅在无可用 gh CLI 时，允许通过更新既有 `.release-trigger/0.3.2-prerelease` 文件触发限定为 `main` 和该路径的 Push 工作流。
 - 不得扩大成对普通代码、文档提交或 PR 的自动构建；禁止加入 `schedule` 等无关触发器。
 - 每次新的联合发布均须有用户明确要求，且应检查已有标签、版本编号以及发布产物，不得覆盖旧 Release。
 - CI 失败时先调查日志，修改配置后也不要自动重新运行；等待用户明确指示。
@@ -47,35 +47,35 @@ python -m unittest discover -s . -p "test_*.py" -v
 
 运行界面前安装 `requirements.txt`，打包要在相应操作系统原生 Runner 上执行。发布工作流变更须验证两个版本的实际路径与产物名称。
 
-## Actions 触发机制与 0.3.2 联合预发布（2026-11-11 核对）
+## GitHub Actions 六条流水线触发速查（2026-11-11 核对）
 
-### 各工作流的入口与边界
+> **强制规则：专用标记文件 Push 是仅在执行环境没有可用且已认证的 GitHub CLI（\`gh\`）时才考虑的后备方案。存在可用的 \`gh\` 时必须优先使用 \`gh workflow run\`，不得为了省事修改标记文件。** 如果 \`gh\` 不可用但 GitHub Actions 网页手动操作可用，可直接选择 Run workflow；并非必须制造一次 Push。所有触发均须用户本次明确授权。不要改变工作流的 \`on:\` 条件来绕过限制。
 
-| 工作流 | 所在分支 | 触发入口 | 产物/作用 |
-| --- | --- | --- | --- |
-| `.github/workflows/build-release.yml` | `main` | `workflow_dispatch`；或仅 `main` 下 `.release-trigger/0.3.2-prerelease` 的 Push | 统一构建 Tk 和 Flet 并可创建合并 Release |
-| `.github/workflows/i18n-color-check.yml` | `main` | 手动；或仅 `.test-trigger/i18n-color-check` 的 Push | 一个 Ubuntu Runner 检出双分支，进行语言与颜色回归检查，不发布 |
-| `.github/workflows/tk-macos-intel-test.yml` | `main` | 手动；或专用 `.test-trigger/tk-macos-intel-0.3.2` 的 Push | 只测 Tk macOS Intel，不发布 |
-| `.github/workflows/flet-build.yml` | `flet-version` | 仅 `workflow_dispatch` | 独立 Flet 四平台 Actions 工件，不创建 Release |
-| `.github/workflows/flet-windows-macos-test.yml` | `flet-version` | 手动；或专用 `.test-trigger/flet-windows-macos-0.3.2` 的 Push | 一次运行两个 Runner，Windows x64 + macOS Intel Flet 测试，不发布 |
-| `.github/workflows/flet-macos-intel-test.yml` | `flet-version` | 手动；或专用 `.test-trigger/macos-intel-0.3.2` 的 Push | 单平台 macOS Intel Flet 测试，不发布 |
+### 列表：逐条对应工作流、触发分支和备用标记文件
 
-以上路径基于工作流定义；修改非触发路径的正常代码、`AGENTS.md` 或 `README.md` 不会启动这些 Push 工作流。不要为了触发发布新增宽泛的 `push`、`pull_request` 或定时触发条件。
+| # | 工作流文件（\`.github/workflows/\` 下） | 触发所在分支 | 首选 \`gh\` CLI 命令（在仓库目录执行） | 仅在无可用 \`gh\` 时，可修改并 Push 的已有文件 | 执行内容 / 是否发布 |
+| --- | --- | --- | --- | --- | --- |
+| 1 | \`build-release.yml\` | \`main\` | \`gh workflow run build-release.yml --ref main -f version=v0.3.2 -F publish=true -F prerelease=true\` | **\`main\`**：\`.release-trigger/0.3.2-prerelease\` | Tk + Flet 八平台联合构建；Push 入口固定为 v0.3.2 预发布，八份产物校验通过后创建 Release |
+| 2 | \`i18n-color-check.yml\` | \`main\` | \`gh workflow run i18n-color-check.yml --ref main\` | **\`main\`**：\`.test-trigger/i18n-color-check\` | 单个 Ubuntu Runner 检出两分支，运行语言、颜色等回归检查；不发布 |
+| 3 | \`tk-macos-intel-test.yml\` | \`main\` | \`gh workflow run tk-macos-intel-test.yml --ref main\` | **\`main\`**：\`.test-trigger/tk-macos-intel-0.3.2\` | Tk macOS Intel x64 单平台测试包；不发布 |
+| 4 | \`flet-build.yml\` | \`flet-version\` | \`gh workflow run flet-build.yml --ref flet-version\` | **无标记文件入口；仅 \`workflow_dispatch\`** | Flet Windows x64、Linux x64、macOS x64、macOS arm64 四平台构建；仅 Actions Artifacts，不发布 |
+| 5 | \`flet-macos-intel-test.yml\` | \`flet-version\` | \`gh workflow run flet-macos-intel-test.yml --ref flet-version\` | **\`flet-version\`**：\`.test-trigger/macos-intel-0.3.2\` | Flet macOS Intel x64 单平台测试包；不发布 |
+| 6 | \`flet-windows-macos-test.yml\` | \`flet-version\` | \`gh workflow run flet-windows-macos-test.yml --ref flet-version\` | **\`flet-version\`**：\`.test-trigger/flet-windows-macos-0.3.2\` | 同一次运行使用 Windows x64、macOS Intel x64 两个 Runner；不发布 |
 
-### 联合发布的两种授权触发方法
+\`gh workflow run\` 使用 GitHub CLI 的 Actions API，需要 CLI 已安装、身份认证成功且具有目标仓库 Actions 写入权限。部分仅存在于非默认分支的工作流，可能受 GitHub 对 \`workflow_dispatch\` 工作流注册、可见性和默认分支的限制；如果返回找不到工作流或无法分发，应检查实际 GitHub Actions 页面和权限，不得宣称已触发，也不得擅自修改 \`on:\`。
 
-1. **手动入口**：在 GitHub Actions 选择 `Build and Release (Tk + Flet)`，点击 Run workflow，选择 `main`，输入 `version=v0.3.2`，设定 `publish=true`、`prerelease=true`。若 `publish=false`，只保留短期 Actions 工件，不发布。
-2. **仓库文件入口**：仅在用户明确授权一次预发布后，修改 `main` 上已经存在的 `.release-trigger/0.3.2-prerelease`，提交并 Push 到 `main`。由于标记文件已存在，应**更新内容**而不是尝试同路径创建文件；使用 GitHub Contents API 时必须提供当前 blob SHA。该路径的 Push 会按硬编码 `v0.3.2`、`prerelease=true`、发布开启的配置启动联合流程，不能借它发布其他基础版本。
+### 仅在无可用 gh CLI 时：标记文件后备流程
 
-推荐在受限 GitHub 连接环境使用第二种方法：先提交两分支源码和文档，最后单独更新触发标记，保持一次用户授权对应一次发布触发；提交后通过 Actions 运行记录确认确实入队。触发标记属于发布操作，不得因普通代码修改而顺手更新。
+1. 先确认用户授权的**具体一条流水线**、目标分支、期望是“测试工件”还是“正式发布”，以及现有 Actions 中是否已有同并发组运行（多数流水线设置 \`cancel-in-progress: true\`）。已有运行时不得重复触发，避免取消前一次构建。
+2. 对照上表选择**精确路径与分支**。文件已经存在时，必须编辑文件内容形成真实差异；通过 GitHub Contents API 更新时需提供刚获取的 blob SHA。切勿创建同名文件、改动不相关的标记、修改 workflow YAML 或对全部 Push 放开触发。
+3. 先提交需要构建的实际代码及文档；**最后单独提交并 Push 该标记文件**到表中指定分支。GitHub 的 \`paths\` 过滤器才会匹配。提交 \`AGENTS.md\`、README 或普通源码本身不会启动这些受限 Push 工作流。
+4. 通过 GitHub Actions 运行列表核对新 Run 的 \`event=push\`、工作流名称、分支与提交 SHA，确认状态已排队才称“触发成功”；\`in_progress\` 不是构建完成。
+5. 查看全部 Job、测试及工件；只有完成并全部成功才能说“构建成功”。联合发布还须确认新 GitHub Release、预发布标志和八个平台附件及 SHA256SUMS。失败时先查日志，不经用户再次授权不得重跑或修改标记重复触发。
+6. 对 \`flet-build.yml\` **绝对不能使用标记文件法**，因为它没有 \`push\` 触发器。无 \`gh\` CLI 时优先使用 GitHub Actions 网页 Run workflow；若网页和 Actions API 也不可用，则如实说明无法启动，不能伪称改文件就能触发。
 
-### 构建、标签和校验细节
+### 有 gh CLI 时：常规触发和结果确认
 
-- `prepare` 使用 GitHub API 分别读取 `main`、`flet-version` 分支头 SHA，冻结此次构建源代码；构建矩阵通过各自 SHA 检出，避免版本混用。
-- 八项矩阵任务：Tk/Flet 各有 Windows x64（`windows-latest`）、Linux x64（`ubuntu-24.04`）、macOS x64、macOS arm64。Tk Intel 使用 `macos-26-intel`；Flet Intel 在 `macos-26` 上以 `--arch x86_64` 交叉构建，并用 `lipo` 检查目标架构。
-- 发布文件名使用 `TodoApp` 和 `TodoApp-Flet` 两类前缀，Windows/macOS 为 ZIP、Linux 为 tar.gz。只有八个任务全部成功后，`release` 作业才检查八个文件、生成 `SHA256SUMS.txt`、创建一个组合 GitHub Release。
-- 预发布标签由 `prepare` 按中国标准时间自动分配 `v0.3.2-YYYYMMDD-N`，同时检查已有带横线的旧日期格式；不会覆盖已经存在的标签。2026-11-11 核对时已有 `v0.3.2-20261111-1`、`v0.3.2-20261111-2`，后续编号以**实际运行时**再次查询为准，不能预先认定一定是 `-3`。
-- 联合发布并发组为 `todo-dual-release-v0.3.2`（Push 情况），且 `cancel-in-progress: true`。不要在已有相同版本构建运行中重复触发，否则可能取消前一次执行。
-- 如果 `prepare`、八项构建或 `release` 中任何步骤失败，先核对运行日志、源 SHA、构建工件和 Release 状态。**不得在未获新的明确授权时修改标记再次重跑**；更不能将入队、运行中误报为发布成功。
-- 0.3.2 已有预发布资产，创建新标签保留原有 Release。正常的 `AGENTS.md` 更新不会触发联合构建；请把分析文档提交与发布标记提交分开，便于审计。
+从已认证且具有仓库权限的环境执行上表 \`gh workflow run\` 命令；可通过 \`gh run list --repo SDCOM-0415/To-do.app --limit 10\` 找到新运行，通过 \`gh run view <RUN_ID> --repo SDCOM-0415/To-do.app\` 查看作业，通过 \`gh run watch <RUN_ID> --repo SDCOM-0415/To-do.app\` 等待实际结果。不要把 \`gh workflow run\` 的命令发送成功视作构建成功。
+
+联合预发布还要注意：\`build-release.yml\` 的 Push 标记入口硬编码 \`v0.3.2\`、\`publish=true\`、\`prerelease=true\`；手动 \`workflow_dispatch\` 才支持指定基础版本、选择仅构建或发布。发布标签按北京时间查询既有标签并分配 \`v0.3.2-YYYYMMDD-N\`，不能覆盖旧 Release；\`prepare\` 冻结 \`main\` 和 \`flet-version\` 两个 HEAD，八项矩阵全通过才创建一个合并 Release。不要在同一版本的在途发布期间重复触发。此说明属于操作规范，**修改本文件不代表授权或启动任何构建**。
 
