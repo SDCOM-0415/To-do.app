@@ -346,6 +346,31 @@ def tr(value: str, language: str | None = None) -> str:
             if match:
                 translated_prefix = prefix if language == "zh-cn" else labels[0 if language == "en" else 1]
                 return translated_prefix + match.group(1) + match.group(2)
+    # Interpolate UI templates without translating user task names or data.
+    patterns = (
+        (r"确定删除「(.+)」吗？", "Delete “{0}”?", "確定刪除「{0}」嗎？"),
+        (r"确定删除 (\d+) 项已完成任务吗？",
+         "Delete {0} completed tasks?", "確定刪除 {0} 項已完成任務嗎？"),
+        (r"导入 (\d+) 条任务将替换当前全部 (\d+) 条任务。确定吗？",
+         "Import {0} tasks and replace all {1} existing tasks?",
+         "匯入 {0} 條任務並取代現有的 {1} 條任務，確定嗎？"),
+        (r"已导入 (\d+) 条任务", "Imported {0} tasks", "已匯入 {0} 條任務"),
+        (r"已过期 (\d+) 天", "Overdue by {0} days", "已逾期 {0} 天"),
+        (r"(\d+) 天后到期", "Due in {0} days", "{0} 天後到期"),
+        (r"截止: (.+)", "Due: {0}", "截止：{0}"),
+        (r"任务已标记为(完成|未完成)", "Task marked {0}", "任務已標記為{0}"),
+    )
+    for pattern, english, traditional in patterns:
+        match = re.fullmatch(pattern, canonical)
+        if match:
+            values = match.groups()
+            if pattern.startswith("任务已标记"):
+                values = (("completed" if values[0] == "完成" else "incomplete")
+                          if language == "en" else values[0],)
+            if language == "en":
+                return english.format(*values)
+            if language == "zh-tw":
+                return traditional.format(*values)
     # Translate fixed UI prefixes while preserving filenames, platform data,
     # task titles, user-controlled content and numeric values unchanged.
     for prefix in ("配置文件", "任务文件", "邮箱", "个人网站", "数据目录",
