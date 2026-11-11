@@ -7,13 +7,14 @@ from __future__ import annotations
 
 import json
 import sys
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 import flet as ft
 
 from models import Task
 from task_operations import pop_task_by_id
+from date_input import format_date_input, parse_date_input
 import storage
 from settings_ui import show_settings
 from appearance import appearance, normalize_theme
@@ -222,8 +223,50 @@ def main(page: ft.Page) -> None:
             options=[ft.DropdownOption(key=p, text=p) for p in ("高", "中", "低")],
         )
         due = ft.TextField(
-            label="截止日期（YYYY-MM-DD，可留空）",
-            value=(task.due_date or "") if task else "",
+            label="截止日期（YYYY/MM/DD，可留空）",
+            hint_text="例如 2026/11/11，输入数字自动补 /",
+            value=format_date_input(task.due_date or "") if task else "",
+            expand=True,
+        )
+
+        def format_due(e) -> None:
+            formatted = format_date_input(e.control.value or "")
+            if e.control.value != formatted:
+                e.control.value = formatted
+                e.control.update()
+
+        def set_due_from_calendar(e) -> None:
+            if e.control.value is not None:
+                due.value = e.control.value.strftime("%Y/%m/%d")
+                due.update()
+
+        date_picker = ft.DatePicker(
+            on_change=set_due_from_calendar,
+            help_text="选择截止日期",
+            first_date=datetime(1900, 1, 1),
+            last_date=datetime(2100, 12, 31),
+        )
+
+        def open_date_picker(e) -> None:
+            try:
+                selected = parse_date_input(due.value or "")
+            except ValueError:
+                selected = None
+            if selected:
+                date_picker.value = datetime.combine(selected, datetime.min.time())
+            page.show_dialog(date_picker)
+
+        due.on_change = format_due
+        due_row = ft.Row(
+            controls=[
+                due,
+                ft.IconButton(
+                    icon=ft.Icons.CALENDAR_MONTH,
+                    tooltip="打开日期选择器",
+                    on_click=open_date_picker,
+                ),
+            ],
+            spacing=4,
         )
         tags = ft.TextField(
             label="标签（逗号分隔）",
@@ -236,18 +279,18 @@ def main(page: ft.Page) -> None:
             if not name:
                 error.value = "请填写任务名称"
                 return
-            due_value = (due.value or "").strip()
-            if due_value:
-                try:
-                    date.fromisoformat(due_value)
-                except ValueError:
-                    error.value = "日期格式应为 YYYY-MM-DD"
-                    return
+            try:
+                parsed_due = parse_date_input(due.value or "")
+            except ValueError:
+                error.value = "请输入有效日期（YYYY/MM/DD）"
+                error.update()
+                return
+            due_value = parsed_due.isoformat() if parsed_due else None
             changes = {
                 "title": name,
                 "description": description.value or "",
                 "priority": priority.value or "中",
-                "due_date": due_value or None,
+                "due_date": due_value,
                 "tags": [item.strip() for item in (tags.value or "").split(",") if item.strip()],
             }
             if editing:
@@ -271,7 +314,7 @@ def main(page: ft.Page) -> None:
             content=ft.Container(
                 width=410,
                 content=ft.Column(
-                    controls=[title, description, priority, due, tags, error],
+                    controls=[title, description, priority, due_row, tags, error],
                     spacing=12,
                     tight=True,
                     scroll=ft.ScrollMode.AUTO,
