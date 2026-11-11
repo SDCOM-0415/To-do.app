@@ -255,7 +255,7 @@ def show_settings(
         return validate_settings(draft)
 
     def status(text: str, is_error: bool = False):
-        error_text.value = label(text)
+        error_text.value = tr(text, settings.get("language", ui_language))
         error_text.color = ft.Colors.RED_400 if is_error else ft.Colors.GREEN_500
         error_text.update()
 
@@ -416,7 +416,7 @@ def show_settings(
         theme_control,
         *[
             ft.Text(
-                f'{preset["label"]} · {preset["description"]}',
+                f'{preset["label"]} · {label(preset["description"])}',
                 size=scaled_font_size(12, settings.get("font_size", 14)),
                 color=ft.Colors.ON_SURFACE_VARIANT,
             )
