@@ -15,6 +15,8 @@ def localize_flet(root, language: str) -> None:
     def walk(control):
         if control is None or id(control) in visited:
             return
+        if getattr(control, "_i18n_skip", False):
+            return
         visited.add(id(control))
         control_type = type(control).__name__
         for prop in ("text", "label", "tooltip", "hint_text", "help_text", "confirm_text",
