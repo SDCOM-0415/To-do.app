@@ -19,3 +19,7 @@
 
 本次重试：20261111-harmony-font-prerelease-windows-encoding-fix-2
 原因：修复 Windows Runner 控制台 GBK 编码无法打印中文日志导致字体准备失败。
+
+本次发布：20261111-task-editor-date-zh-ui-prerelease-2
+内容：Tk 任务编辑弹窗完整布局、日期输入自动补 / 与中文日历；Flet 即时刷新、中文日期选择器、任务删除修复。
+要求：Tk + Flet 八个平台全部构建成功后创建新的 v0.3.2 预发布版本，不覆盖此前 Release。
