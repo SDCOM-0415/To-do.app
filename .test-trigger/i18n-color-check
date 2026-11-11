@@ -1,1 +1,3 @@
 One-runner Tk and Flet localization, color and settings regression check for 0.3.2 (2026-11-11).
+
+Retry 2026-11-11: fixed i18n dynamic metrics regex escaping.
