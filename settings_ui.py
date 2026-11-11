@@ -172,6 +172,26 @@ def show_settings(
                                expand=True, on_change=update_rgb)
             sliders.append(slider)
 
+        def choose_swatch(value: str) -> None:
+            chosen.value = value
+            preview.bgcolor = value
+            chosen.update()
+            preview.update()
+
+        swatches = ft.Row(
+            controls=[
+                ft.Container(
+                    width=30, height=30, bgcolor=value, border_radius=6,
+                    tooltip=value,
+                    on_click=lambda e, color=value: choose_swatch(color),
+                )
+                for value in ("#FF4444", "#FFAA00", "#44FF44", "#2196F3",
+                              "#9C27B0", "#FF4081", "#00BCD4", "#FFFFFF",
+                              "#000000")
+            ],
+            wrap=True, spacing=8,
+        )
+
         def commit_color(e) -> None:
             color_fields[key].value = chosen.value
             sync_color_preview(key)
@@ -185,6 +205,8 @@ def show_settings(
                 tight=True, spacing=12, controls=[
                     ft.Text("拖动红、绿、蓝滑块调整颜色"),
                     preview, chosen,
+                    ft.Text("点击色块直接选择颜色"),
+                    swatches,
                     *[ft.Row([ft.Text(channel, width=20), slider], spacing=8)
                       for channel, slider in zip(("R", "G", "B"), sliders)],
                 ],
