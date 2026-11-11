@@ -37,12 +37,7 @@ def localize_tk(root, language: str) -> None:
             except (ValueError, AttributeError, KeyError):
                 value = None
             if isinstance(value, str):
-                sources = getattr(widget, "_i18n_sources", None)
-                if sources is None:
-                    sources = {}
-                    widget._i18n_sources = sources
-                original = sources.setdefault("text", value)
-                updated = tr(original, language)
+                updated = tr(value, language)
                 if updated != value:
                     try:
                         widget.configure(text=updated)
@@ -60,6 +55,25 @@ def localize_tk(root, language: str) -> None:
                 if updated != value:
                     widget.configure(placeholder_text=updated)
             except (ValueError, AttributeError, KeyError):
+                pass
+        if cls == "CTkOptionMenu":
+            # Language names are stable identifiers; all other menus can be
+            # localized without changing the corresponding saved values.
+            try:
+                values = list(widget.cget("values"))
+                if values and not any("(zh-cn)" in v or "(zh-tw)" in v for v in values):
+                    old = getattr(widget, "_i18n_menu_sources", None)
+                    if old is None:
+                        old = tuple(values)
+                        widget._i18n_menu_sources = old
+                    translated = [tr(value, language) for value in old]
+                    selected = widget.get()
+                    index = values.index(selected) if selected in values else -1
+                    if translated != values:
+                        widget.configure(values=translated)
+                        if index >= 0:
+                            widget.set(translated[index])
+            except (ValueError, AttributeError, RuntimeError):
                 pass
         try:
             children = widget.winfo_children()
