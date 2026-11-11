@@ -80,6 +80,24 @@ class LanguageTests(unittest.TestCase):
         self.assertEqual(tr("截止: 2026/11/11", "en"), "Due: 2026/11/11")
         self.assertEqual(tr("任务已标记为完成", "en"), "Task marked completed")
 
+
+    def test_validation_and_delete_prompt(self):
+        self.assertEqual(
+            tr("设置必须是 JSON 对象", "en"), "Settings must be a JSON object"
+        )
+        self.assertEqual(
+            tr("高优先级颜色必须使用 #RRGGBB 格式", "en"),
+            "High priority color must be #RRGGBB",
+        )
+        self.assertEqual(
+            tr("确定要删除任务 '设置' 吗？", "en"),
+            "Delete task '设置'?",
+        )
+        self.assertEqual(
+            tr("设置文件必须是 JSON 对象", "zh-tw"),
+            "設定檔必須是 JSON 物件",
+        )
+
     def test_dynamic_stats_are_localized(self):
         stats = "总计 3 项  ·  已完成 1  ·  进行中 2  ·  逾期 0"
         self.assertIn("Completed 1", tr(stats, "en"))
