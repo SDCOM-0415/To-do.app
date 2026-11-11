@@ -57,7 +57,7 @@ def prepare(edition: str, source: str | None = None) -> Path:
     target.mkdir(parents=True, exist_ok=True)
     existing.write_bytes(font_data)
     license_file.write_bytes(license_data)
-    print(f"已准备字体：{existing}（{len(font_data):,} 字节）")
+    print(f"Font asset ready: {existing} ({len(font_data):,} bytes)")
     return existing
 
 
@@ -69,5 +69,5 @@ if __name__ == "__main__":
     try:
         prepare(args.edition, args.zip)
     except Exception as exc:
-        print(f"字体资源准备失败：{exc}", file=sys.stderr)
+        print("Font preparation failed: " + str(exc).encode("ascii", "backslashreplace").decode("ascii"), file=sys.stderr)
         raise SystemExit(1)
