@@ -20,6 +20,8 @@ from settings_ui import show_settings
 from appearance import appearance, normalize_theme
 from font_preferences import font_family, register_flet_fonts, scaled_font_size
 from window_chrome import configure_window, with_titlebar, update_titlebar_theme, SIDEBAR_WIDTH
+from localize_flet import localize_flet
+from i18n import tr, normalize_language
 
 
 def main(page: ft.Page) -> None:
@@ -48,6 +50,13 @@ def main(page: ft.Page) -> None:
         return
 
     register_flet_fonts(page)
+    settings["language"] = normalize_language(settings.get("language"))
+    page.locale_configuration = ft.LocaleConfiguration(
+        current_locale=ft.Locale("en", "US") if settings["language"] == "en"
+            else ft.Locale("zh", "TW") if settings["language"] == "zh-tw"
+            else ft.Locale("zh", "CN"),
+        supported_locales=[ft.Locale("zh", "CN"), ft.Locale("zh", "TW"), ft.Locale("en", "US")],
+    )
 
     theme_surfaces: list[tuple[ft.Container, str]] = []
     title_surface: ft.Container | None = None
@@ -133,10 +142,14 @@ def main(page: ft.Page) -> None:
     nav_widgets: dict[str, ft.Container] = {}
 
 
+    def show_localized_dialog(dialog) -> None:
+        localize_flet(dialog, settings.get("language", "zh-cn"))
+        page.show_dialog(dialog)
+
     def message(text: str) -> None:
         # 避免 Paper & Ink 等浅色主题出现默认的深灰色整宽提示条。
         foreground = "#25282B" if colors["mode"] == ft.ThemeMode.LIGHT else "#F2F1F7"
-        page.show_dialog(ft.SnackBar(
+        show_localized_dialog(ft.SnackBar(
             content=ft.Text(text, color=foreground),
             bgcolor=appearance(settings.get("theme"))["surface"],
             behavior=ft.SnackBarBehavior.FLOATING,
@@ -202,7 +215,7 @@ def main(page: ft.Page) -> None:
         if not settings.get("confirm_delete", True):
             do_delete(None)
             return
-        page.show_dialog(ft.AlertDialog(
+        show_localized_dialog(ft.AlertDialog(
             modal=True,
             title=ft.Text("删除任务？"),
             content=ft.Text(f"确定删除「{task.title}」吗？"),
@@ -226,7 +239,7 @@ def main(page: ft.Page) -> None:
                 tasks[:] = before
             refresh()
 
-        page.show_dialog(ft.AlertDialog(
+        show_localized_dialog(ft.AlertDialog(
             modal=True,
             title=ft.Text("清除已完成任务"),
             content=ft.Text(f"确定删除 {len(completed)} 项已完成任务吗？"),
@@ -286,7 +299,7 @@ def main(page: ft.Page) -> None:
                 selected = None
             if selected:
                 date_picker.value = datetime.combine(selected, datetime.min.time())
-            page.show_dialog(date_picker)
+            show_localized_dialog(date_picker)
 
         due.on_change = format_due
         due_row = ft.Row(
@@ -340,7 +353,7 @@ def main(page: ft.Page) -> None:
             page.pop_dialog()
             refresh()
 
-        page.show_dialog(ft.AlertDialog(
+        show_localized_dialog(ft.AlertDialog(
             modal=True,
             title=ft.Text("编辑任务" if editing else "添加任务"),
             content=ft.Container(
@@ -546,7 +559,7 @@ def main(page: ft.Page) -> None:
             refresh()
             message(f"已导入 {len(imported)} 条任务")
 
-        page.show_dialog(ft.AlertDialog(
+        show_localized_dialog(ft.AlertDialog(
             modal=True,
             title=ft.Text("确认导入"),
             content=ft.Text(f"导入 {len(imported)} 条任务将替换当前全部 {len(tasks)} 条任务。确定吗？"),
@@ -557,11 +570,20 @@ def main(page: ft.Page) -> None:
         ))
 
     def on_settings_changed() -> None:
-        # Keep task toolbar controls in sync with the settings workspace.
+        # Settings update includes language; translate the existing workspace
+        # rather than recreating widgets and losing input state.
         apply_theme()
+        settings["language"] = normalize_language(settings.get("language"))
+        page.locale_configuration = ft.LocaleConfiguration(
+            current_locale=ft.Locale("en", "US") if settings["language"] == "en"
+                else ft.Locale("zh", "TW") if settings["language"] == "zh-tw"
+                else ft.Locale("zh", "CN"),
+            supported_locales=[ft.Locale("zh", "CN"), ft.Locale("zh", "TW"), ft.Locale("en", "US")],
+        )
         sort.value = settings.get("sort", "created_at")
         show_completed.value = bool(settings.get("show_completed", True))
         refresh()
+        localize_flet(workspace, settings["language"])
         page.update()
 
     quick_panel = ft.Container(
@@ -701,6 +723,8 @@ def main(page: ft.Page) -> None:
     page.add(app_layout)
 
     refresh()
+    localize_flet(page.controls, settings["language"])
+    page.update()
 
 
 if __name__ == "__main__":
