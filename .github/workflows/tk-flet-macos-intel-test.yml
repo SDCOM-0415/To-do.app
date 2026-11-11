@@ -1,0 +1,123 @@
+name: Tk + Flet macOS Intel 双版本测试构建
+
+# 仅用户明确授权时手动启动，或通过既有专用触发文件的精确 Push 启动。
+# 同一工作流并行运行两项测试构建；只上传 Actions 工件，不发布 Release。
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".test-trigger/tk-flet-macos-intel-0.3.2"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tk-flet-macos-intel-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tk-intel:
+    name: Tk / macOS Intel x86_64
+    runs-on: macos-26-intel
+    timeout-minutes: 55
+    steps:
+      - name: Checkout Tk main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Prepare bundled font
+        run: python prepare_fonts.py --edition tk
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt pyinstaller
+      - name: Syntax and unit tests
+        run: |
+          python -m compileall -q app.py main_app.py modern_ui.py settings_dialog.py localize_tk.py i18n.py
+          python -m unittest discover -s . -p "test_*.py" -v
+      - name: Build native Intel application
+        shell: bash
+        run: |
+          set -euo pipefail
+          font_args=()
+          if [[ -f res/fonts/HarmonyOS_Sans_SC_Regular.ttf ]]; then
+            font_args+=(--add-data "res/fonts:res/fonts")
+          fi
+          pyinstaller --noconfirm --clean --windowed --onedir --name TodoApp --collect-all customtkinter "${font_args[@]}" app.py
+          test -d dist/TodoApp.app
+          exe="$(/usr/libexec/PlistBuddy -c 'Print CFBundleExecutable' dist/TodoApp.app/Contents/Info.plist)"
+          lipo -archs "dist/TodoApp.app/Contents/MacOS/$exe" | tr ' ' '\n' | grep -Fxq x86_64
+          mkdir -p test-output
+          ditto -c -k --sequesterRsrc --keepParent dist/TodoApp.app test-output/TodoApp-Tk-0.3.2-macOS-Intel-test.zip
+          (cd test-output && shasum -a 256 *.zip > SHA256SUMS.txt)
+      - name: Upload Tk artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TodoApp-Tk-macOS-Intel-test
+          path: test-output/*
+          if-no-files-found: error
+          retention-days: 7
+
+  flet-intel:
+    name: Flet / macOS Intel x86_64
+    runs-on: macos-26
+    timeout-minutes: 55
+    steps:
+      - name: Checkout Flet branch
+        uses: actions/checkout@v4
+        with:
+          ref: flet-version
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Prepare bundled font
+        run: python prepare_fonts.py --edition flet
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "flet-cli>=1.1.2,<1.2" -r requirements.txt
+      - name: Syntax and unit tests
+        run: |
+          python -m compileall -q main.py settings_ui.py localize_flet.py i18n.py storage.py
+          python -m unittest discover -s . -p "test_*.py" -v
+      - name: Build Flet Intel application
+        uses: flet-dev/flet-build-action@v1
+        id: flet
+        with:
+          target: macos
+          working-directory: .
+          runner-python-version: "3.12"
+          bundled-python-version: "3.12"
+          cache: true
+          archive-output: false
+          extra-args: --arch x86_64
+      - name: Verify architecture and package
+        shell: bash
+        env:
+          FLET_OUTPUT_PATH: ${{ steps.flet.outputs.output-path }}
+        run: |
+          set -euo pipefail
+          app="$(find "$FLET_OUTPUT_PATH" -maxdepth 2 -type d -name '*.app' -print -quit)"
+          test -n "$app" && test -d "$app"
+          exe="$(/usr/libexec/PlistBuddy -c 'Print CFBundleExecutable' "$app/Contents/Info.plist")"
+          lipo -archs "$app/Contents/MacOS/$exe" | tr ' ' '\n' | grep -Fxq x86_64
+          mkdir -p test-output
+          ditto -c -k --sequesterRsrc --keepParent "$app" test-output/TodoApp-Flet-0.3.2-macOS-Intel-test.zip
+          (cd test-output && shasum -a 256 *.zip > SHA256SUMS.txt)
+      - name: Upload Flet artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TodoApp-Flet-macOS-Intel-test
+          path: test-output/*
+          if-no-files-found: error
+          retention-days: 7
