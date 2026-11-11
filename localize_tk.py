@@ -37,7 +37,12 @@ def localize_tk(root, language: str) -> None:
             except (ValueError, AttributeError, KeyError):
                 value = None
             if isinstance(value, str):
-                updated = tr(value, language)
+                sources = getattr(widget, "_i18n_sources", None)
+                if sources is None:
+                    sources = {}
+                    widget._i18n_sources = sources
+                original = sources.setdefault("text", value)
+                updated = tr(original, language)
                 if updated != value:
                     try:
                         widget.configure(text=updated)
@@ -46,7 +51,12 @@ def localize_tk(root, language: str) -> None:
         if cls == "CTkEntry":
             try:
                 value = widget.cget("placeholder_text")
-                updated = tr(value, language)
+                sources = getattr(widget, "_i18n_sources", None)
+                if sources is None:
+                    sources = {}
+                    widget._i18n_sources = sources
+                original = sources.setdefault("placeholder_text", value)
+                updated = tr(original, language)
                 if updated != value:
                     widget.configure(placeholder_text=updated)
             except (ValueError, AttributeError, KeyError):
