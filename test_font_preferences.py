@@ -5,7 +5,7 @@ from types import SimpleNamespace
 
 from font_preferences import (
     HARMONY_FAMILY, FONT_ASSET, font_family, normalize_font_mode,
-    system_font_family, register_flet_fonts, bundled_font_exists,
+    system_font_family, register_flet_fonts, bundled_font_exists, scaled_font_size,
 )
 from pathlib import Path
 
@@ -19,6 +19,15 @@ class FletFontTests(unittest.TestCase):
         self.assertEqual(system_font_family("win32"), "Microsoft YaHei UI")
         self.assertEqual(system_font_family("darwin"), "PingFang SC")
         self.assertEqual(system_font_family("linux"), "Noto Sans CJK SC")
+
+    def test_ui_font_size_scales_from_14_px_baseline(self):
+        size = scaled_font_size
+        self.assertEqual(size(14, 14), 14)
+        self.assertEqual(size(14, 10), 10)
+        self.assertEqual(size(14, 20), 20)
+        self.assertEqual(size(28, 20), 40)
+        self.assertEqual(size(12, "invalid"), 12)
+        self.assertEqual(size(14, 99), 20)
 
     def test_assets_are_registered(self):
         page = SimpleNamespace(fonts={"Existing": "/fonts/existing.ttf"})
