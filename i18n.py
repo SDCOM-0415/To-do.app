@@ -178,6 +178,7 @@ MORE_STRINGS = {
     "低优先级:": ("Low priority:", "低優先級："),
     "选择高优先级颜色": ("Pick high priority color", "選取高優先級顏色"),
     "选择中优先级颜色": ("Pick medium priority color", "選取中優先級顏色"),
+    "点击色块直接选择颜色": ("Click a swatch to choose a color", "點選色塊直接選擇顏色"),
     "选择低优先级颜色": ("Pick low priority color", "選取低優先級顏色"),
     "HarmonyOS Sans SC（内置，默认）": ("HarmonyOS Sans SC (bundled, default)", "HarmonyOS Sans SC（內建，預設）"),
     "系统字体（跟随当前平台）": ("System font (OS default)", "系統字體（依目前平台）"),
