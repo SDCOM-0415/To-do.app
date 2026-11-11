@@ -17,7 +17,7 @@ def localize_flet(root, language: str) -> None:
             return
         visited.add(id(control))
         control_type = type(control).__name__
-        for prop in ("label", "tooltip", "hint_text", "help_text", "confirm_text",
+        for prop in ("text", "label", "tooltip", "hint_text", "help_text", "confirm_text",
                      "cancel_text", "field_label_text", "field_hint_text", "title"):
             value = getattr(control, prop, None)
             if isinstance(value, str):
