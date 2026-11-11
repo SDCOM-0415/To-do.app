@@ -21,6 +21,7 @@ from font_preferences import normalize_font_mode, scaled_font_size
 from window_chrome import with_titlebar, update_titlebar_theme
 from localize_flet import localize_flet
 from i18n import tr
+from i18n import tr
 
 DEFAULT_COLORS = storage.DEFAULT_SETTINGS["priority_colors"]
 BACKUP_DIR = storage.APP_DIR / "backups"
@@ -83,22 +84,25 @@ def show_settings(
 ) -> None:
     """Show a five-tab settings view in place of the task workspace."""
     original_controls = list(page.controls)
+    ui_language = settings.get("language", "zh-cn")
+    def label(text: str) -> str:
+        return tr(text, ui_language)
     title_surface: ft.Container | None = None
     draft = validate_settings(settings)
     error_text = ft.Text("", color=ft.Colors.RED_400, size=scaled_font_size(12, settings.get("font_size", 14)))
 
     def option(key: str, label: str, choices: list[tuple[str, str]], width: int | None = None):
         return ft.Dropdown(
-            label=label, width=width, value=draft[key],
-            options=[ft.DropdownOption(key=value, text=name) for name, value in choices],
+            label=tr(label, ui_language), width=width, value=draft[key],
+            options=[ft.DropdownOption(key=value, text=label(name)) for name, value in choices],
             on_select=lambda e: draft.update({key: e.control.value}),
         )
 
     def heading(name: str, detail: str = "") -> ft.Control:
         return ft.Column(
             controls=[
-                ft.Text(name, size=scaled_font_size(18, settings.get("font_size", 14)), weight=ft.FontWeight.BOLD),
-                *([ft.Text(detail, size=scaled_font_size(12, settings.get("font_size", 14)), color=ft.Colors.ON_SURFACE_VARIANT)] if detail else []),
+                ft.Text(label(name), size=scaled_font_size(18, settings.get("font_size", 14)), weight=ft.FontWeight.BOLD),
+                *([ft.Text(label(detail), size=scaled_font_size(12, settings.get("font_size", 14)), color=ft.Colors.ON_SURFACE_VARIANT)] if detail else []),
                 ft.Divider(height=12, color=ft.Colors.OUTLINE_VARIANT),
             ], spacing=4,
         )
@@ -212,8 +216,8 @@ def show_settings(
                 ],
             )),
             actions=[
-                ft.TextButton("取消", on_click=lambda e: page.pop_dialog()),
-                ft.Button("确定", on_click=commit_color),
+                ft.TextButton(label("取消"), on_click=lambda e: page.pop_dialog()),
+                ft.Button(label("确定"), on_click=commit_color),
             ],
         )
         localize_flet(dialog, settings.get("language", "zh-cn"))
@@ -229,7 +233,7 @@ def show_settings(
         color_rows.append(ft.Row([
             preview,
             field,
-            ft.OutlinedButton("选取", icon=ft.Icons.COLOR_LENS_OUTLINED,
+            ft.OutlinedButton(label("选取"), icon=ft.Icons.COLOR_LENS_OUTLINED,
                               on_click=lambda e, k=key: open_color_picker(k)),
         ], spacing=12, wrap=True))
 
@@ -238,7 +242,7 @@ def show_settings(
             field.value = DEFAULT_COLORS[key]
             field.update()
             sync_color_preview(key)
-        error_text.value = "颜色已恢复默认值；点击应用或确定保存。"
+        error_text.value = label("颜色已恢复默认值；点击应用或确定保存。")
         error_text.update()
 
     def collect() -> dict[str, Any]:
@@ -251,7 +255,7 @@ def show_settings(
         return validate_settings(draft)
 
     def status(text: str, is_error: bool = False):
-        error_text.value = text
+        error_text.value = label(text)
         error_text.color = ft.Colors.RED_400 if is_error else ft.Colors.GREEN_500
         error_text.update()
 
@@ -274,7 +278,14 @@ def show_settings(
             close_view()
             notify("设置已保存")
         else:
-            status("更改已应用")
+            if candidate["language"] != ui_language:
+                # Rebuild settings controls in the new language. This also
+                # localizes buttons and dropdowns the widget walker cannot see.
+                page.controls.clear()
+                page.controls.extend(original_controls)
+                show_settings(page, settings, on_changed, picker, notify)
+            else:
+                status("更改已应用")
         return True
 
     def close_view(e=None) -> None:
@@ -435,21 +446,21 @@ def show_settings(
     colors = scroll_tab([
         heading("优先级颜色", "点击选取以可视化调整 RGB，或直接输入 #RRGGBB 色号。"),
         *color_rows,
-        ft.OutlinedButton("恢复默认颜色", icon=ft.Icons.RESTART_ALT, on_click=reset_colors),
+        ft.OutlinedButton(label("恢复默认颜色"), icon=ft.Icons.RESTART_ALT, on_click=reset_colors),
     ])
     advanced = scroll_tab([
         heading("设置导入与导出", "支持当前 Flet 版以及原 Tk 版导出的设置 JSON。"),
         ft.Row([
-            ft.OutlinedButton("导出设置", icon=ft.Icons.UPLOAD_FILE, on_click=export_settings),
-            ft.OutlinedButton("导入设置", icon=ft.Icons.DOWNLOAD, on_click=import_settings),
+            ft.OutlinedButton(label("导出设置"), icon=ft.Icons.UPLOAD_FILE, on_click=export_settings),
+            ft.OutlinedButton(label("导入设置"), icon=ft.Icons.DOWNLOAD, on_click=import_settings),
         ], wrap=True),
-        ft.OutlinedButton("重置所有设置", icon=ft.Icons.RESTART_ALT, on_click=reset_all),
+        ft.OutlinedButton(label("重置所有设置"), icon=ft.Icons.RESTART_ALT, on_click=reset_all),
         heading("设置备份", "最多保留最近 10 份 Flet 设置备份，不影响任务数据。"),
-        ft.OutlinedButton("创建备份", icon=ft.Icons.SAVE_OUTLINED, on_click=backup_settings),
+        ft.OutlinedButton(label("创建备份"), icon=ft.Icons.SAVE_OUTLINED, on_click=backup_settings),
         backup_selector,
         ft.Row([
-            ft.TextButton("恢复所选备份", on_click=restore_backup),
-            ft.TextButton("删除所选备份", on_click=delete_backup),
+            ft.TextButton(label("恢复所选备份"), on_click=restore_backup),
+            ft.TextButton(label("删除所选备份"), on_click=delete_backup),
         ], wrap=True),
         heading("调试与数据目录"),
         ft.Text(f"Flet 配置文件：{storage.SETTINGS_FILE}", selectable=True, size=scaled_font_size(12, settings.get("font_size", 14))),
@@ -468,9 +479,9 @@ def show_settings(
         ft.Text("任务创建与编辑 · 优先级 · 截止日期 · 标签"),
         ft.Text("搜索与过滤 · 统计信息 · 多主题 · JSON 导入导出"),
         heading("系统信息"),
-        ft.Text(f"操作系统：{platform.platform()}", selectable=True),
-        ft.Text(f"Python 版本：{sys.version.split()[0]}", selectable=True),
-        ft.Text(f"架构：{platform.machine()}", selectable=True),
+        ft.Text(label(f"操作系统：{platform.platform()}"), selectable=True),
+        ft.Text(label(f"Python 版本：{sys.version.split()[0]}"), selectable=True),
+        ft.Text(label(f"架构：{platform.machine()}"), selectable=True),
         ft.Text("项目地址：github.com/SDCOM-0415/To-do.app", selectable=True),
     ])
 
@@ -482,11 +493,11 @@ def show_settings(
             expand=True, spacing=0,
             controls=[
                 ft.TabBar(tabs=[
-                    ft.Tab(label="外观", icon=ft.Icons.PALETTE_OUTLINED),
-                    ft.Tab(label="行为", icon=ft.Icons.TUNE),
-                    ft.Tab(label="颜色", icon=ft.Icons.COLOR_LENS_OUTLINED),
-                    ft.Tab(label="高级", icon=ft.Icons.SETTINGS_OUTLINED),
-                    ft.Tab(label="关于", icon=ft.Icons.INFO_OUTLINE),
+                    ft.Tab(label=label("外观"), icon=ft.Icons.PALETTE_OUTLINED),
+                    ft.Tab(label=label("行为"), icon=ft.Icons.TUNE),
+                    ft.Tab(label=label("颜色"), icon=ft.Icons.COLOR_LENS_OUTLINED),
+                    ft.Tab(label=label("高级"), icon=ft.Icons.SETTINGS_OUTLINED),
+                    ft.Tab(label=label("关于"), icon=ft.Icons.INFO_OUTLINE),
                 ]),
                 ft.TabBarView(
                     expand=True,
@@ -507,8 +518,8 @@ def show_settings(
                     content=ft.Row([
                         ft.IconButton(ft.Icons.ARROW_BACK, tooltip="返回任务列表", on_click=close_view),
                         ft.Column([
-                            ft.Text("应用设置", size=scaled_font_size(23, settings.get("font_size", 14)), weight=ft.FontWeight.BOLD),
-                            ft.Text(f"TodoApp Flet · {len(PALETTES)} 种外观风格", size=scaled_font_size(12, settings.get("font_size", 14)), color=ft.Colors.ON_SURFACE_VARIANT),
+                            ft.Text(label("应用设置"), size=scaled_font_size(23, settings.get("font_size", 14)), weight=ft.FontWeight.BOLD),
+                            ft.Text(label(f"TodoApp Flet · {len(PALETTES)} 种外观风格"), size=scaled_font_size(12, settings.get("font_size", 14)), color=ft.Colors.ON_SURFACE_VARIANT),
                         ], expand=True, spacing=3),
                     ]),
                 ),
@@ -519,9 +530,9 @@ def show_settings(
                     padding=ft.Padding.symmetric(horizontal=25, vertical=12),
                     content=ft.Row([
                         ft.Container(content=error_text, expand=True),
-                        ft.TextButton("取消", on_click=close_view),
-                        ft.OutlinedButton("应用", on_click=lambda e: save_changes()),
-                        ft.Button("确定", on_click=lambda e: save_changes(close=True)),
+                        ft.TextButton(label("取消"), on_click=close_view),
+                        ft.OutlinedButton(label("应用"), on_click=lambda e: save_changes()),
+                        ft.Button(label("确定"), on_click=lambda e: save_changes(close=True)),
                     ], spacing=12, vertical_alignment=ft.CrossAxisAlignment.CENTER),
                 ),
             ],
