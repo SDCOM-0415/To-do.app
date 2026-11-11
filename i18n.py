@@ -263,6 +263,33 @@ MORE_STRINGS.update({
     "请输入任务标题": ("Enter a task title", "請輸入任務標題"),
     "请使用 YYYY/MM/DD 格式输入有效日期": ("Enter a valid date in YYYY/MM/DD format", "請以 YYYY/MM/DD 格式輸入有效日期"),
 })
+MORE_STRINGS.update({
+    "深色石墨与淡紫色强调": ("Dark graphite with soft lavender accents", "深色石墨搭配淡紫色點綴"),
+    "暖白纸张与低饱和绿色": ("Warm white paper with muted green", "暖白紙張搭配低飽和綠色"),
+    "深海蓝与冷青色强调": ("Deep ocean blue with cool cyan accents", "深海藍搭配冷青色點綴"),
+    "冰川浅灰蓝与沉稳的北欧蓝": ("Icy blue-gray with classic Nordic blue", "冰川淺灰藍搭配沉穩北歐藍"),
+    "墨绿工作台与柔和苔绿色": ("Forest green with soft moss accents", "墨綠工作台搭配柔和苔綠色"),
+    "淡粉米白与柔和玫瑰色": ("Soft blush ivory and rose", "淡粉米白搭配柔和玫瑰色"),
+    "浅沙色纸面与温暖赭橙": ("Pale sand with warm ochre orange", "淺沙色紙面搭配溫暖赭橙"),
+    "雾紫浅色与雅致的薰衣草紫": ("Misty violet and lavender", "霧紫淺色搭配雅緻薰衣草紫"),
+    "暖灰深色与内敛的赤铜色": ("Warm charcoal with copper accents", "暖灰深色搭配內斂赤銅色"),
+    "近黑色界面与清透薄荷青": ("Near-black surfaces with mint accents", "近黑色介面搭配清透薄荷青"),
+    "Flet 配置文件": ("Flet settings file", "Flet 設定檔"),
+    "Tk 配置文件": ("Tk settings file", "Tk 設定檔"),
+    "共享任务文件": ("Shared tasks file", "共用任務檔案"),
+    "备份失败": ("Backup failed", "備份失敗"),
+    "恢复失败": ("Restore failed", "還原失敗"),
+    "删除备份失败": ("Delete backup failed", "刪除備份失敗"),
+    "导出失败": ("Export failed", "匯出失敗"),
+    "导入失败": ("Import failed", "匯入失敗"),
+    "已创建备份": ("Backup created", "已建立備份"),
+    "已导出": ("Exported", "已匯出"),
+    "已删除任务": ("Task deleted", "已刪除任務"),
+    "已添加任务": ("Task added", "已新增任務"),
+    "已更新任务": ("Task updated", "已更新任務"),
+    "保存失败": ("Save failed", "儲存失敗"),
+    "无法保存设置": ("Unable to save settings", "無法儲存設定"),
+})
 STRINGS.update(MORE_STRINGS)
 
 # Longer keys first to avoid translating a short label within a longer string.
@@ -346,6 +373,17 @@ def tr(value: str, language: str | None = None) -> str:
         match = re.fullmatch(re.escape(source) + r"\s+(\d+)\s+天", canonical)
         if match:
             return (translations[0] if language == "en" else translations[1]) + " " + match.group(1)
+    # Runtime status messages: preserve filenames and error details verbatim.
+    for prefix in ("备份失败", "恢复失败", "删除备份失败",
+                   "导出失败", "导入失败", "已创建备份",
+                   "已导出", "已删除任务", "已添加任务",
+                   "已更新任务", "保存失败", "无法保存设置"):
+        variants = STRINGS.get(prefix)
+        if variants:
+            match = re.fullmatch(re.escape(prefix) + r"([：:]\s*)(.+)", canonical)
+            if match:
+                translated = prefix if language == "zh-cn" else variants[0 if language == "en" else 1]
+                return translated + match.group(1) + match.group(2)
     # Dynamic prefix + numeric suffix, generated after every task refresh.
     for prefix in ("总任务", "已完成", "待完成", "已过期", "完成率"):
         choices = STRINGS.get(prefix)
