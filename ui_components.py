@@ -7,6 +7,7 @@ from tkinter import messagebox
 from datetime import datetime, date
 import calendar
 from date_input import format_date_input, parse_date_input
+from localize_tk import localize_tk
 from typing import Callable, Optional
 from models import Task
 from config import app_config
@@ -41,6 +42,7 @@ class TaskEditDialog(ctk.CTkToplevel):
         # 如果是编辑模式，填充现有数据
         if task:
             self.load_task_data()
+        localize_tk(self, app_config.get("language", "zh-cn"))
     
     def center_window(self):
         """窗口居中显示"""
