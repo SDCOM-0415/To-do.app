@@ -156,11 +156,19 @@ def main(page: ft.Page) -> None:
         refresh()
 
     def remove_task(task: Task) -> None:
+        # 保存任务 ID，而不是依赖可能失效的界面对象引用。
+        task_id = task.id
+
         def do_delete(e) -> None:
+            # 重复确认、旧界面事件以及导入/清空后的过期回调都可能触发这里。
+            # 删除应当是幂等操作，不得因对象不在列表中而崩溃。
+            index = next((i for i, item in enumerate(tasks) if item.id == task_id), None)
+            if index is None:
+                return
             page.pop_dialog()
-            tasks.remove(task)
+            removed = tasks.pop(index)
             if not save():
-                tasks.append(task)
+                tasks.insert(index, removed)
             refresh()
 
         if not settings.get("confirm_delete", True):
