@@ -10,6 +10,14 @@ def localize_tk(root, language: str) -> None:
 
     def visit(widget):
         cls = type(widget).__name__
+        if widget is root and hasattr(widget, "title"):
+            try:
+                old_title = widget.title()
+                new_title = tr(old_title, language)
+                if new_title != old_title:
+                    widget.title(new_title)
+            except (RuntimeError, TypeError, ValueError):
+                pass
         # CTkTabview: tab names are backed by a separate segmented button.
         if cls == "CTkTabview":
             previous = getattr(widget, "_i18n_tab_language", "zh-cn")
