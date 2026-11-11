@@ -11,6 +11,8 @@ def localize_tk(root, language: str) -> None:
     language = normalize_language(language)
 
     def visit(widget):
+        if getattr(widget, "_i18n_skip", False):
+            return
         cls = type(widget).__name__
         if widget is root and hasattr(widget, "title"):
             try:
