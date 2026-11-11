@@ -197,6 +197,20 @@ MORE_STRINGS = {
     "输入任务，按回车创建": ("Type a task and press Enter", "輸入任務後按 Enter 建立"),
     "添加任务或调整筛选条件": ("Add a task or adjust the filters", "新增任務或調整篩選條件"),
 }
+MORE_STRINGS.update({
+    "跟随系统": ("Follow system", "跟隨系統"),
+    "深色模式": ("Dark mode", "深色模式"),
+    "浅色模式": ("Light mode", "淺色模式"),
+    "经典界面（原版）": ("Classic interface (original)", "經典介面（原版）"),
+    "现代工作空间（新版）": ("Modern workspace (new)", "現代工作空間（新版）"),
+    "操作系统": ("Operating system", "作業系統"),
+    "系统架构": ("Architecture", "系統架構"),
+    "架构": ("Architecture", "架構"),
+    "Python 版本": ("Python version", "Python 版本"),
+    "版本": ("Version", "版本"),
+    "设置已成功保存": ("Settings saved successfully", "設定已成功儲存"),
+    "任务默认排序": ("Default task sort", "預設任務排序"),
+})
 STRINGS.update(MORE_STRINGS)
 
 # Longer keys first to avoid translating a short label within a longer string.
@@ -242,6 +256,15 @@ def tr(value: str, language: str | None = None) -> str:
         for prefix, variants in count_labels.items():
             if re.fullmatch(re.escape(prefix) + r":\s*[0-9]+%?", canonical):
                 return variants[0 if language == "en" else 1] + canonical[len(prefix):]
+    # System metadata and path labels contain a localized prefix plus runtime data.
+    # Only match known label prefixes, never rewrite arbitrary user content.
+    for prefix in ("操作系统", "Python 版本", "系统架构", "架构", "版本"):
+        match = re.fullmatch(re.escape(prefix) + r"([：:]\\s*)(.+)", canonical)
+        if match:
+            label = STRINGS.get(prefix)
+            if label:
+                translated_prefix = prefix if language == "zh-cn" else label[0 if language == "en" else 1]
+                return translated_prefix + match.group(1) + match.group(2)
     variants = STRINGS.get(canonical)
     if variants is None or language == "zh-cn":
         return canonical
