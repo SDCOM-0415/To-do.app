@@ -129,6 +129,15 @@ jobs:
           cache: pip
           cache-dependency-path: ${{ matrix.edition == 'Flet' && 'requirements.txt' || 'requirements.txt' }}
 
+      - name: Prepare verified bundled HarmonyOS Sans font
+        shell: bash
+        run: |
+          if [[ "${{ matrix.edition }}" == "Tk" ]]; then
+            python prepare_fonts.py --edition tk
+          else
+            python prepare_fonts.py --edition flet
+          fi
+
       - name: Install Flet Linux build dependencies
         if: matrix.os == 'linux' && matrix.edition == 'Flet'
         shell: bash
