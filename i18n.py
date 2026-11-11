@@ -210,6 +210,8 @@ MORE_STRINGS.update({
     "版本": ("Version", "版本"),
     "设置已成功保存": ("Settings saved successfully", "設定已成功儲存"),
     "任务默认排序": ("Default task sort", "預設任務排序"),
+    "恢复默认颜色": ("Restore default colors", "還原預設顏色"),
+    "设置已应用": ("Settings applied", "設定已套用"),
 })
 STRINGS.update(MORE_STRINGS)
 
@@ -267,6 +269,14 @@ def tr(value: str, language: str | None = None) -> str:
             if match:
                 translated_prefix = prefix if language == "zh-cn" else labels[0 if language == "en" else 1]
                 return translated_prefix + match.group(1) + match.group(2)
+    # Preserve runtime numbers while translating the settings subtitle.
+    style_count = re.fullmatch(r"TodoApp Flet · (\\d+) 种外观风格", canonical)
+    if style_count:
+        count = style_count.group(1)
+        if language == "en":
+            return f"TodoApp Flet · {count} appearance presets"
+        if language == "zh-tw":
+            return f"TodoApp Flet · {count} 種外觀風格"
     variants = STRINGS.get(canonical)
     if variants is None or language == "zh-cn":
         return canonical
