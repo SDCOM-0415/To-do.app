@@ -242,6 +242,9 @@ def show_settings(
         error_text.update()
 
     def collect() -> dict[str, Any]:
+        # Read the current control value directly; on_select may not have fired
+        # before the user immediately clicks Apply.
+        draft["language"] = language.value or draft["language"]
         draft["window_size"] = f"{width.value}x{height.value}"
         draft["font_size"] = int(font.value)
         draft["priority_colors"] = {key: field.value.strip() for key, field in color_fields.items()}
