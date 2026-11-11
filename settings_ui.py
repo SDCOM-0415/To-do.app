@@ -19,6 +19,8 @@ import storage
 from appearance import PALETTES, appearance, normalize_theme
 from font_preferences import normalize_font_mode, scaled_font_size
 from window_chrome import with_titlebar, update_titlebar_theme
+from localize_flet import localize_flet
+from i18n import tr
 
 DEFAULT_COLORS = storage.DEFAULT_SETTINGS["priority_colors"]
 BACKUP_DIR = storage.APP_DIR / "backups"
@@ -138,20 +140,82 @@ def show_settings(
         ("创建时间", "created_at"), ("优先级", "priority"), ("截止日期", "due_date"),
         ("标题", "title"), ("完成状态", "completed"),
     ], 280)
-    color_fields = {}
+    color_fields: dict[str, ft.TextField] = {}
+    color_previews: dict[str, ft.Container] = {}
     color_rows = []
+
+    def sync_color_preview(key: str) -> None:
+        raw = (color_fields[key].value or "").strip()
+        if COLOR_RE.fullmatch(raw):
+            color_previews[key].bgcolor = raw
+            color_previews[key].update()
+
+    def open_color_picker(key: str) -> None:
+        """Visual RGB picker with unrestricted 24-bit colors and hex input."""
+        initial = (color_fields[key].value or "").strip()
+        if not COLOR_RE.fullmatch(initial):
+            initial = DEFAULT_COLORS[key]
+        rgb = [int(initial[i:i+2], 16) for i in (1, 3, 5)]
+        chosen = ft.Text(initial.upper(), selectable=True)
+        preview = ft.Container(width=200, height=38, bgcolor=initial, border_radius=8)
+        sliders = []
+
+        def update_rgb(e=None) -> None:
+            result = "#" + "".join(f"{int(slider.value):02X}" for slider in sliders)
+            chosen.value = result
+            preview.bgcolor = result
+            chosen.update()
+            preview.update()
+
+        for channel, value in zip(("R", "G", "B"), rgb):
+            slider = ft.Slider(min=0, max=255, divisions=255, value=value,
+                               expand=True, on_change=update_rgb)
+            sliders.append(slider)
+
+        def commit_color(e) -> None:
+            color_fields[key].value = chosen.value
+            sync_color_preview(key)
+            color_fields[key].update()
+            page.pop_dialog()
+
+        dialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Text(f"选择{key}优先级颜色"),
+            content=ft.Container(width=365, content=ft.Column(
+                tight=True, spacing=12, controls=[
+                    ft.Text("拖动红、绿、蓝滑块调整颜色"),
+                    preview, chosen,
+                    *[ft.Row([ft.Text(channel, width=20), slider], spacing=8)
+                      for channel, slider in zip(("R", "G", "B"), sliders)],
+                ],
+            )),
+            actions=[
+                ft.TextButton("取消", on_click=lambda e: page.pop_dialog()),
+                ft.Button("确定", on_click=commit_color),
+            ],
+        )
+        localize_flet(dialog, settings.get("language", "zh-cn"))
+        page.show_dialog(dialog)
+
     for key in ("高", "中", "低"):
-        field = ft.TextField(label=f"{key}优先级", value=draft["priority_colors"][key], width=180)
+        field = ft.TextField(label=f"{key}优先级", value=draft["priority_colors"][key],
+                             width=180, on_change=lambda e, k=key: sync_color_preview(k))
         color_fields[key] = field
+        preview = ft.Container(width=30, height=30, border_radius=6,
+                               bgcolor=draft["priority_colors"][key])
+        color_previews[key] = preview
         color_rows.append(ft.Row([
-            ft.Container(width=16, height=16, bgcolor=draft["priority_colors"][key], border_radius=5),
+            preview,
             field,
-        ], spacing=15))
+            ft.OutlinedButton("选取", icon=ft.Icons.COLOR_LENS_OUTLINED,
+                              on_click=lambda e, k=key: open_color_picker(k)),
+        ], spacing=12, wrap=True))
 
     def reset_colors(e):
         for key, field in color_fields.items():
             field.value = DEFAULT_COLORS[key]
             field.update()
+            sync_color_preview(key)
         error_text.value = "颜色已恢复默认值；点击应用或确定保存。"
         error_text.update()
 
@@ -176,6 +240,8 @@ def show_settings(
         settings.clear()
         settings.update(candidate)
         on_changed()
+        # Already mounted settings controls must switch language immediately.
+        localize_flet(page.controls, settings.get("language", "zh-cn"))
         if title_surface is not None:
             update_titlebar_theme(title_surface, settings["theme"], settings_view=True)
             page.update()
@@ -211,6 +277,7 @@ def show_settings(
         width.value, height.value = w, h
         for key, field in color_fields.items():
             field.value = candidate["priority_colors"][key]
+            sync_color_preview(key)
         # Switches are not shared with the original task screen.
         for key, control in switches.items():
             control.value = candidate[key]
@@ -337,11 +404,11 @@ def show_settings(
         heading("偏好设置"),
         sort,
         language,
-        ft.Text("目前语言选项沿用 Tk 版配置；Flet 界面完整本地化仍需单独实现。",
+        ft.Text("选择语言后点击应用或确定，界面会立即更新。",
                 color=ft.Colors.ON_SURFACE_VARIANT, size=scaled_font_size(11, settings.get("font_size", 14))),
     ])
     colors = scroll_tab([
-        heading("优先级颜色", "输入十六进制色值，例如 #ff4444。保存后同步更新任务列表。"),
+        heading("优先级颜色", "点击选取以可视化调整 RGB，或直接输入 #RRGGBB 色号。"),
         *color_rows,
         ft.OutlinedButton("恢复默认颜色", icon=ft.Icons.RESTART_ALT, on_click=reset_colors),
     ])
@@ -439,5 +506,7 @@ def show_settings(
     layout, title_surface = with_titlebar(screen, settings.get("theme"), settings_view=True)
     page.controls.clear()
     page.add(layout)
+    localize_flet(page.controls, settings.get("language", "zh-cn"))
+    page.update()
     # Controls need to be mounted before update() can be used.
     refresh_backups()
