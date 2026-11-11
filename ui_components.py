@@ -10,7 +10,7 @@ from date_input import format_date_input, parse_date_input
 from typing import Callable, Optional
 from models import Task
 from config import app_config
-from font_preferences import current_font_family
+from font_preferences import current_font_family, ui_font_size
 
 class TaskEditDialog(ctk.CTkToplevel):
     """任务编辑对话框"""
@@ -58,20 +58,20 @@ class TaskEditDialog(ctk.CTkToplevel):
         form = ctk.CTkScrollableFrame(main_frame, fg_color="transparent")
         
         # 标题输入
-        ctk.CTkLabel(form, text="任务标题:", font=(current_font_family(app_config.get("font_mode", "harmony")), 14)).pack(anchor="w", pady=(10, 5))
-        self.title_entry = ctk.CTkEntry(form, height=35, font=(current_font_family(app_config.get("font_mode", "harmony")), 12))
+        ctk.CTkLabel(form, text="任务标题:", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(14))).pack(anchor="w", pady=(10, 5))
+        self.title_entry = ctk.CTkEntry(form, height=35, font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12)))
         self.title_entry.pack(fill="x", pady=(0, 15))
         
         # 描述输入
-        ctk.CTkLabel(form, text="任务描述:", font=(current_font_family(app_config.get("font_mode", "harmony")), 14)).pack(anchor="w", pady=(0, 5))
-        self.description_text = ctk.CTkTextbox(form, height=100, font=(current_font_family(app_config.get("font_mode", "harmony")), 12))
+        ctk.CTkLabel(form, text="任务描述:", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(14))).pack(anchor="w", pady=(0, 5))
+        self.description_text = ctk.CTkTextbox(form, height=100, font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12)))
         self.description_text.pack(fill="x", pady=(0, 15))
         
         # 优先级选择
         priority_frame = ctk.CTkFrame(form)
         priority_frame.pack(fill="x", pady=(0, 15))
         
-        ctk.CTkLabel(priority_frame, text="优先级:", font=(current_font_family(app_config.get("font_mode", "harmony")), 14)).pack(side="left", padx=(10, 20))
+        ctk.CTkLabel(priority_frame, text="优先级:", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(14))).pack(side="left", padx=(10, 20))
         
         self.priority_var = ctk.StringVar(value="中")
         priority_options = ["高", "中", "低"]
@@ -79,7 +79,7 @@ class TaskEditDialog(ctk.CTkToplevel):
             priority_frame, 
             values=priority_options,
             variable=self.priority_var,
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 12)
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))
         )
         self.priority_menu.pack(side="left", padx=(0, 10))
         
@@ -87,13 +87,13 @@ class TaskEditDialog(ctk.CTkToplevel):
         date_frame = ctk.CTkFrame(form)
         date_frame.pack(fill="x", pady=(0, 15))
         
-        ctk.CTkLabel(date_frame, text="截止日期:", font=(current_font_family(app_config.get("font_mode", "harmony")), 14)).pack(side="left", padx=(10, 20))
+        ctk.CTkLabel(date_frame, text="截止日期:", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(14))).pack(side="left", padx=(10, 20))
         
         self.due_date_var = ctk.StringVar()
         self.due_date_entry = ctk.CTkEntry(
             date_frame, textvariable=self.due_date_var,
             placeholder_text="YYYY/MM/DD（可选）",
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 12))
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12)))
         self.due_date_entry.pack(side="left", fill="x", expand=True, padx=(0, 6))
         self.due_date_var.trace_add("write", self.on_date_input)
         ctk.CTkButton(date_frame, text="日历", width=64,
@@ -110,7 +110,7 @@ class TaskEditDialog(ctk.CTkToplevel):
             command=self.cancel,
             fg_color="gray",
             hover_color="darkgray",
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 12)
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))
         )
         cancel_btn.pack(side="right", padx=(10, 10))
         
@@ -119,7 +119,7 @@ class TaskEditDialog(ctk.CTkToplevel):
             button_frame,
             text="确认",
             command=self.confirm,
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 12)
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))
         )
         confirm_btn.pack(side="right")
         # 先分配固定底栏空间，再让表单占用剩余空间。
@@ -324,7 +324,7 @@ class TaskItem(ctk.CTkFrame):
         self.title_label = ctk.CTkLabel(
             middle_frame,
             text=self.task.title,
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 14, "bold"),
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(14), "bold"),
             anchor="w"
         )
         self.title_label.pack(fill="x", pady=(10, 2))
@@ -334,7 +334,7 @@ class TaskItem(ctk.CTkFrame):
             self.desc_label = ctk.CTkLabel(
                 middle_frame,
                 text=self.task.description[:50] + ("..." if len(self.task.description) > 50 else ""),
-                font=(current_font_family(app_config.get("font_mode", "harmony")), 11),
+                font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(11)),
                 anchor="w",
                 text_color="gray"
             )
@@ -359,7 +359,7 @@ class TaskItem(ctk.CTkFrame):
             self.info_label = ctk.CTkLabel(
                 middle_frame,
                 text=" | ".join(info_text),
-                font=(current_font_family(app_config.get("font_mode", "harmony")), 10),
+                font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(10)),
                 anchor="w",
                 text_color="orange" if self.task.is_overdue() else "gray"
             )
@@ -377,7 +377,7 @@ class TaskItem(ctk.CTkFrame):
             width=40,
             height=25,
             command=lambda: self.on_edit(self.task),
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 10)
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(10))
         )
         edit_btn.pack(pady=(15, 5))
         
@@ -390,7 +390,7 @@ class TaskItem(ctk.CTkFrame):
             command=lambda: self.on_delete(self.task),
             fg_color="red",
             hover_color="darkred",
-            font=(current_font_family(app_config.get("font_mode", "harmony")), 10)
+            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(10))
         )
         delete_btn.pack()
     
@@ -425,7 +425,7 @@ class StatisticsFrame(ctk.CTkFrame):
     def create_widgets(self):
         """创建统计组件"""
         # 标题
-        title_label = ctk.CTkLabel(self, text="任务统计", font=(current_font_family(app_config.get("font_mode", "harmony")), 16, "bold"))
+        title_label = ctk.CTkLabel(self, text="任务统计", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(16), "bold"))
         title_label.pack(pady=(10, 15))
         
         # 统计信息容器
@@ -433,19 +433,19 @@ class StatisticsFrame(ctk.CTkFrame):
         self.stats_frame.pack(fill="x", padx=10, pady=(0, 10))
         
         # 初始化统计标签
-        self.total_label = ctk.CTkLabel(self.stats_frame, text="总任务: 0", font=(current_font_family(app_config.get("font_mode", "harmony")), 12))
+        self.total_label = ctk.CTkLabel(self.stats_frame, text="总任务: 0", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12)))
         self.total_label.pack(pady=2)
         
-        self.completed_label = ctk.CTkLabel(self.stats_frame, text="已完成: 0", font=(current_font_family(app_config.get("font_mode", "harmony")), 12))
+        self.completed_label = ctk.CTkLabel(self.stats_frame, text="已完成: 0", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12)))
         self.completed_label.pack(pady=2)
         
-        self.pending_label = ctk.CTkLabel(self.stats_frame, text="待完成: 0", font=(current_font_family(app_config.get("font_mode", "harmony")), 12))
+        self.pending_label = ctk.CTkLabel(self.stats_frame, text="待完成: 0", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12)))
         self.pending_label.pack(pady=2)
         
-        self.overdue_label = ctk.CTkLabel(self.stats_frame, text="已过期: 0", font=(current_font_family(app_config.get("font_mode", "harmony")), 12))
+        self.overdue_label = ctk.CTkLabel(self.stats_frame, text="已过期: 0", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12)))
         self.overdue_label.pack(pady=2)
         
-        self.completion_rate_label = ctk.CTkLabel(self.stats_frame, text="完成率: 0%", font=(current_font_family(app_config.get("font_mode", "harmony")), 12))
+        self.completion_rate_label = ctk.CTkLabel(self.stats_frame, text="完成率: 0%", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12)))
         self.completion_rate_label.pack(pady=2)
     
     def update_statistics(self, stats: dict):
