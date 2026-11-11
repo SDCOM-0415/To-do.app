@@ -512,6 +512,11 @@ def main(page: ft.Page) -> None:
                 ),
             ),
         ]
+        # Newly generated task cards and counters must respect the selected locale.
+        language = settings.get("language", "zh-cn")
+        localize_flet(task_list, language)
+        localize_flet(stats, language)
+        localize_flet(view_title, language)
         # 更新 Flet 的原生控件树，否则要等切换页面后才看到新任务。
         page.update()
 
