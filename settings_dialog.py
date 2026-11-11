@@ -6,6 +6,7 @@ import customtkinter as ctk
 from tkinter import messagebox, colorchooser, filedialog
 from typing import Dict, Any
 import json
+import re
 import platform
 import sys
 import time
@@ -14,6 +15,7 @@ import subprocess
 from config import app_config
 from settings_manager import settings_manager
 from font_preferences import current_font_family, ui_font_size
+from localize_tk import localize_tk
 
 class SettingsDialog(ctk.CTkToplevel):
     """设置对话框"""
@@ -41,6 +43,7 @@ class SettingsDialog(ctk.CTkToplevel):
         
         # 加载当前设置
         self.load_current_settings()
+        localize_tk(self, app_config.get('language', 'zh-cn'))
         
         # 确保窗口完全显示后再设置模态
         self.after(100, self.setup_modal)
@@ -274,7 +277,13 @@ class SettingsDialog(ctk.CTkToplevel):
         
         ctk.CTkLabel(lang_frame, text="界面语言:").pack(side="left")
         
-        self.language_var = ctk.StringVar(value=app_config.get("language", "zh-cn"))
+        self.language_choices = {
+            "zh-cn": "简体中文 (zh-cn)",
+            "en": "English (en)",
+            "zh-tw": "繁體中文 (zh-tw)",
+        }
+        self.language_var = ctk.StringVar(value=self.language_choices.get(
+            app_config.get("language", "zh-cn"), self.language_choices["zh-cn"]))
         language_menu = ctk.CTkOptionMenu(
             lang_frame,
             values=["简体中文 (zh-cn)", "English (en)", "繁體中文 (zh-tw)"],
@@ -303,6 +312,7 @@ class SettingsDialog(ctk.CTkToplevel):
         }).copy()
         
         self.color_buttons = {}
+        self.color_entries = {}
         for priority in ["高", "中", "低"]:
             color_frame = ctk.CTkFrame(priority_frame, fg_color="transparent")
             color_frame.pack(fill="x", padx=10, pady=5)
@@ -320,8 +330,12 @@ class SettingsDialog(ctk.CTkToplevel):
             color_btn.pack(side="left", padx=(0, 10))
             self.color_buttons[priority] = color_btn
             
-            color_label = ctk.CTkLabel(color_frame, text=self.priority_colors[priority])
-            color_label.pack(side="left")
+            color_entry = ctk.CTkEntry(color_frame, width=125)
+            color_entry.insert(0, self.priority_colors[priority])
+            color_entry.pack(side="left", padx=(0, 8))
+            color_entry.bind("<KeyRelease>", lambda e, p=priority: self.preview_priority_color(p))
+            color_entry.bind("<FocusOut>", lambda e, p=priority: self.preview_priority_color(p))
+            self.color_entries[priority] = color_entry
         
         # 重置颜色按钮
         reset_colors_btn = ctk.CTkButton(
@@ -698,40 +712,35 @@ class SettingsDialog(ctk.CTkToplevel):
         """字体大小改变时的处理"""
         self.font_size_label.configure(text=f"{int(value)}px")
     
-    def choose_priority_color(self, priority):
-        """选择优先级颜色"""
-        current_color = self.priority_colors[priority]
-        color = colorchooser.askcolor(
-            color=current_color,
-            title=f"选择{priority}优先级颜色"
-        )
-        
-        if color[1]:  # 如果用户选择了颜色
-            self.priority_colors[priority] = color[1]
-            self.color_buttons[priority].configure(fg_color=color[1])
-            # 更新颜色标签
-            for widget in self.color_buttons[priority].master.winfo_children():
-                if isinstance(widget, ctk.CTkLabel) and widget.cget("text").startswith("#"):
-                    widget.configure(text=color[1])
-                    break
-    
-    def reset_priority_colors(self):
-        """重置优先级颜色为默认值"""
-        default_colors = {
-            "高": "#ff4444",
-            "中": "#ffaa00", 
-            "低": "#44ff44"
-        }
-        
-        for priority, color in default_colors.items():
+    def preview_priority_color(self, priority):
+        """Preview manually entered hex values without rewriting the field."""
+        color = self.color_entries[priority].get().strip()
+        if re.fullmatch(r"#[0-9a-fA-F]{6}", color):
             self.priority_colors[priority] = color
             self.color_buttons[priority].configure(fg_color=color)
-            # 更新颜色标签
-            for widget in self.color_buttons[priority].master.winfo_children():
-                if isinstance(widget, ctk.CTkLabel) and widget.cget("text").startswith("#"):
-                    widget.configure(text=color)
-                    break
-    
+
+    def choose_priority_color(self, priority):
+        """Native picker and manual hex entry share one color value."""
+        self.preview_priority_color(priority)
+        selected = colorchooser.askcolor(
+            color=self.priority_colors[priority],
+            title=f"选择{priority}优先级颜色", parent=self)
+        if selected[1]:
+            color = selected[1].upper()
+            self.priority_colors[priority] = color
+            self.color_buttons[priority].configure(fg_color=color)
+            field = self.color_entries[priority]
+            field.delete(0, "end")
+            field.insert(0, color)
+
+    def reset_priority_colors(self):
+        for priority, color in (("高", "#ff4444"), ("中", "#ffaa00"), ("低", "#44ff44")):
+            self.priority_colors[priority] = color
+            self.color_buttons[priority].configure(fg_color=color)
+            field = self.color_entries[priority]
+            field.delete(0, "end")
+            field.insert(0, color)
+
     def export_settings(self):
         """导出设置"""
         filename = filedialog.asksaveasfilename(
@@ -811,25 +820,34 @@ class SettingsDialog(ctk.CTkToplevel):
                 "繁體中文 (zh-tw)": "zh-tw"
             }
             selected_lang = self.language_var.get()
-            if selected_lang in lang_mapping:
-                app_config.set("language", lang_mapping[selected_lang])
+            app_config.set("language", lang_mapping.get(selected_lang, "zh-cn"))
             
-            # 保存优先级颜色
-            app_config.set("priority_colors", self.priority_colors)
+            # Reject invalid manually entered hex values.
+            entered_colors = {}
+            for key, entry in self.color_entries.items():
+                value = entry.get().strip()
+                if not re.fullmatch(r"#[0-9a-fA-F]{6}", value):
+                    messagebox.showerror("颜色格式无效",
+                        f"{key}优先级颜色应为 #RRGGBB，例如 #FF4444", parent=self)
+                    return False
+                entered_colors[key] = value.upper()
+            app_config.set("priority_colors", entered_colors)
             
             # 通知父窗口设置已更改
             if self.callback:
                 self.callback()
             
-            messagebox.showinfo("设置已保存", "设置已成功保存")
+            messagebox.showinfo("设置已保存", "设置已成功保存", parent=self)
+            return True
             
         except Exception as e:
             messagebox.showerror("保存失败", f"保存设置时发生错误: {str(e)}")
+            return False
     
     def ok(self):
         """确定按钮处理"""
-        self.apply_settings()
-        self.destroy()
+        if self.apply_settings():
+            self.destroy()
     
     def cancel(self):
         """取消按钮处理"""
