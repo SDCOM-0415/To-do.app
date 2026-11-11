@@ -147,6 +147,7 @@ def main(page: ft.Page) -> None:
         page.show_dialog(dialog)
 
     def message(text: str) -> None:
+        text = tr(text, settings.get("language", "zh-cn"))
         # 避免 Paper & Ink 等浅色主题出现默认的深灰色整宽提示条。
         foreground = "#25282B" if colors["mode"] == ft.ThemeMode.LIGHT else "#F2F1F7"
         show_localized_dialog(ft.SnackBar(
@@ -261,8 +262,8 @@ def main(page: ft.Page) -> None:
             options=[ft.DropdownOption(key=p, text=p) for p in ("高", "中", "低")],
         )
         due = ft.TextField(
-            label="截止日期（YYYY/MM/DD，可留空）",
-            hint_text="例如 2026/11/11，输入数字自动补 /",
+            label=tr("截止日期（YYYY/MM/DD，可留空）", settings.get("language")),
+            hint_text=tr("例如 2026/11/11，输入数字自动补 /", settings.get("language")),
             value=format_date_input(task.due_date or "") if task else "",
             expand=True,
         )
@@ -322,7 +323,7 @@ def main(page: ft.Page) -> None:
             spacing=4,
         )
         tags = ft.TextField(
-            label="标签（逗号分隔）",
+            label=tr("标签（逗号分隔）", settings.get("language")),
             value=", ".join(task.tags or []) if task else "",
         )
         error = ft.Text("", color=ft.Colors.RED_400, size=scaled_font_size(12, settings.get("font_size", 14)))
@@ -532,7 +533,7 @@ def main(page: ft.Page) -> None:
         payload = json.dumps([t.to_dict() for t in tasks], ensure_ascii=False, indent=2).encode("utf-8")
         try:
             path = await picker.save_file(
-                dialog_title="导出待办任务", file_name="todo-tasks.json",
+                dialog_title=tr("导出待办任务", settings.get("language")), file_name="todo-tasks.json",
                 file_type=ft.FilePickerFileType.CUSTOM, allowed_extensions=["json"],
                 src_bytes=payload,
             )
@@ -544,7 +545,7 @@ def main(page: ft.Page) -> None:
     async def import_tasks(e) -> None:
         try:
             files = await picker.pick_files(
-                dialog_title="导入待办任务",
+                dialog_title=tr("导入待办任务", settings.get("language")),
                 allow_multiple=False,
                 file_type=ft.FilePickerFileType.CUSTOM,
                 allowed_extensions=["json"],
