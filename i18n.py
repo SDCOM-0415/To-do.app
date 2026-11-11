@@ -290,6 +290,35 @@ MORE_STRINGS.update({
     "保存失败": ("Save failed", "儲存失敗"),
     "无法保存设置": ("Unable to save settings", "無法儲存設定"),
 })
+MORE_STRINGS.update({
+    "设置已成功保存": ("Settings saved successfully", "設定已成功儲存"),
+    "导入设置将覆盖当前设置，是否继续？": ("Import settings and overwrite current preferences?", "匯入設定將覆蓋目前設定，是否繼續？"),
+    "设置已导入，请重启应用程序以应用所有更改": ("Settings imported. Restart the app to apply all changes.", "設定已匯入，請重新啟動應用程式以套用所有變更。"),
+    "确定要重置所有设置为默认值吗？此操作不可恢复！": ("Reset all settings to defaults? This cannot be undone.", "確定將所有設定還原成預設值嗎？此操作無法復原！"),
+    "确定要清除所有已完成的任务吗？": ("Clear all completed tasks?", "確定要清除所有已完成的任務嗎？"),
+    "确定要清除所有任务吗？此操作不可恢复！": ("Clear all tasks? This cannot be undone.", "確定清除所有任務嗎？此操作無法復原！"),
+    "已清除所有已完成任务": ("All completed tasks cleared", "已清除所有已完成任務"),
+    "已清除所有任务": ("All tasks cleared", "已清除所有任務"),
+    "添加任务失败": ("Failed to add task", "新增任務失敗"),
+    "更新任务失败": ("Failed to update task", "更新任務失敗"),
+    "删除任务失败": ("Failed to delete task", "刪除任務失敗"),
+    "清除任务失败": ("Failed to clear tasks", "清除任務失敗"),
+    "设置应用时发生错误": ("Error while applying settings", "套用設定時發生錯誤"),
+    "确认删除": ("Confirm deletion", "確認刪除"),
+    "确认清除": ("Confirm clearing", "確認清除"),
+    "导出失败": ("Export failed", "匯出失敗"),
+    "颜色格式无效": ("Invalid color format", "顏色格式無效"),
+    "请先选择备份": ("Select a backup first", "請先選擇備份"),
+    "邮箱地址已复制": ("Email address copied", "電子郵件地址已複製"),
+    "无法打开邮箱客户端或复制地址": ("Unable to open email app or copy address", "無法開啟電子郵件程式或複製地址"),
+    "无法打开链接": ("Unable to open link", "無法開啟連結"),
+    "保存设置时发生错误": ("Error saving settings", "儲存設定時發生錯誤"),
+    "版本": ("Version", "版本"),
+    "操作系统": ("Operating system", "作業系統"),
+    "系统架构": ("Architecture", "系統架構"),
+    "天后到期": ("days until due", "天後到期"),
+    "今天到期": ("Due today", "今天到期"),
+})
 STRINGS.update(MORE_STRINGS)
 
 # Longer keys first to avoid translating a short label within a longer string.
