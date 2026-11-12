@@ -394,7 +394,7 @@ def tr(value: str, language: str | None = None) -> str:
             "完成率": ("Completion", "完成率"),
         }
         for prefix, variants in count_labels.items():
-            if re.fullmatch(re.escape(prefix) + r":\s*[0-9]+%?", canonical):
+            if re.fullmatch(re.escape(prefix) + r":\s*[0-9]+(?:\.[0-9]+)?%?", canonical):
                 return variants[0 if language == "en" else 1] + canonical[len(prefix):]
     # System metadata and path labels contain a localized prefix plus runtime data.
     # Only match known label prefixes, never rewrite arbitrary user content.
