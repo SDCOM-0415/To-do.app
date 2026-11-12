@@ -35,3 +35,8 @@ Flet AGENTS.md：记录 Flet 独立测试与主分支联合预发布边界。
 授权事项：触发 v0.3.2 Tk + Flet 双版本八平台联合预发布。
 变更范围：深度补全三语界面文案、动态弹窗与状态提示；保护用户任务文本，修复语言切换后的刷新问题。
 要求：以本次触发时 main 和 flet-version HEAD 为准，生成新的 v0.3.2-YYYYMMDD-N Prerelease，不覆盖旧版本；失败不得自动重复触发。
+
+本次重试：20261112-dynamic-completion-rate-decimal-fix-1
+原因：上一轮 Run 43139217842 在 Flet 的 test_dynamic_statistics_and_statuses 失败。完成率翻译规则只接受整数百分比，无法处理 50.0%。
+修复：main 与 flet-version 的 i18n.py 均允许整数及小数百分比；两分支 test_i18n.py 均增加 50.0% 和 100.0% 英文及繁体回归断言。
+重试要求：重新冻结 main / flet-version 当前 HEAD，完整执行 Tk + Flet 八平台联合构建。所有构建和验证通过后才创建新的 0.3.2 Prerelease，不覆盖历史 Release。
