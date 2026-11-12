@@ -30,3 +30,8 @@
 Tk AGENTS.md：记录 Actions 触发和 Release 发布细节。
 Flet AGENTS.md：记录 Flet 独立测试与主分支联合预发布边界。
 要求：从 main / flet-version 各自最新提交冻结 SHA；构建八平台安装包；全部成功后创建新的 v0.3.2-YYYYMMDD-N Prerelease，不覆盖已有 Release。
+
+本次发布：20261112-comprehensive-i18n-fixes-prerelease-1
+授权事项：触发 v0.3.2 Tk + Flet 双版本八平台联合预发布。
+变更范围：深度补全三语界面文案、动态弹窗与状态提示；保护用户任务文本，修复语言切换后的刷新问题。
+要求：以本次触发时 main 和 flet-version HEAD 为准，生成新的 v0.3.2-YYYYMMDD-N Prerelease，不覆盖旧版本；失败不得自动重复触发。
