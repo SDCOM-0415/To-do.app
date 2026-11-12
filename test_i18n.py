@@ -76,6 +76,8 @@ class LanguageTests(unittest.TestCase):
     def test_dynamic_statistics_and_statuses(self):
         self.assertEqual(tr("总任务: 2", "en"), "Total tasks: 2")
         self.assertEqual(tr("完成率: 50.0%", "en"), "Completion: 50.0%")
+        self.assertEqual(tr("完成率: 50.0%", "zh-tw"), "完成率: 50.0%")
+        self.assertEqual(tr("完成率: 100.0%", "en"), "Completion: 100.0%")
         self.assertEqual(tr("已过期 4 天", "en"), "Overdue by 4 days")
         self.assertEqual(tr("截止: 2026/11/11", "en"), "Due: 2026/11/11")
         self.assertEqual(tr("任务已标记为完成", "en"), "Task marked completed")
