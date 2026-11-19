@@ -37,13 +37,19 @@ class SettingsValidationTests(unittest.TestCase):
                 self.assertIn(name, PALETTES)
 
     def test_all_palettes_have_required_tokens(self):
-        required = {"label", "description", "mode", "accent", "canvas", "sidebar",
-                    "surface", "selected", "divider"}
+        required = {
+            "label", "description", "mode", "accent", "on_accent",
+            "canvas", "sidebar", "surface", "selected", "divider",
+            "text", "muted", "danger",
+        }
         for name, preset in PALETTES.items():
             with self.subTest(name=name):
                 self.assertTrue(required.issubset(preset))
                 self.assertEqual(normalize_theme(name), name)
-                for token in ("accent", "canvas", "sidebar", "surface", "selected", "divider"):
+                for token in (
+                    "accent", "on_accent", "canvas", "sidebar", "surface",
+                    "selected", "divider", "text", "muted", "danger",
+                ):
                     self.assertRegex(preset[token], r"^#[0-9A-Fa-f]{6}$")
 
     def test_font_mode_selection(self):
