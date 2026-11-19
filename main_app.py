@@ -11,7 +11,7 @@ from typing import List, Optional
 from models import Task
 from database import task_db
 from config import app_config
-from ui_components import TaskEditDialog, TaskItem, StatisticsFrame
+from ui_components import TaskEditDialog, TaskItem, StatisticsFrame, THEME_TOKENS
 from settings_dialog import SettingsDialog
 from modern_ui import create_modern_widgets, normalize_layout
 from font_preferences import apply_tk_font, current_font_family, ui_font_size
@@ -88,18 +88,20 @@ class TodoApp(ctk.CTk):
             self.create_classic_widgets()
 
     def create_classic_widgets(self):
-        """保留原版 Tk UI，不改变其任务操作。"""
+        """保留原版 Tk UI 结构，并应用统一配色与视觉层级。"""
+        t = THEME_TOKENS
+        self.configure(fg_color=t["canvas"])
         # 主容器
-        main_container = ctk.CTkFrame(self)
+        main_container = ctk.CTkFrame(self, fg_color=t["canvas"], corner_radius=0)
         self.main_container = main_container
-        main_container.pack(fill="both", expand=True, padx=10, pady=10)
+        main_container.pack(fill="both", expand=True, padx=16, pady=14)
         
         # 顶部工具栏
         self.create_toolbar(main_container)
         
         # 主内容区域
-        content_frame = ctk.CTkFrame(main_container)
-        content_frame.pack(fill="both", expand=True, pady=(10, 0))
+        content_frame = ctk.CTkFrame(main_container, fg_color="transparent")
+        content_frame.pack(fill="both", expand=True, pady=(12, 0))
         
         # 左侧：任务列表
         self.create_task_list(content_frame)
@@ -109,68 +111,98 @@ class TodoApp(ctk.CTk):
     
     def create_toolbar(self, parent):
         """创建工具栏"""
-        toolbar = ctk.CTkFrame(parent, height=60)
-        toolbar.pack(fill="x", pady=(0, 10))
+        t = THEME_TOKENS
+        family = current_font_family(app_config.get("font_mode", "harmony"))
+        toolbar = ctk.CTkFrame(
+            parent,
+            height=58,
+            fg_color=t["surface"],
+            border_width=1,
+            border_color=t["line"],
+            corner_radius=12,
+        )
+        toolbar.pack(fill="x")
         toolbar.pack_propagate(False)
         
         # 左侧：标题
         title_label = ctk.CTkLabel(
             toolbar,
             text=f"📝 Todo App v{app_config.version}",
-            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(20), "bold")
+            text_color=t["text"],
+            font=(family, ui_font_size(19), "bold"),
         )
-        title_label.pack(side="left", padx=20, pady=15)
+        title_label.pack(side="left", padx=20, pady=12)
         
-        # 右侧：主题切换和设置按钮
         # 右侧：设置按钮
         right_frame = ctk.CTkFrame(toolbar, fg_color="transparent")
-        right_frame.pack(side="right", padx=20, pady=10)
+        right_frame.pack(side="right", padx=16, pady=9)
         
-        # 设置按钮
         settings_btn = ctk.CTkButton(
             right_frame,
             text="⚙️",
-            width=40,
-            height=40,
+            width=38,
+            height=38,
+            corner_radius=9,
+            fg_color=t["neutral_btn"],
+            hover_color=t["neutral_btn_hover"],
+            text_color=t["text"],
             command=self.show_settings,
-            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(16))
+            font=(family, ui_font_size(15)),
         )
         settings_btn.pack(side="right")
     
     def create_task_list(self, parent):
         """创建任务列表区域"""
+        t = THEME_TOKENS
+        family = current_font_family(app_config.get("font_mode", "harmony"))
         # 左侧框架
-        left_frame = ctk.CTkFrame(parent)
-        left_frame.pack(side="left", fill="both", expand=True, padx=(0, 5))
+        left_frame = ctk.CTkFrame(
+            parent,
+            fg_color=t["surface"],
+            border_width=1,
+            border_color=t["line"],
+            corner_radius=12,
+        )
+        left_frame.pack(side="left", fill="both", expand=True, padx=(0, 12))
         
         # 任务输入区域
-        input_frame = ctk.CTkFrame(left_frame)
-        input_frame.pack(fill="x", padx=10, pady=10)
+        input_frame = ctk.CTkFrame(left_frame, fg_color="transparent")
+        input_frame.pack(fill="x", padx=14, pady=(14, 8))
         
         # 快速添加输入框
         self.task_entry = ctk.CTkEntry(
             input_frame,
             placeholder_text="输入新任务，按回车快速添加...",
             height=40,
-            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(14))
+            corner_radius=10,
+            border_width=1,
+            fg_color=t["input"],
+            border_color=t["line"],
+            text_color=t["text"],
+            placeholder_text_color=t["muted"],
+            font=(family, ui_font_size(13)),
         )
-        self.task_entry.pack(side="left", fill="x", expand=True, padx=(10, 5), pady=10)
+        self.task_entry.pack(side="left", fill="x", expand=True, padx=(0, 10))
         self.task_entry.bind("<Return>", self.quick_add_task)
         
         # 详细添加按钮
         add_btn = ctk.CTkButton(
             input_frame,
             text="详细添加",
-            width=100,
+            width=102,
             height=40,
+            corner_radius=10,
+            fg_color=t["accent"],
+            hover_color=t["accent_hover"],
+            text_color=t["on_accent"],
             command=self.show_add_dialog,
-            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))
+            font=(family, ui_font_size(12), "bold"),
         )
-        add_btn.pack(side="right", padx=(5, 10), pady=10)
+        add_btn.pack(side="right")
         
         # 过滤和排序控制
-        filter_frame = ctk.CTkFrame(left_frame)
-        filter_frame.pack(fill="x", padx=10, pady=(0, 10))
+        filter_frame = ctk.CTkFrame(left_frame, fg_color="transparent")
+        filter_frame.pack(fill="x", padx=14, pady=(2, 10))
         
         # 显示选项
         self.show_completed_var = ctk.BooleanVar(value=app_config.get("show_completed", True))
@@ -179,12 +211,20 @@ class TodoApp(ctk.CTk):
             text="显示已完成",
             variable=self.show_completed_var,
             command=self.refresh_tasks,
-            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))
+            corner_radius=6,
+            border_width=2,
+            fg_color=t["accent"],
+            hover_color=t["accent_hover"],
+            text_color=t["text"],
+            font=(family, ui_font_size(12)),
         )
-        show_completed_cb.pack(side="left", padx=10, pady=10)
+        show_completed_cb.pack(side="left", padx=(2, 8))
         
         # 排序选项
-        ctk.CTkLabel(filter_frame, text="排序:", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))).pack(side="left", padx=(20, 5), pady=10)
+        ctk.CTkLabel(
+            filter_frame, text="排序:", text_color=t["muted"],
+            font=(family, ui_font_size(12)),
+        ).pack(side="left", padx=(10, 6))
         
         self.sort_var = ctk.StringVar(value="创建时间")
         language = app_config.get("language", "zh-cn")
@@ -197,70 +237,116 @@ class TodoApp(ctk.CTk):
             variable=self.sort_display_var,
             command=lambda selected: (
                 self.sort_var.set(sort_display[selected]), self.on_sort_changed(selected)),
-
-            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))
+            height=32,
+            corner_radius=8,
+            fg_color=t["neutral_btn"],
+            button_color=t["neutral_btn_hover"],
+            button_hover_color=t["accent"],
+            text_color=t["text"],
+            font=(family, ui_font_size(12)),
         )
-        sort_menu.pack(side="left", padx=5, pady=10)
+        sort_menu.pack(side="left", padx=(0, 8))
         
         # 搜索框
         self.search_entry = ctk.CTkEntry(
             filter_frame,
             placeholder_text="搜索任务...",
-            width=150,
-            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))
+            width=168,
+            height=32,
+            corner_radius=8,
+            border_width=1,
+            fg_color=t["input"],
+            border_color=t["line"],
+            text_color=t["text"],
+            placeholder_text_color=t["muted"],
+            font=(family, ui_font_size(12)),
         )
-        self.search_entry.pack(side="right", padx=10, pady=10)
+        self.search_entry.pack(side="right")
         self.search_entry.bind("<KeyRelease>", self.on_search_changed)
+
+        # 分隔线
+        ctk.CTkFrame(left_frame, height=1, fg_color=t["line"], corner_radius=0).pack(
+            fill="x", padx=14, pady=(0, 6)
+        )
         
         # 任务列表滚动区域
-        self.task_list_frame = ctk.CTkScrollableFrame(left_frame)
+        self.task_list_frame = ctk.CTkScrollableFrame(
+            left_frame,
+            fg_color="transparent",
+            scrollbar_button_color=t["line"],
+            scrollbar_button_hover_color=t["muted"],
+        )
         self.task_list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 10))
     
     def create_control_panel(self, parent):
         """创建控制面板"""
+        t = THEME_TOKENS
+        family = current_font_family(app_config.get("font_mode", "harmony"))
         # 右侧框架
-        right_frame = ctk.CTkFrame(parent, width=250)
-        right_frame.pack(side="right", fill="y", padx=(5, 0))
+        right_frame = ctk.CTkFrame(parent, width=244, fg_color="transparent")
+        right_frame.pack(side="right", fill="y")
         right_frame.pack_propagate(False)
         
         # 统计信息
         self.stats_frame = StatisticsFrame(right_frame)
-        self.stats_frame.pack(fill="x", padx=10, pady=10)
+        self.stats_frame.pack(fill="x", pady=(0, 12))
         
         # 快捷操作
-        actions_frame = ctk.CTkFrame(right_frame)
-        actions_frame.pack(fill="x", padx=10, pady=(0, 10))
+        actions_frame = ctk.CTkFrame(
+            right_frame,
+            fg_color=t["surface"],
+            border_width=1,
+            border_color=t["line"],
+            corner_radius=12,
+        )
+        actions_frame.pack(fill="x")
         
-        ctk.CTkLabel(actions_frame, text="快捷操作", font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(16), "bold")).pack(pady=(10, 15))
+        ctk.CTkLabel(
+            actions_frame, text="快捷操作", text_color=t["text"],
+            font=(family, ui_font_size(14), "bold"),
+        ).pack(anchor="w", padx=16, pady=(14, 10))
         
         # 清除已完成任务
         clear_completed_btn = ctk.CTkButton(
             actions_frame,
             text="清除已完成任务",
+            height=36,
+            corner_radius=8,
+            fg_color=t["neutral_btn"],
+            hover_color=t["neutral_btn_hover"],
+            text_color=t["text"],
             command=self.clear_completed_tasks,
-            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))
+            font=(family, ui_font_size(12)),
         )
-        clear_completed_btn.pack(fill="x", padx=10, pady=5)
+        clear_completed_btn.pack(fill="x", padx=14, pady=(0, 8))
         
         # 清除所有任务
         clear_all_btn = ctk.CTkButton(
             actions_frame,
             text="清除所有任务",
+            height=36,
+            corner_radius=8,
             command=self.clear_all_tasks,
-            fg_color="red",
-            hover_color="darkred",
-            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))
+            fg_color=t["danger_soft"],
+            hover_color=t["danger_soft_hover"],
+            text_color=t["danger_text"],
+            font=(family, ui_font_size(12)),
         )
-        clear_all_btn.pack(fill="x", padx=10, pady=5)
+        clear_all_btn.pack(fill="x", padx=14, pady=(0, 8))
         
         # 导出任务
         export_btn = ctk.CTkButton(
             actions_frame,
             text="导出任务",
+            height=36,
+            corner_radius=8,
+            fg_color=t["neutral_btn"],
+            hover_color=t["neutral_btn_hover"],
+            text_color=t["text"],
             command=self.export_tasks,
-            font=(current_font_family(app_config.get("font_mode", "harmony")), ui_font_size(12))
+            font=(family, ui_font_size(12)),
         )
-        export_btn.pack(fill="x", padx=10, pady=(5, 15))
+        export_btn.pack(fill="x", padx=14, pady=(0, 14))
     
     def quick_add_task(self, event=None):
         """快速添加任务"""
@@ -326,6 +412,7 @@ class TodoApp(ctk.CTk):
         tasks = self.get_filtered_and_sorted_tasks()
         
         # 创建任务项
+        visible_count = 0
         for task in tasks:
             # “已完成”专用视图不受全局显示开关影响。
             completed_view = (getattr(self, "ui_layout", "classic") == "modern"
@@ -340,7 +427,22 @@ class TodoApp(ctk.CTk):
                 self.on_task_edit,
                 self.on_task_delete
             )
-            task_item.pack(fill="x", padx=5, pady=2)
+            task_item.pack(fill="x", padx=4, pady=4)
+            visible_count += 1
+
+        if visible_count == 0:
+            t = THEME_TOKENS
+            family = current_font_family(app_config.get("font_mode", "harmony"))
+            empty = ctk.CTkFrame(self.task_list_frame, fg_color="transparent")
+            empty.pack(fill="x", pady=48)
+            ctk.CTkLabel(
+                empty, text="这里暂时没有任务", text_color=t["text"],
+                font=(family, ui_font_size(15), "bold"),
+            ).pack(pady=(0, 4))
+            ctk.CTkLabel(
+                empty, text="添加一条待办，或调整筛选条件", text_color=t["muted"],
+                font=(family, ui_font_size(12)),
+            ).pack()
         
         # 更新统计信息
         self.update_statistics()
@@ -450,7 +552,7 @@ class TodoApp(ctk.CTk):
             show_statistics = app_config.get("show_statistics", True)
             if hasattr(self, 'stats_frame'):
                 if show_statistics:
-                    self.stats_frame.pack(fill="x", padx=10, pady=10)
+                    self.stats_frame.pack(fill="x", pady=(0, 12))
                 else:
                     self.stats_frame.pack_forget()
             

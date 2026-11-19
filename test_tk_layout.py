@@ -28,6 +28,22 @@ class TkLayoutTests(unittest.TestCase):
     def test_navigation_has_distinct_filters(self):
         self.assertEqual(VIEWS, ("全部任务", "进行中", "已完成"))
 
+    def test_theme_tokens_have_light_and_dark_hex_pairs(self):
+        from modern_ui import THEME_TOKENS, palette
+        required = {
+            "canvas", "sidebar", "surface", "card", "input", "text",
+            "secondary", "muted", "accent", "accent_hover", "on_accent",
+            "selected", "line", "danger_soft", "danger_text", "overdue",
+        }
+        self.assertTrue(required.issubset(THEME_TOKENS))
+        for key, pair in THEME_TOKENS.items():
+            with self.subTest(token=key):
+                self.assertEqual(len(pair), 2)
+                for color in pair:
+                    self.assertRegex(color, r"^#[0-9A-Fa-f]{6}$")
+        active = palette()
+        self.assertTrue(required.issubset(active))
+
 
 if __name__ == "__main__":
     unittest.main()
